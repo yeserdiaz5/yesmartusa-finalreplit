@@ -59,12 +59,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Debug logging
+  console.log('[Middleware] Path:', request.nextUrl.pathname)
+  console.log('[Middleware] User:', user ? `Found (${user.id})` : 'Not found')
+  console.log('[Middleware] Cookies:', request.cookies.getAll().map(c => c.name).join(', '))
+
   // Define routes that require authentication
   const protectedRoutes = ["/seller", "/admin", "/orders"]
   const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
 
   // Redirect to login only if accessing protected routes without authentication
   if (!user && isProtectedRoute && !request.nextUrl.pathname.startsWith("/auth")) {
+    console.log('[Middleware] Redirecting to login - no user found for protected route')
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     return NextResponse.redirect(url)
