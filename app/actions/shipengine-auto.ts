@@ -1,5 +1,7 @@
 "use server"
 
+import { getApiKey } from "@/lib/shipengine"
+
 interface ShipmentData {
   orderId: string
   shipTo: {
@@ -19,7 +21,7 @@ interface ShipmentData {
 }
 
 export async function createShipEngineShipment(data: ShipmentData) {
-  const apiKey = process.env.SHIPENGINE_API_KEY
+  const apiKey = getApiKey()
 
   if (!apiKey) {
     console.error("[v0] ShipEngine API key not configured")

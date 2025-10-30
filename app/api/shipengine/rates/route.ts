@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { getApiKey } from "@/lib/shipengine"
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,11 +8,13 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] ShipEngine rates request:", JSON.stringify(body, null, 2))
 
+    const API_KEY = getApiKey()
+
     // First, get the list of carriers
     const carriersResponse = await fetch("https://api.shipengine.com/v1/carriers", {
       method: "GET",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY!,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
     })
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
     const response = await fetch("https://api.shipengine.com/v1/rates", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY!,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(shipmentRequest),

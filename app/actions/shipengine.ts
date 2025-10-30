@@ -1,6 +1,6 @@
 "use server"
 
-import { isShipEngineConfigured } from "@/lib/shipengine"
+import { isShipEngineConfigured, getApiKey, isUsingProductionKey } from "@/lib/shipengine"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath, unstable_noStore } from "next/cache"
 
@@ -67,9 +67,11 @@ export async function testShipEngineConnection() {
       }
     }
 
+    const API_KEY = getApiKey()
+
     const response = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
     })
@@ -126,9 +128,11 @@ export async function getRatesForOrder(
     console.log("[v0] 📤 Seller address:", sellerAddress)
     console.log("[v0] 📥 Buyer address:", buyerAddress)
 
+    const API_KEY = getApiKey()
+
     const carriersResponse = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
     })
@@ -196,7 +200,7 @@ export async function getRatesForOrder(
     const ratesResponse = await fetch("https://api.shipengine.com/v1/rates", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(ratesRequest),
@@ -261,6 +265,23 @@ export async function purchaseLabelForOrder(
       return {
         success: false,
         error: "ShipEngine API key is not configured.",
+      }
+    }
+
+    // VERIFICAR SI ESTÁ USANDO LA KEY DE PRODUCCIÓN
+    const usingProductionKey = isUsingProductionKey()
+    console.log("[v0] 🔑 Using PRODUCTION API key:", usingProductionKey)
+    
+    if (!usingProductionKey) {
+      console.warn("[v0] ⚠️ WARNING: Using TEST API key - labels may not be purchasable in production!")
+      console.warn("[v0] ⚠️ Set SHIPENGINE_PRODUCTION_API_KEY environment variable for production")
+    }
+
+    const API_KEY = getApiKey()
+    if (!API_KEY) {
+      return {
+        success: false,
+        error: "ShipEngine API key is empty. Please configure SHIPENGINE_PRODUCTION_API_KEY or SHIPENGINE_API_KEY",
       }
     }
 
@@ -384,7 +405,7 @@ export async function purchaseLabelForOrder(
     const labelResponse = await fetch("https://api.shipengine.com/v1/labels", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(labelRequest),
@@ -403,9 +424,24 @@ export async function purchaseLabelForOrder(
 
       console.log("[v0] ❌ ShipEngine Error:", JSON.stringify(errorData, null, 2))
 
+      // Detectar si es un error de API key de prueba
+      const errorMessage = errorData.message || labelResponse.statusText || ""
+      const isTestKeyError = errorMessage.toLowerCase().includes("test") || 
+                            errorMessage.toLowerCase().includes("sandbox") ||
+                            labelResponse.status === 402 || // Payment required
+                            labelResponse.status === 403    // Forbidden
+
+      if (isTestKeyError && !usingProductionKey) {
+        return {
+          success: false,
+          error: "⚠️ ERROR DE PRODUCCIÓN: Estás usando una API key de PRUEBA. Las etiquetas reales solo se pueden comprar con una API key de PRODUCCIÓN de ShipEngine. Por favor configura la variable de entorno SHIPENGINE_PRODUCTION_API_KEY en Vercel.",
+          errorDetails: errorData,
+        }
+      }
+
       return {
         success: false,
-        error: `Error de ShipEngine: ${errorData.message || labelResponse.statusText}`,
+        error: `Error de ShipEngine: ${errorMessage}`,
         errorDetails: errorData,
       }
     }
@@ -523,9 +559,11 @@ export async function testShippingRates() {
       }
     }
 
+    const API_KEY = getApiKey()
+
     const carriersResponse = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
     })
@@ -586,7 +624,7 @@ export async function testShippingRates() {
     const response = await fetch("https://api.shipengine.com/v1/rates", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(testRatesRequest),
@@ -654,11 +692,13 @@ export async function updateTrackingStatus(shipmentId: string) {
       }
     }
 
+    const API_KEY = getApiKey()
+
     const response = await fetch(
       `https://api.shipengine.com/v1/tracking?carrier_code=${shipment.carrier}&tracking_number=${shipment.tracking_number}`,
       {
         headers: {
-          "API-Key": process.env.SHIPENGINE_API_KEY as string,
+          "API-Key": API_KEY,
           "Content-Type": "application/json",
         },
       },
@@ -734,10 +774,12 @@ export async function validateAddress(address: any) {
       }
     }
 
+    const API_KEY = getApiKey()
+
     const response = await fetch("https://api.shipengine.com/v1/addresses/validate", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
       body: JSON.stringify([
@@ -801,10 +843,12 @@ export async function voidLabel(labelId: string, orderId: string) {
 
     const supabase = await createClient()
 
+    const API_KEY = getApiKey()
+
     const response = await fetch(`https://api.shipengine.com/v1/labels/${labelId}/void`, {
       method: "PUT",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": API_KEY,
         "Content-Type": "application/json",
       },
     })

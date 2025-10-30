@@ -1,6 +1,6 @@
 "use server"
 
-import { isShipEngineConfigured } from "@/lib/shipengine"
+import { isShipEngineConfigured, getApiKey } from "@/lib/shipengine"
 import { unstable_noStore } from "next/cache"
 
 function formatPhone(phone: string | undefined): string {
@@ -25,7 +25,7 @@ export async function getShipEngineCarriers() {
 
     const response = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
     })
@@ -81,7 +81,7 @@ export async function getRatesForOrder(
 
     const carriersResponse = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
     })
@@ -149,7 +149,7 @@ export async function getRatesForOrder(
     const ratesResponse = await fetch("https://api.shipengine.com/v1/rates", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(ratesRequest),
@@ -217,7 +217,7 @@ export async function validateAddress(address: any) {
     const response = await fetch("https://api.shipengine.com/v1/addresses/validate", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
       body: JSON.stringify([
@@ -277,7 +277,7 @@ export async function testShipEngineConnection() {
 
     const response = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
     })
@@ -322,7 +322,7 @@ export async function testShippingRates() {
 
     const carriersResponse = await fetch("https://api.shipengine.com/v1/carriers", {
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
     })
@@ -383,7 +383,7 @@ export async function testShippingRates() {
     const response = await fetch("https://api.shipengine.com/v1/rates", {
       method: "POST",
       headers: {
-        "API-Key": process.env.SHIPENGINE_API_KEY as string,
+        "API-Key": getApiKey(),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(testRatesRequest),
