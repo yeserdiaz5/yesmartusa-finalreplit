@@ -17,16 +17,8 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          supabaseResponse = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
+          // CRITICAL: Only write to supabaseResponse.cookies for production edge runtime
+          // Writing to request.cookies causes issues in production deployments
           supabaseResponse.cookies.set({
             name,
             value,
@@ -34,16 +26,7 @@ export async function updateSession(request: NextRequest) {
           })
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          supabaseResponse = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
+          // CRITICAL: Only write to supabaseResponse.cookies for production edge runtime
           supabaseResponse.cookies.set({
             name,
             value: '',
