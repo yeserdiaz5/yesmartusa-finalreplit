@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { createClient as createServiceClient } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabase/server"
 import CreateLabelClient from "./create-label-client"
 
 export const dynamic = "force-dynamic"
@@ -9,12 +9,17 @@ export default async function CreateLabelPage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const supabase = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
+  const supabase = await createClient()
+
+  // Check if user is authenticated
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
+
+  if (userError || !user) {
+    redirect("/login")
+  }
 
   const orderId = searchParams.orderId as string
 
@@ -64,5 +69,8 @@ export default async function CreateLabelPage({
 
   console.log("[v0] CreateLabel - Seller result:", { seller, sellerError })
 
-  return <CreateLabelClient order={order} seller={seller} user={null} />
+  // Get authenticated user profile
+  const { data: userProfile } = await supabase.from("users").select("*").eq("id", user.id).single()
+
+  return <CreateLabelClient order={order} seller={seller} user={userProfile || user} />
 }
