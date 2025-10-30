@@ -249,6 +249,7 @@ export async function getRatesForOrder(
 export async function purchaseLabelForOrder(
   orderId: string,
   rateId: string,
+  serviceCode: string,
   length: number,
   width: number,
   height: number,
@@ -260,6 +261,7 @@ export async function purchaseLabelForOrder(
     console.log("[v0] 🏷️ ===== PURCHASING LABEL FOR ORDER =====")
     console.log("[v0] Order ID:", orderId)
     console.log("[v0] Rate ID:", rateId)
+    console.log("[v0] Service Code:", serviceCode)
 
     if (!isShipEngineConfigured()) {
       return {
@@ -357,7 +359,7 @@ export async function purchaseLabelForOrder(
 
     const labelRequest = {
       shipment: {
-        service_code: order.selected_service_code,
+        service_code: serviceCode,
         ship_to: {
           name: buyerAddress.full_name || "Customer",
           phone: formatPhone(buyerAddress.phone),
