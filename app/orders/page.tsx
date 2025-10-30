@@ -18,5 +18,13 @@ export default async function OrdersPage() {
   const ordersResult = await getSellerOrders()
   const orders = ordersResult.success ? ordersResult.data || [] : []
 
-  return <OrdersPageClient user={userProfile} orders={orders} />
+  // Use userProfile if available, otherwise create a minimal user object from auth user
+  const userData = userProfile || {
+    id: user.id,
+    email: user.email!,
+    full_name: user.user_metadata?.full_name || user.email,
+    role: 'user' as const
+  }
+
+  return <OrdersPageClient user={userData} orders={orders} />
 }

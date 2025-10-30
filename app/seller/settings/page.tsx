@@ -18,13 +18,17 @@ export default async function SellerSettingsPage() {
       .eq("id", user.id)
       .single()
 
-    if (!userProfile) {
-      redirect("/")
+    // Use userProfile if available, otherwise create a minimal user object
+    const userData = userProfile || {
+      id: user.id,
+      email: user.email!,
+      full_name: user.user_metadata?.full_name || user.email,
+      role: 'user' as const
     }
 
     return (
       <div className="min-h-screen bg-gray-50">
-        <SiteHeader user={userProfile} showSearch={false} />
+        <SiteHeader user={userData} showSearch={false} />
 
         <div className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
@@ -35,7 +39,7 @@ export default async function SellerSettingsPage() {
 
         <div className="container mx-auto px-4 py-6">
           <div className="max-w-3xl mx-auto">
-            <SellerSettingsClient user={userProfile} />
+            <SellerSettingsClient user={userData} />
           </div>
         </div>
       </div>

@@ -18,8 +18,12 @@ export default async function EditProductPage({ params }: { params: { id: string
   // Get user profile
   const { data: userProfile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-  if (!userProfile) {
-    redirect("/")
+  // Use userProfile if available, otherwise create a minimal user object
+  const userData = userProfile || {
+    id: user.id,
+    email: user.email!,
+    full_name: user.user_metadata?.full_name || user.email,
+    role: 'user' as const
   }
 
   // Get product data
@@ -43,7 +47,7 @@ export default async function EditProductPage({ params }: { params: { id: string
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader user={userProfile} showSearch={false} />
+      <SiteHeader user={userData} showSearch={false} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
