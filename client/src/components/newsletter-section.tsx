@@ -60,10 +60,10 @@ export function NewsletterSection() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
             <Mail className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-newsletter-heading">
             Stay Updated with Exclusive Insights
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+          <p className="text-base md:text-lg text-muted-foreground leading-relaxed" data-testid="text-newsletter-description">
             Get the latest service comparisons, pricing updates, and exclusive
             deals delivered straight to your inbox. Join over 10,000
             subscribers.
@@ -73,10 +73,10 @@ export function NewsletterSection() {
         {isSubscribed ? (
           <div className="bg-card rounded-lg border p-8 text-center" data-testid="success-message">
             <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
+            <h3 className="text-xl font-semibold mb-2" data-testid="text-success-heading">
               You're all set!
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground" data-testid="text-success-description">
               Welcome to our community. Check your email for confirmation.
             </p>
           </div>
@@ -113,7 +113,7 @@ export function NewsletterSection() {
                   {subscribeMutation.isPending ? "Subscribing..." : "Subscribe Now"}
                 </Button>
 
-                <p className="text-xs text-center text-muted-foreground">
+                <p className="text-xs text-center text-muted-foreground" data-testid="text-privacy-notice">
                   We respect your privacy. Unsubscribe at any time.
                 </p>
               </form>
