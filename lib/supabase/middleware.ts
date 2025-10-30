@@ -55,9 +55,20 @@ export async function updateSession(request: NextRequest) {
   )
 
   // IMPORTANT: Do not run code between createServerClient and supabase.auth.getUser()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const result = await supabase.auth.getUser()
+    user = result.data.user
+  } catch (error: any) {
+    // Handle rate limit errors - don't kick user out, just log it
+    if (error?.status === 429 || error?.code === 'over_request_rate_limit') {
+      console.log('[Middleware] Rate limit reached - allowing through without re-auth')
+      // Don't set user to null, instead skip authentication check for this request
+      // This prevents kicking users out when rate limit is hit
+      return supabaseResponse
+    }
+    console.error('[Middleware] Auth error:', error)
+  }
 
   // Debug logging
   console.log('[Middleware] Path:', request.nextUrl.pathname)
