@@ -41,7 +41,7 @@ export async function sendOrderEmail(to: string, subject: string, html: string) 
     }
 
     const { data, error } = await resend.emails.send({
-      from: "YesMart USA <noreply@yesmartusa.com>",
+      from: "YesMart USA <onboarding@resend.dev>",
       to: [to],
       subject: subject,
       html: html,
