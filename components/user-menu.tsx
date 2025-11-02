@@ -49,7 +49,7 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/my-orders" className="cursor-pointer">
+          <Link href="/mis-compras" className="cursor-pointer">
             <Package className="w-4 h-4 mr-2" />
             Mis Compras
           </Link>
