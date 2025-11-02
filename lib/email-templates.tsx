@@ -1,6 +1,13 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resendInstance: Resend | null = null
+
+function getResendClient() {
+  if (!resendInstance && process.env.RESEND_API_KEY) {
+    resendInstance = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendInstance
+}
 
 interface OrderEmailData {
   orderNumber?: string
@@ -23,6 +30,13 @@ export async function sendOrderEmail(to: string, subject: string, html: string) 
 
     if (!process.env.RESEND_API_KEY) {
       console.warn("[v0] RESEND_API_KEY not configured, skipping email send")
+      return { success: false, error: "Email service not configured" }
+    }
+
+    const resend = getResendClient()
+    
+    if (!resend) {
+      console.warn("[v0] Failed to initialize Resend client")
       return { success: false, error: "Email service not configured" }
     }
 
