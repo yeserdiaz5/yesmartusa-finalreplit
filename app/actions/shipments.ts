@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import { getApiKey } from "@/lib/shipengine"
 
 export type ShipmentStatus = "pending" | "in_transit" | "delivered" | "failed" | "returned"
 
@@ -240,7 +239,7 @@ interface ShipEngineShipmentData {
 }
 
 export async function createShipEngineShipment(data: ShipEngineShipmentData) {
-  const apiKey = getApiKey()
+  const apiKey = process.env.SHIPENGINE_API_KEY
 
   if (!apiKey) {
     console.error("[v0] ShipEngine API key not configured")
@@ -322,7 +321,7 @@ export async function createShipEngineShipment(data: ShipEngineShipmentData) {
 }
 
 export async function createShipEngineShipmentAndRedirect(data: ShipEngineShipmentData) {
-  const apiKey = getApiKey()
+  const apiKey = process.env.SHIPENGINE_API_KEY
 
   if (!apiKey) {
     console.error("[v0] ShipEngine API key not configured")

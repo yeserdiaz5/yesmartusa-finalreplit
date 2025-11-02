@@ -8,17 +8,22 @@ import { redirect } from "next/navigation"
 export async function loginWithPassword(email: string, password: string) {
   const supabase = await createClient()
 
+  console.log("[v0] loginWithPassword - Attempting login for:", email)
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
 
   if (error) {
+    console.error("[v0] loginWithPassword - Error:", error)
     return {
       success: false,
       error: error.message,
     }
   }
+
+  console.log("[v0] loginWithPassword - Success, user:", data.user?.email)
 
   revalidatePath("/", "layout")
   return {

@@ -426,6 +426,20 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
               </div>
             </div>
 
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600">
+                  {filteredProducts.length} of {products.length} results
+                </span>
+                <select className="border rounded-md px-3 py-1 text-sm">
+                  <option>Best Match</option>
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                  <option>Customer Rating</option>
+                  <option>Trust Score</option>
+                </select>
+              </div>
+            </div>
 
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import SiteHeader from "@/components/site-header"
 import type { User } from "@/lib/types/database"
-import { Package, Truck, Download, RefreshCw, MapPin, XCircle } from "lucide-react"
+import { Package, Truck, Download, RefreshCw, MapPin, XCircle, ExternalLink, FileText } from "lucide-react"
 import { shipOrder, cancelOrder, syncOrderStatus } from "../actions/orders"
 import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
@@ -284,6 +284,8 @@ export default function OrdersPageClient({ user, orders = [] }: OrdersPageClient
   const OrderCard = ({ order }: { order: any }) => {
     const hasShipment = orderShipments[order.id] && orderShipments[order.id].length > 0
     const isSyncing = syncingOrders.has(order.id)
+    const hasLabel = hasShipment && orderShipments[order.id].some((s) => s.label_url)
+    const firstShipment = hasShipment ? orderShipments[order.id][0] : null
 
     return (
       <Card key={order.id}>
@@ -350,6 +352,67 @@ export default function OrdersPageClient({ user, orders = [] }: OrdersPageClient
                 .toFixed(2)}
             </span>
           </div>
+
+          {hasLabel && firstShipment ? (
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Truck className="w-5 h-5 text-green-600" />
+                <h3 className="font-semibold text-green-900">Envío</h3>
+              </div>
+
+              <div className="space-y-2 mb-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Número de seguimiento:</span>
+                  <span className="font-mono text-sm font-medium">{firstShipment.tracking_number}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Transportista:</span>
+                  <span className="text-sm font-medium">{firstShipment.carrier.toUpperCase()}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    if (firstShipment.label_url) {
+                      window.open(firstShipment.label_url, "_blank")
+                    }
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Ver etiqueta de envío
+                </Button>
+                {firstShipment.tracking_url && (
+                  <Button
+                    onClick={() => {
+                      if (firstShipment.tracking_url) {
+                        window.open(firstShipment.tracking_url, "_blank")
+                      }
+                    }}
+                    variant="outline"
+                    className="flex-1 border-green-600 text-green-600 hover:bg-green-50"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Ver seguimiento
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : (
+            order.status === "paid" && (
+              <div className="mt-4">
+                <Button
+                  onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
+                  variant="outline"
+                  className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  <Package className="w-4 h-4 mr-2" />
+                  Crear etiqueta de envío
+                </Button>
+              </div>
+            )
+          )}
 
           {order.status === "paid" && (
             <div className="mt-4 flex gap-2">

@@ -108,6 +108,7 @@ export async function createNotification(
   title: string,
   message: string,
   orderId?: string,
+  link?: string,
 ) {
   const supabase = await createClient()
 
@@ -117,6 +118,7 @@ export async function createNotification(
     title,
     message,
     order_id: orderId,
+    link,
   })
 
   if (error) {

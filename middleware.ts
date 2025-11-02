@@ -1,7 +1,13 @@
 import { updateSession } from "@/lib/supabase/middleware"
 import type { NextRequest } from "next/server"
+import { NextResponse } from "next/server"
 
 export async function middleware(request: NextRequest) {
+  // Server actions are POST requests to the same page URL
+  if (request.method === "POST") {
+    return NextResponse.next()
+  }
+
   return await updateSession(request)
 }
 
