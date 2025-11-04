@@ -109,17 +109,25 @@ export async function createStripeCheckoutSession(
     throw new Error("Error al crear los items de la orden: " + itemsError.message)
   }
 
-  const lineItems = cartItems.map((item) => ({
-    price_data: {
-      currency: "usd",
-      product_data: {
-        name: item.product.title,
-        description: item.product.description || "",
+  const lineItems = cartItems.map((item) => {
+    const productData: any = {
+      name: item.product.title,
+    }
+    
+    // Only add description if it exists and is not empty
+    if (item.product.description && item.product.description.trim() !== "") {
+      productData.description = item.product.description
+    }
+    
+    return {
+      price_data: {
+        currency: "usd",
+        product_data: productData,
+        unit_amount: Math.round(item.product.price * 100), // Convert to cents
       },
-      unit_amount: Math.round(item.product.price * 100), // Convert to cents
-    },
-    quantity: item.quantity,
-  }))
+      quantity: item.quantity,
+    }
+  })
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
