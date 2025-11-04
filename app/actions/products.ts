@@ -322,7 +322,9 @@ export async function getAllProducts(categorySlug?: string, searchQuery?: string
       seller:users!products_seller_id_fkey (
         id,
         full_name,
-        email
+        email,
+        store_name,
+        seller_address
       ),
       product_categories (
         category:categories (*)
@@ -365,4 +367,47 @@ export async function getAllProducts(categorySlug?: string, searchQuery?: string
   }
 
   return { data: products }
+}
+
+/**
+ * Get public products by seller ID (for storefront view)
+ * Anyone can view a seller's active products
+ */
+export async function getProductsBySellerId(sellerId: string) {
+  const supabase = await createClient()
+
+  // Get seller info
+  const { data: seller, error: sellerError } = await supabase
+    .from("users")
+    .select("id, full_name, store_name, avatar_url, email")
+    .eq("id", sellerId)
+    .single()
+
+  if (sellerError || !seller) {
+    return { error: "Seller not found" }
+  }
+
+  // Get seller's active products
+  const { data: products, error: productsError } = await supabase
+    .from("products")
+    .select(
+      `
+      *,
+      product_categories (
+        category:categories (*)
+      ),
+      product_tags (
+        tag:tags (*)
+      )
+    `,
+    )
+    .eq("seller_id", sellerId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+
+  if (productsError) {
+    return { error: productsError.message }
+  }
+
+  return { data: { seller, products } }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { User, LogOut, Settings, Package, Store, Truck } from "lucide-react"
+import { User, LogOut, Settings, Package, Store, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -49,21 +49,21 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/mis-compras" className="cursor-pointer">
-            <Package className="w-4 h-4 mr-2" />
+          <Link href="/compras" className="cursor-pointer">
+            <ShoppingBag className="w-4 h-4 mr-2" />
             Mis Compras
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/orders" className="cursor-pointer">
-            <Truck className="w-4 h-4 mr-2" />
+          <Link href="/my-orders" className="cursor-pointer">
+            <Package className="w-4 h-4 mr-2" />
             Mis Pedidos
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/seller" className="cursor-pointer">
             <Store className="w-4 h-4 mr-2" />
-            Panel de Vendedor
+            Mi Tienda
           </Link>
         </DropdownMenuItem>
         {user.role === "admin" && (

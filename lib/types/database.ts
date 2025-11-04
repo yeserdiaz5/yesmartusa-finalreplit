@@ -90,6 +90,19 @@ export interface OrderItem {
   created_at: string
 }
 
+/**
+ * Compra represents a purchase from the buyer's perspective.
+ * It's an alias for Order but emphasizes the buyer_id (compradorId) field.
+ * This type is used to distinguish purchases (compras) from sales (ventas).
+ */
+export type Compra = Order
+
+export interface CompraWithItems extends Compra {
+  order_items: (OrderItem & {
+    product?: Product
+  })[]
+}
+
 export interface Review {
   id: string
   product_id: string

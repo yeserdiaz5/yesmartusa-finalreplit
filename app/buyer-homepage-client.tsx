@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useMemo } from "react"
-import { Star, Search, ShoppingCart, Plus, Minus } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
+import { Star, Search, ShoppingCart, Plus, Minus, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation"
 import { addToCart } from "@/app/actions/cart"
 import { useToast } from "@/hooks/use-toast"
 import { addToGuestCart } from "@/lib/guest-cart"
+import { useBuyerLocation } from "@/hooks/use-buyer-location"
+import { calculateDistance, getDeliveryTimeMessage, geocodeAddress } from "@/lib/geolocation"
 
 interface BuyerHomepageClientProps {
   user: User | null
@@ -22,67 +24,80 @@ interface BuyerHomepageClientProps {
   categories: any[]
 }
 
-function TrustBadge({ score }: { score: number }) {
-  const getScoreData = (score: number) => {
-    if (score >= 90)
-      return {
-        color: "bg-emerald-50 border-emerald-200 text-emerald-800",
-        icon: "🛡️",
-        label: "Excellent",
-        barColor: "bg-emerald-500",
-      }
-    if (score >= 80)
-      return {
-        color: "bg-blue-50 border-blue-200 text-blue-800",
-        icon: "✅",
-        label: "Very Good",
-        barColor: "bg-blue-500",
-      }
-    if (score >= 70)
-      return {
-        color: "bg-amber-50 border-amber-200 text-amber-800",
-        icon: "⚠️",
-        label: "Good",
-        barColor: "bg-amber-500",
-      }
-    return {
-      color: "bg-red-50 border-red-200 text-red-800",
-      icon: "❌",
-      label: "Poor",
-      barColor: "bg-red-500",
+interface SellerLocationProps {
+  seller: any
+  buyerLocation: { latitude: number; longitude: number } | null
+}
+
+function SellerLocationInfo({ seller, buyerLocation }: SellerLocationProps) {
+  const [deliveryTime, setDeliveryTime] = useState<string | null>(null)
+
+  // Always show seller location immediately if available
+  const locationStr =
+    seller?.seller_address?.city && seller?.seller_address?.state
+      ? `${seller.seller_address.city}, ${seller.seller_address?.state}`
+      : null
+
+  useEffect(() => {
+    // Only calculate delivery time if we have both buyer location and seller address
+    if (!buyerLocation || !seller?.seller_address?.city || !seller?.seller_address?.state) {
+      setDeliveryTime(null)
+      return
     }
+
+    async function calculateDeliveryTime() {
+      try {
+        const sellerCoords = await geocodeAddress(seller.seller_address.city, seller.seller_address.state)
+
+        if (sellerCoords) {
+          const distance = calculateDistance(
+            buyerLocation.latitude,
+            buyerLocation.longitude,
+            sellerCoords.lat,
+            sellerCoords.lng,
+          )
+          const deliveryTimeMsg = getDeliveryTimeMessage(distance)
+          setDeliveryTime(deliveryTimeMsg)
+        }
+      } catch (error) {
+        console.error("Error calculating delivery time:", error)
+        setDeliveryTime(null)
+      }
+    }
+
+    calculateDeliveryTime()
+  }, [seller, buyerLocation])
+
+  // Don't render if no location available
+  if (!locationStr) {
+    return null
   }
 
-  const scoreData = getScoreData(score)
-
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${scoreData.color}`}>
-      <span className="text-sm">{scoreData.icon}</span>
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium">Trust Score</span>
-          <span className="text-sm font-bold">{score}%</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${scoreData.barColor} transition-all duration-300`}
-              style={{ width: `${score}%` }}
-            />
-          </div>
-          <span className="text-xs opacity-75">{scoreData.label}</span>
-        </div>
+    <div className="space-y-1 text-xs">
+      <div className="flex items-center gap-1 text-gray-600">
+        <MapPin className="w-3 h-3" />
+        <span>{locationStr}</span>
       </div>
+      {deliveryTime && (
+        <div className="flex items-center gap-1 text-green-600 font-medium">
+          <Clock className="w-3 h-3" />
+          <span>{deliveryTime}</span>
+        </div>
+      )}
     </div>
   )
 }
 
-function ProductCard({ product, userId }: { product: any; userId: string | null }) {
+function ProductCard({
+  product,
+  userId,
+  buyerLocation,
+}: { product: any; userId: string | null; buyerLocation: { latitude: number; longitude: number } | null }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const trustScore = 75 + Math.floor(Math.random() * 20)
   const rating = 4 + Math.random()
   const reviews = Math.floor(Math.random() * 2000) + 100
 
@@ -220,15 +235,18 @@ function ProductCard({ product, userId }: { product: any; userId: string | null 
           <span className="text-lg font-bold text-gray-900">${product.price}</span>
         </div>
 
-        <div className="text-xs text-gray-600 mb-3">
-          by{" "}
-          <span className="text-blue-600 hover:underline">
-            {product.seller?.full_name || product.seller?.email || "Unknown Seller"}
-          </span>
+        <div className="text-xs text-gray-600 mb-2">
+          <Link
+            href={`/tienda/${product.seller?.id}`}
+            className="text-blue-600 hover:underline font-medium"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {product.seller?.store_name || product.seller?.full_name || "Tienda"}
+          </Link>
         </div>
 
         <div className="mb-3">
-          <TrustBadge score={trustScore} />
+          <SellerLocationInfo seller={product.seller} buyerLocation={buyerLocation} />
         </div>
 
         <div className="flex items-center gap-2 mb-3">
@@ -278,10 +296,10 @@ function ProductCard({ product, userId }: { product: any; userId: string | null 
 export default function BuyerHomepageClient({ user, products, categories }: BuyerHomepageClientProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 200])
-  const [trustScore, setTrustScore] = useState([70])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
+  const { location: buyerLocation } = useBuyerLocation()
 
   const handleCategoryChange = (categorySlug: string, checked: boolean) => {
     if (checked) {
@@ -360,12 +378,6 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
             </div>
 
             <div className="mb-6">
-              <h4 className="font-medium mb-3">Minimum Trust Score</h4>
-              <Slider value={trustScore} onValueChange={setTrustScore} max={100} step={5} className="mb-2" />
-              <div className="text-sm text-gray-600">{trustScore[0]}% and above</div>
-            </div>
-
-            <div className="mb-6">
               <h4 className="font-medium mb-3">Seller Rating</h4>
               <div className="space-y-2">
                 {[4, 3, 2, 1].map((rating) => (
@@ -426,25 +438,17 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
               </div>
             </div>
 
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-600">
-                  {filteredProducts.length} of {products.length} results
-                </span>
-                <select className="border rounded-md px-3 py-1 text-sm">
-                  <option>Best Match</option>
-                  <option>Price: Low to High</option>
-                  <option>Price: High to Low</option>
-                  <option>Customer Rating</option>
-                  <option>Trust Score</option>
-                </select>
-              </div>
-            </div>
+            {/* results header removed (count + sort selector) */}
 
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} userId={user?.id || null} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    userId={user?.id || null}
+                    buyerLocation={buyerLocation}
+                  />
                 ))}
               </div>
             ) : (
