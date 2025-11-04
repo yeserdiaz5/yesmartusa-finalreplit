@@ -222,20 +222,23 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
         </Button>
 
         {isGuest && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg shadow-sm">
+          <div className="mb-6 p-5 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-lg shadow-md">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-0.5">
-                <ShoppingBag className="h-5 w-5 text-blue-600" />
+                <CreditCard className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-blue-900 mb-1">Compra como Invitado</h3>
-                <p className="text-sm text-blue-800">
-                  Puedes completar tu compra sin crear una cuenta. Si deseas guardar tu historial de pedidos,{" "}
-                  <a href="/auth/login" className="underline font-medium hover:text-blue-900">
+                <h3 className="font-bold text-green-900 mb-2 text-lg">✓ Compra Rápida sin Registro</h3>
+                <p className="text-sm text-green-800 mb-2">
+                  <strong>¡Puedes pagar ahora mismo con Stripe!</strong> No necesitas crear una cuenta. Solo completa tus datos de envío y paga de forma segura.
+                </p>
+                <p className="text-xs text-green-700">
+                  <em>Opcional:</em> Si quieres guardar tu historial de pedidos,{" "}
+                  <a href="/auth/login" className="underline font-semibold hover:text-green-900">
                     inicia sesión
                   </a>{" "}
                   o{" "}
-                  <a href="/auth/sign-up" className="underline font-medium hover:text-blue-900">
+                  <a href="/auth/sign-up" className="underline font-semibold hover:text-green-900">
                     crea una cuenta
                   </a>
                   .
