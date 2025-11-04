@@ -152,13 +152,22 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
       console.log("[v0] handleStripeCheckout - Stripe session created:", result)
 
       if (result.url) {
+        console.log("[v0] handleStripeCheckout - Redirecting to:", result.url)
+        
         if (isGuest) {
           clearGuestCart()
         }
         setCartItems([])
 
-        window.location.href = result.url
+        // Try multiple methods to ensure redirect works
+        try {
+          window.location.replace(result.url)
+        } catch (e) {
+          console.error("[v0] handleStripeCheckout - Replace failed, trying href:", e)
+          window.location.href = result.url
+        }
       } else {
+        console.error("[v0] handleStripeCheckout - No URL in result:", result)
         toast({
           title: "Error",
           description: "No se pudo crear la sesión de pago",
