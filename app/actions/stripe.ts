@@ -3,21 +3,10 @@
 import { stripe } from "@/lib/stripe"
 import { createClient } from "@/lib/supabase/server"
 
-interface CheckoutData {
-  customerName: string
-  customerEmail: string
-  phone: string
-  street: string
-  city: string
-  state: string
-  zip: string
-  country: string
-}
-
 export async function createStripeCheckoutSession(
-  checkoutData: CheckoutData, 
   isGuest: boolean,
-  guestCartItems?: any[]
+  guestCartItems?: any[],
+  userEmail?: string | null
 ) {
   const supabase = await createClient()
 
@@ -72,19 +61,10 @@ export async function createStripeCheckoutSession(
     .from("orders")
     .insert({
       buyer_id: userId,
-      buyer_email: isGuest ? checkoutData.customerEmail : null,
+      buyer_email: isGuest ? userEmail : null,
       status: "pending",
       total_amount: totalAmount,
-      shipping_address: {
-        name: checkoutData.customerName,
-        email: checkoutData.customerEmail,
-        phone: checkoutData.phone,
-        street: checkoutData.street,
-        city: checkoutData.city,
-        state: checkoutData.state,
-        zip: checkoutData.zip,
-        country: checkoutData.country,
-      },
+      shipping_address: null, // Stripe will collect this
     })
     .select()
     .single()
@@ -135,7 +115,10 @@ export async function createStripeCheckoutSession(
     mode: "payment",
     success_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:3000"}/checkoutplus/success?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:3000"}/checkoutplus`,
-    customer_email: checkoutData.customerEmail,
+    customer_email: userEmail || undefined,
+    shipping_address_collection: {
+      allowed_countries: ['US', 'CA', 'MX', 'GB', 'AU', 'ES', 'FR', 'DE', 'IT', 'BR', 'AR', 'CL', 'CO', 'PE'],
+    },
     metadata: {
       order_id: order.id,
       user_id: userId || "guest",
@@ -167,4 +150,41 @@ export async function updateOrderStatusToPaid(orderId: string, paymentIntentId: 
   }
 
   return { success: true }
+}
+
+export async function updateOrderWithShippingAddress(orderId: string, sessionId: string) {
+  const supabase = await createClient()
+  
+  try {
+    // Get shipping address from Stripe session
+    const session = await stripe.checkout.sessions.retrieve(sessionId)
+    
+    if (session.shipping_details) {
+      const { error } = await supabase
+        .from("orders")
+        .update({
+          shipping_address: {
+            name: session.shipping_details.name,
+            street: session.shipping_details.address?.line1,
+            street2: session.shipping_details.address?.line2,
+            city: session.shipping_details.address?.city,
+            state: session.shipping_details.address?.state,
+            zip: session.shipping_details.address?.postal_code,
+            country: session.shipping_details.address?.country,
+          },
+          status: "paid",
+          payment_intent_id: session.payment_intent as string,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", orderId)
+
+      if (error) {
+        throw new Error("Error al actualizar la orden: " + error.message)
+      }
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    throw new Error("Error al procesar información de envío: " + error.message)
+  }
 }
