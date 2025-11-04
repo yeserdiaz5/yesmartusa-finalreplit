@@ -2,7 +2,6 @@
 
 import { stripe } from "@/lib/stripe"
 import { createClient } from "@/lib/supabase/server"
-import { getGuestCart } from "@/lib/guest-cart"
 
 interface CheckoutData {
   customerName: string
@@ -15,7 +14,11 @@ interface CheckoutData {
   country: string
 }
 
-export async function createStripeCheckoutSession(checkoutData: CheckoutData, isGuest: boolean) {
+export async function createStripeCheckoutSession(
+  checkoutData: CheckoutData, 
+  isGuest: boolean,
+  guestCartItems?: any[]
+) {
   const supabase = await createClient()
 
   let cartItems: any[] = []
@@ -53,11 +56,11 @@ export async function createStripeCheckoutSession(checkoutData: CheckoutData, is
 
     cartItems = data
   } else {
-    cartItems = getGuestCart()
-
-    if (cartItems.length === 0) {
+    // Use cart items passed from client (since we can't access localStorage on server)
+    if (!guestCartItems || guestCartItems.length === 0) {
       throw new Error("El carrito está vacío")
     }
+    cartItems = guestCartItems
   }
 
   const totalAmount = cartItems.reduce((sum, item) => {

@@ -146,6 +146,7 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
           country,
         },
         isGuest,
+        isGuest ? cartItems : undefined,
       )
 
       console.log("[v0] handleStripeCheckout - Stripe session created:", result)
