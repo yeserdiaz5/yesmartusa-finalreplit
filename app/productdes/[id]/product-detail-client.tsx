@@ -181,8 +181,12 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                 <span className="text-4xl font-bold text-gray-900">${product.price}</span>
               </div>
 
-              <div className="mb-6">
-                <p className="text-gray-700 leading-relaxed">{product.description}</p>
+              <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <span className="w-1 h-6 bg-blue-600 mr-3 rounded"></span>
+                  Descripción del Producto
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-base">{product.description || "Producto de alta calidad."}</p>
               </div>
 
               <div className="mb-6">
