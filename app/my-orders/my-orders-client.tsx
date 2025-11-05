@@ -11,6 +11,7 @@ import { Package, Truck, ExternalLink, Printer } from "lucide-react"
 import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
 import { CancelOrderDialog } from "@/components/cancel-order-dialog"
+import Link from "next/link"
 
 interface MyOrdersClientProps {
   user: User | null
