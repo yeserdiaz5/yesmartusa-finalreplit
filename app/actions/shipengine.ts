@@ -459,6 +459,47 @@ export async function purchaseLabelForOrder(
       })
     } else {
       console.log("[v0] ✅ Shipment saved successfully:", insertedShipment)
+      
+      if (insertedShipment && insertedShipment.length > 0 && label.label_download?.pdf) {
+        console.log("[v0] 📥 Downloading label PDF for backup...")
+        
+        try {
+          const pdfResponse = await fetch(label.label_download.pdf)
+          if (pdfResponse.ok) {
+            const arrayBuffer = await pdfResponse.arrayBuffer()
+            const pdfBuffer = Buffer.from(arrayBuffer)
+            
+            const { data: labelData, error: labelError } = await supabase
+              .from("shipment_labels")
+              .insert({
+                shipment_id: insertedShipment[0].id,
+                file_bytes: pdfBuffer,
+                file_size: pdfBuffer.length,
+                content_type: 'application/pdf',
+                tracking_number: label.tracking_number,
+                shippo_label_url: label.label_download.pdf,
+                source: 'shippo',
+              })
+              .select('id')
+              .single()
+            
+            if (!labelError && labelData) {
+              await supabase
+                .from("shipments")
+                .update({ label_backup_id: labelData.id })
+                .eq('id', insertedShipment[0].id)
+              
+              console.log("[v0] ✅ Label PDF saved to database:", labelData.id)
+            } else {
+              console.error("[v0] ⚠️ Error saving label PDF:", labelError)
+            }
+          } else {
+            console.error("[v0] ⚠️ Failed to download PDF:", pdfResponse.statusText)
+          }
+        } catch (pdfError: any) {
+          console.error("[v0] ⚠️ Exception downloading PDF:", pdfError.message)
+        }
+      }
     }
 
     const { data: updatedOrder, error: updateOrderError } = await supabase

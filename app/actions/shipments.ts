@@ -17,6 +17,20 @@ export interface Shipment {
   notes?: string
   tracking_url?: string
   label_url?: string
+  label_backup_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ShipmentLabel {
+  id: string
+  shipment_id: string
+  file_bytes: Buffer | Uint8Array
+  file_size: number
+  content_type: string
+  tracking_number: string
+  shippo_label_url?: string
+  source: 'shippo' | 'manual' | 'other'
   created_at: string
   updated_at: string
 }
@@ -403,6 +417,97 @@ export async function createShipEngineShipmentAndRedirect(data: ShipEngineShipme
     }
   } catch (error: any) {
     console.error("[v0] Error creating ShipEngine shipment:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Download PDF from Shippo/ShipEngine URL
+ */
+export async function downloadLabelPDF(labelUrl: string): Promise<{ success: boolean; data?: Buffer; error?: string }> {
+  try {
+    const response = await fetch(labelUrl)
+    
+    if (!response.ok) {
+      return { success: false, error: `Failed to download PDF: ${response.statusText}` }
+    }
+    
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    
+    return { success: true, data: buffer }
+  } catch (error: any) {
+    console.error("[v0] Error downloading label PDF:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Save label PDF to database
+ */
+export async function saveLabelToDatabase(params: {
+  shipmentId: string
+  pdfBuffer: Buffer
+  trackingNumber: string
+  shippoLabelUrl: string
+  source?: 'shippo' | 'manual' | 'other'
+}): Promise<{ success: boolean; labelId?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+      .from("shipment_labels")
+      .insert({
+        shipment_id: params.shipmentId,
+        file_bytes: params.pdfBuffer,
+        file_size: params.pdfBuffer.length,
+        content_type: 'application/pdf',
+        tracking_number: params.trackingNumber,
+        shippo_label_url: params.shippoLabelUrl,
+        source: params.source || 'shippo',
+      })
+      .select('id')
+      .single()
+    
+    if (error) {
+      console.error("[v0] Error saving label to database:", error)
+      return { success: false, error: error.message }
+    }
+    
+    await supabase
+      .from("shipments")
+      .update({ label_backup_id: data.id })
+      .eq('id', params.shipmentId)
+    
+    console.log("[v0] Label saved to database:", data.id)
+    return { success: true, labelId: data.id }
+  } catch (error: any) {
+    console.error("[v0] Error saving label:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Get label from database (without file_bytes for listing)
+ */
+export async function getShipmentLabel(shipmentId: string): Promise<{ success: boolean; data?: any; error?: string }> {
+  try {
+    const supabase = await createClient()
+    
+    const { data, error } = await supabase
+      .from("shipment_labels")
+      .select('id, shipment_id, file_size, content_type, tracking_number, shippo_label_url, source, created_at')
+      .eq('shipment_id', shipmentId)
+      .single()
+    
+    if (error) {
+      console.error("[v0] Error getting label:", error)
+      return { success: false, error: error.message }
+    }
+    
+    return { success: true, data }
+  } catch (error: any) {
+    console.error("[v0] Error getting label:", error)
     return { success: false, error: error.message }
   }
 }
