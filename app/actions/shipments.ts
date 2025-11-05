@@ -16,6 +16,7 @@ export interface Shipment {
   delivered_at?: string
   notes?: string
   tracking_url?: string
+  label_url?: string
   created_at: string
   updated_at: string
 }
