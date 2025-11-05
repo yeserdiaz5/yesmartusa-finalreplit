@@ -1,12 +1,28 @@
-# Newsletter Subscription & Service Comparison Platform
+# YesmartUSA - E-commerce Marketplace Platform
 
 ## Overview
 
-A modern web application for comparing service providers and pricing plans side-by-side. Users can filter, sort, and compare multiple services, and subscribe to a newsletter for updates. The platform emphasizes clarity and scannability with a clean, data-focused design that works seamlessly in both light and dark modes.
+YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden comprar y vender productos. La plataforma soporta tanto usuarios autenticados como compradores invitados, con integración completa de pagos vía Stripe, autenticación mediante Supabase, y generación de etiquetas de envío con Shippo.
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- Preferred communication language: Spanish (Español)
+- Preferred communication style: Simple, everyday language
+
+## Recent Changes (November 2025)
+
+### Optimización del Contador del Carrito
+- Implementado sistema de eventos 'cartUpdated' para actualizaciones en tiempo real
+- CartIcon ahora detecta automáticamente usuarios autenticados vs invitados
+- Eliminado polling innecesario al servidor para usuarios invitados
+- Mejora de rendimiento: solo usuarios autenticados consultan el servidor
+
+### Filtrado de Pedidos Pendientes
+- Los pedidos con estado "pending" ahora están ocultos en:
+  - `/my-orders` - Vista de pedidos del vendedor
+  - `/compras` - Vista de compras del comprador
+  - `/mis-compras` - Vista alternativa de compras
+- Filtrado implementado en el servidor para mejor rendimiento
 
 ## System Architecture
 

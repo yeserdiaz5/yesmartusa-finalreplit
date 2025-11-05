@@ -177,7 +177,7 @@ export default function MisComprasClient({ user, orders = [] }: MisComprasClient
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader user={user} showSearch={false} />
+      <SiteHeader user={user} />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">

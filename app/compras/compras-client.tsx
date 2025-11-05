@@ -101,9 +101,9 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                   <div className="space-y-4">
                     {compra.order_items?.map((item: OrderItem & { product?: Product }) => (
                       <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                        {item.product?.image_url || item.product?.images?.[0] ? (
+                        {item.product?.image_url || (item.product?.images && item.product.images[0]) ? (
                           <Image
-                            src={item.product.image_url || item.product.images[0]}
+                            src={item.product.image_url || (item.product.images ? item.product.images[0] : '')}
                             alt={item.product.title}
                             width={80}
                             height={80}
