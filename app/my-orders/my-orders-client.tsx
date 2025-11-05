@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SiteHeader from "@/components/site-header"
 import type { User } from "@/lib/types/database"
 import { Package, Truck, ExternalLink } from "lucide-react"
@@ -219,65 +220,101 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
             <CardContent className="p-12 text-center">
               <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
               <h2 className="text-xl font-semibold mb-2">No tienes pedidos todavía</h2>
-              <p className="text-gray-600">Tus pedidos aparecerán aquí una vez que realices una compra</p>
+              <p className="text-gray-600">Tus pedidos aparecerán aquí una vez que realices una venta</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
-            {/* Órdenes Pagadas - Requieren Acción */}
-            {paidOrders.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-8 w-1 bg-green-600 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-green-900">
-                    Pedidos Pagados ({paidOrders.length})
-                  </h2>
-                </div>
-                <p className="text-gray-600 mb-4">Estos pedidos necesitan que crees la etiqueta de envío</p>
-                <div className="space-y-4">
+          <Tabs defaultValue="paid" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="paid" className="relative" data-testid="tab-paid">
+                <span className="font-semibold">Pagados</span>
+                {paidOrders.length > 0 && (
+                  <Badge className="ml-2 bg-green-600 text-white">{paidOrders.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="shipped" className="relative" data-testid="tab-shipped">
+                <span className="font-semibold">Enviados</span>
+                {shippedOrders.length > 0 && (
+                  <Badge className="ml-2 bg-blue-600 text-white">{shippedOrders.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="cancelled" className="relative" data-testid="tab-cancelled">
+                <span className="font-semibold">Cancelados</span>
+                {cancelledOrders.length > 0 && (
+                  <Badge className="ml-2 bg-red-600 text-white">{cancelledOrders.length}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="paid" className="space-y-4">
+              {paidOrders.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <h2 className="text-xl font-semibold mb-2">No hay pedidos pagados</h2>
+                    <p className="text-gray-600">Los pedidos que necesitan etiqueta de envío aparecerán aquí</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <p className="text-green-900 font-medium">
+                      📦 Tienes {paidOrders.length} {paidOrders.length === 1 ? 'pedido' : 'pedidos'} que {paidOrders.length === 1 ? 'necesita' : 'necesitan'} etiqueta de envío
+                    </p>
+                  </div>
                   {paidOrders.map((order) => (
                     <OrderCard key={order.id} order={order} />
                   ))}
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </TabsContent>
 
-            {/* Órdenes Enviadas */}
-            {shippedOrders.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-8 w-1 bg-blue-600 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-blue-900">
-                    Pedidos Enviados ({shippedOrders.length})
-                  </h2>
-                </div>
-                <p className="text-gray-600 mb-4">Pedidos que ya han sido enviados al cliente</p>
-                <div className="space-y-4">
+            <TabsContent value="shipped" className="space-y-4">
+              {shippedOrders.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Truck className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <h2 className="text-xl font-semibold mb-2">No hay pedidos enviados</h2>
+                    <p className="text-gray-600">Los pedidos que hayas enviado aparecerán aquí</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-blue-900 font-medium">
+                      🚚 {shippedOrders.length} {shippedOrders.length === 1 ? 'pedido enviado' : 'pedidos enviados'}
+                    </p>
+                  </div>
                   {shippedOrders.map((order) => (
                     <OrderCard key={order.id} order={order} />
                   ))}
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </TabsContent>
 
-            {/* Órdenes Canceladas */}
-            {cancelledOrders.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="h-8 w-1 bg-red-600 rounded-full"></div>
-                  <h2 className="text-2xl font-bold text-red-900">
-                    Pedidos Cancelados ({cancelledOrders.length})
-                  </h2>
-                </div>
-                <p className="text-gray-600 mb-4">Historial de pedidos cancelados</p>
-                <div className="space-y-4">
+            <TabsContent value="cancelled" className="space-y-4">
+              {cancelledOrders.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <h2 className="text-xl font-semibold mb-2">No hay pedidos cancelados</h2>
+                    <p className="text-gray-600">El historial de pedidos cancelados aparecerá aquí</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p className="text-red-900 font-medium">
+                      ❌ {cancelledOrders.length} {cancelledOrders.length === 1 ? 'pedido cancelado' : 'pedidos cancelados'}
+                    </p>
+                  </div>
                   {cancelledOrders.map((order) => (
                     <OrderCard key={order.id} order={order} />
                   ))}
-                </div>
-              </div>
-            )}
-          </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>
