@@ -9,6 +9,7 @@ import type { User } from "@/lib/types/database"
 import { Package, Truck, ExternalLink, ShoppingBag } from "lucide-react"
 import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
+import { CancelOrderDialog } from "@/components/cancel-order-dialog"
 
 interface MisComprasClientProps {
   user: User | null
@@ -149,11 +150,18 @@ export default function MisComprasClient({ user, orders = [] }: MisComprasClient
               )}
             </div>
           ) : order.status === "paid" ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-green-600" />
-                <p className="text-green-900 font-medium">✓ Pago confirmado - El vendedor está preparando tu pedido</p>
+            <div className="space-y-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <Package className="w-5 h-5 text-green-600" />
+                  <p className="text-green-900 font-medium">✓ Pago confirmado - El vendedor está preparando tu pedido</p>
+                </div>
               </div>
+              <CancelOrderDialog
+                orderId={order.id}
+                userType="buyer"
+                onCancelled={() => window.location.reload()}
+              />
             </div>
           ) : order.status === "pending" ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

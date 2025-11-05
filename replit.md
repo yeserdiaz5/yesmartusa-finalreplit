@@ -24,6 +24,29 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
   - `/mis-compras` - Vista alternativa de compras
 - Filtrado implementado en el servidor para mejor rendimiento
 
+### Sistema de Cancelación de Pedidos con Reembolso Automático
+- **Vendedores**: Pueden cancelar pedidos no enviados (solo pedidos de un único vendedor)
+  - Botón de cancelar en `/my-orders` para pedidos con status "paid"
+  - Razones específicas: Producto agotado, Error en precio, No puedo cumplir, Pedido duplicado
+  - Validación: Solo puede cancelar si es el vendedor de TODOS los items del pedido
+- **Compradores Autenticados**: Pueden cancelar sus compras no enviadas
+  - Botón de cancelar en `/mis-compras` y `/compras` para pedidos con status "paid"
+  - Razones: Cambié de opinión, Mejor precio, Error, Tiempo largo, Otra razón
+- **Compradores Invitados**: Pueden cancelar via link público
+  - Página pública en `/cancel-order/[orderId]`
+  - Requiere email usado en la compra para validación
+  - Mismas razones que compradores autenticados
+- **Reembolso Automático**: Integración con Stripe
+  - Procesa reembolso automático cuando el pedido fue pagado
+  - Excluye payment_intents de testing (test_*, guest_test_*)
+  - Guarda refund_id en la base de datos
+  - Tiempo de procesamiento: 5-10 días hábiles
+- **Seguridad**:
+  - Validación estricta de autenticación
+  - Vendedores solo pueden cancelar pedidos de un único vendedor
+  - Compradores solo pueden cancelar sus propios pedidos
+  - Invitados deben proporcionar el email correcto
+
 ## System Architecture
 
 ### Frontend Architecture

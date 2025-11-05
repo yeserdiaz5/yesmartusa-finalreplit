@@ -1,6 +1,6 @@
 export type UserRole = "buyer" | "seller" | "admin"
 
-export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled"
+export type OrderStatus = "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled"
 
 export interface User {
   id: string
@@ -65,7 +65,8 @@ export interface ProductWithRelations extends Product {
 
 export interface Order {
   id: string
-  buyer_id: string
+  buyer_id: string | null
+  buyer_email: string | null
   status: OrderStatus
   total_amount: number
   shipping_address: {
@@ -74,8 +75,10 @@ export interface Order {
     state: string
     zip: string
     country: string
-  }
+  } | null
   payment_intent_id: string | null
+  cancellation_reason: string | null
+  refund_id: string | null
   created_at: string
   updated_at: string
 }

@@ -9,6 +9,7 @@ import type { User } from "@/lib/types/database"
 import { Package, Truck, ExternalLink } from "lucide-react"
 import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
+import { CancelOrderDialog } from "@/components/cancel-order-dialog"
 
 interface MyOrdersClientProps {
   user: User | null
@@ -156,13 +157,21 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                   <p className="text-orange-900 font-medium">Tu pedido está siendo preparado para envío 🚚</p>
                 </div>
               </div>
-              <Button
-                onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Truck className="w-4 h-4 mr-2" />
-                Comprar Envío
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid={`button-create-shipping-${order.id}`}
+                >
+                  <Truck className="w-4 h-4 mr-2" />
+                  Comprar Envío
+                </Button>
+                <CancelOrderDialog
+                  orderId={order.id}
+                  userType="seller"
+                  onCancelled={() => window.location.reload()}
+                />
+              </div>
             </div>
           ) : order.status === "pending" ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

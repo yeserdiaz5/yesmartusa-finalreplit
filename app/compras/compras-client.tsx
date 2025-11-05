@@ -7,6 +7,7 @@ import SiteHeader from "@/components/site-header"
 import type { User, CompraWithItems, OrderItem, Product } from "@/lib/types/database"
 import { Package, Calendar, DollarSign } from "lucide-react"
 import Image from "next/image"
+import { CancelOrderDialog } from "@/components/cancel-order-dialog"
 
 interface ComprasClientProps {
   user: User | null
@@ -148,6 +149,23 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                         {compra.shipping_address.city}, {compra.shipping_address.state}{" "}
                         {(compra.shipping_address as any).postal_code || compra.shipping_address.zip}
                       </p>
+                    </div>
+                  )}
+
+                  {(compra.status === "paid") && (
+                    <div className="mt-4">
+                      <CancelOrderDialog
+                        orderId={compra.id}
+                        userType="buyer"
+                        onCancelled={() => window.location.reload()}
+                      />
+                    </div>
+                  )}
+
+                  {compra.status === "cancelled" && compra.cancellation_reason && (
+                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-sm font-medium text-red-900 mb-1">Compra Cancelada</p>
+                      <p className="text-sm text-red-800">{compra.cancellation_reason}</p>
                     </div>
                   )}
                 </CardContent>
