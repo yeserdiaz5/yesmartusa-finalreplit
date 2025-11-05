@@ -27,6 +27,14 @@ export default async function ComprasPage() {
           image_url,
           images
         )
+      ),
+      shipments(
+        id,
+        tracking_number,
+        tracking_url,
+        carrier,
+        status,
+        estimated_delivery
       )
     `)
     .eq("buyer_id", user.id)

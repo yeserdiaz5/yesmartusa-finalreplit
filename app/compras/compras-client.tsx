@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import SiteHeader from "@/components/site-header"
 import type { User, CompraWithItems, OrderItem, Product } from "@/lib/types/database"
-import { Package, Calendar, DollarSign } from "lucide-react"
+import { Package, Calendar, DollarSign, Truck, ExternalLink } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { CancelOrderDialog } from "@/components/cancel-order-dialog"
 
 interface ComprasClientProps {
@@ -149,6 +150,46 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                         {compra.shipping_address.city}, {compra.shipping_address.state}{" "}
                         {(compra.shipping_address as any).postal_code || compra.shipping_address.zip}
                       </p>
+                    </div>
+                  )}
+
+                  {(compra.status === "shipped" || compra.status === "delivered") && (compra as any).shipments && (compra as any).shipments.length > 0 && (
+                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Truck className="w-5 h-5 text-green-700" />
+                        <h4 className="font-semibold text-green-900">Información de Envío</h4>
+                      </div>
+                      {(compra as any).shipments.map((shipment: any) => (
+                        <div key={shipment.id} className="mt-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <span className="text-sm font-medium text-green-800">Número de Rastreo:</span>
+                            {shipment.tracking_url ? (
+                              <Link
+                                href={shipment.tracking_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                                data-testid={`link-tracking-${shipment.tracking_number}`}
+                              >
+                                {shipment.tracking_number}
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            ) : (
+                              <span className="text-sm text-green-800 font-mono">{shipment.tracking_number}</span>
+                            )}
+                          </div>
+                          {shipment.carrier && (
+                            <p className="text-sm text-green-700 mt-1">
+                              Transportista: {shipment.carrier}
+                            </p>
+                          )}
+                          {shipment.estimated_delivery && (
+                            <p className="text-sm text-green-700 mt-1">
+                              Entrega estimada: {new Date(shipment.estimated_delivery).toLocaleDateString("es-ES")}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
 

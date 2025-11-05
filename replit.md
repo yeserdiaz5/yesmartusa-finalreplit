@@ -47,6 +47,13 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
   - Compradores solo pueden cancelar sus propios pedidos
   - Invitados deben proporcionar el email correcto
 
+### Rastreo de Pedidos
+- **Vista de Compras** (`/compras`): 
+  - Muestra información de envío para pedidos en estado "shipped" o "delivered"
+  - Número de rastreo clickeable que abre el tracking en nueva pestaña
+  - Muestra transportista y fecha estimada de entrega
+  - Información obtenida de la tabla `shipments` relacionada con cada orden
+
 ## System Architecture
 
 ### Frontend Architecture
