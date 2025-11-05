@@ -81,13 +81,19 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
     const paid = compras.filter(c => c.status === 'paid')
     const shipped = compras.filter(c => c.status === 'shipped' || c.status === 'delivered')
     const cancelled = compras.filter(c => c.status === 'cancelled')
+    const other = compras.filter(c => 
+      c.status !== 'paid' && 
+      c.status !== 'shipped' && 
+      c.status !== 'delivered' && 
+      c.status !== 'cancelled'
+    )
     
-    return { paid, shipped, cancelled }
+    return { paid, shipped, cancelled, other }
   }, [compras])
 
   // Renderizar una orden
   const renderOrder = (compra: CompraWithItems) => (
-    <Card key={compra.id}>
+    <Card key={compra.id} data-testid={`card-order-${compra.id}`}>
       <CardHeader className="border-b">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
@@ -237,7 +243,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
           </Card>
         ) : (
           <Tabs defaultValue="paid" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className={`grid w-full mb-6 ${groupedOrders.other.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <TabsTrigger value="paid" className="relative" data-testid="tab-paid">
                 Pagados
                 {groupedOrders.paid.length > 0 && (
@@ -262,6 +268,14 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                   </Badge>
                 )}
               </TabsTrigger>
+              {groupedOrders.other.length > 0 && (
+                <TabsTrigger value="other" className="relative" data-testid="tab-other">
+                  Otros
+                  <Badge className="ml-2 bg-yellow-600 text-white hover:bg-yellow-700">
+                    {groupedOrders.other.length}
+                  </Badge>
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Tab: Pagados */}
@@ -278,7 +292,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 <>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                     <p className="text-green-900 font-medium">
-                      💰 Tienes {groupedOrders.paid.length} {groupedOrders.paid.length === 1 ? 'compra pagada' : 'compras pagadas'} esperando envío
+                      Tienes {groupedOrders.paid.length} {groupedOrders.paid.length === 1 ? 'compra pagada' : 'compras pagadas'} esperando envío
                     </p>
                   </div>
                   <div className="space-y-4">
@@ -302,7 +316,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 <>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                     <p className="text-blue-900 font-medium">
-                      🚚 {groupedOrders.shipped.length} {groupedOrders.shipped.length === 1 ? 'compra en tránsito o entregada' : 'compras en tránsito o entregadas'}
+                      {groupedOrders.shipped.length} {groupedOrders.shipped.length === 1 ? 'compra en tránsito o entregada' : 'compras en tránsito o entregadas'}
                     </p>
                   </div>
                   <div className="space-y-4">
@@ -326,7 +340,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 <>
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                     <p className="text-red-900 font-medium">
-                      ❌ {groupedOrders.cancelled.length} {groupedOrders.cancelled.length === 1 ? 'compra cancelada' : 'compras canceladas'}
+                      {groupedOrders.cancelled.length} {groupedOrders.cancelled.length === 1 ? 'compra cancelada' : 'compras canceladas'}
                     </p>
                   </div>
                   <div className="space-y-4">
@@ -335,6 +349,23 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 </>
               )}
             </TabsContent>
+
+            {/* Tab: Otros (solo visible si hay compras con estado no reconocido) */}
+            {groupedOrders.other.length > 0 && (
+              <TabsContent value="other" className="space-y-4">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4" data-testid="banner-other-status">
+                  <p className="text-yellow-900 font-medium">
+                    {groupedOrders.other.length} {groupedOrders.other.length === 1 ? 'compra' : 'compras'} con estado no reconocido
+                  </p>
+                  <p className="text-yellow-800 text-sm mt-1">
+                    Estas compras tienen un estado que no coincide con los estados estándar del sistema.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  {groupedOrders.other.map(renderOrder)}
+                </div>
+              </TabsContent>
+            )}
           </Tabs>
         )}
       </main>

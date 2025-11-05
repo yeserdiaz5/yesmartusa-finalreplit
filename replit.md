@@ -111,6 +111,31 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
   - **Estados Vacíos**: Mensaje amigable cuando no hay órdenes en una categoría
   - **Ventajas**: Vendedores con muchos pedidos (100+) pueden navegar fácilmente sin scroll largo
 
+### Gestión de Compras del Usuario (Compras)
+- **Vista de Compras** (`/compras`):
+  - **Interfaz con Tabs Profesional**: Sistema de navegación idéntico a /my-orders
+  - **Diseño UX Optimizado**: Organización clara por estados
+  - **Tabs Disponibles**:
+    1. **"Pagados"** - Tab con badge verde
+       - Compras pagadas esperando envío
+       - Botón de cancelar para compras no enviadas
+       - Banner informativo con contador
+    2. **"Enviados"** - Tab con badge azul
+       - Compras en tránsito o entregadas
+       - Información completa de tracking con enlaces automáticos
+       - Muestra transportista y fecha estimada de entrega
+    3. **"Cancelados"** - Tab con badge rojo
+       - Historial de compras canceladas
+       - Muestra razón de cancelación
+    4. **"Otros"** - Tab condicional con badge amarillo
+       - Solo aparece si hay compras con estados no reconocidos
+       - Banner de advertencia explicando la situación
+       - Manejo robusto de estados futuros o inesperados
+  - **Badges con Contadores**: Cada tab muestra el número de compras
+  - **Estados Vacíos**: Mensajes específicos por categoría
+  - **Agrupación Robusta**: Sistema de 4 columnas dinámicas (3 si no hay "Otros")
+  - **Testing**: Todas las cards de órdenes incluyen data-testid único
+
 ## System Architecture
 
 ### Frontend Architecture
