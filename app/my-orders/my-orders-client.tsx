@@ -105,7 +105,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
           </div>
 
           <div className="space-y-3 mb-4">
-            {order.order_items?.map((item: any) => (
+            {(order.items || order.order_items)?.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
                 <img
                   src={item.product?.image_url || "/placeholder.svg"}

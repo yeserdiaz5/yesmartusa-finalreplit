@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getOrders } from "@/app/actions/orders"
+import { getSellerOrders } from "@/app/actions/orders"
 import MyOrdersClient from "./my-orders-client"
 
 export default async function MyOrdersPage() {
@@ -15,7 +15,7 @@ export default async function MyOrdersPage() {
 
   const { data: userProfile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-  const ordersResult = await getOrders()
+  const ordersResult = await getSellerOrders()
   const allOrders = ordersResult.success ? ordersResult.data || [] : []
   
   // Filtrar pedidos pendientes
