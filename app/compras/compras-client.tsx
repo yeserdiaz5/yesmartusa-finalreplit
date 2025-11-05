@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SiteHeader from "@/components/site-header"
 import type { User, CompraWithItems, OrderItem, Product } from "@/lib/types/database"
 import { Package, Calendar, DollarSign, Truck, ExternalLink } from "lucide-react"
@@ -75,6 +76,148 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
     }
   }
 
+  // Agrupar órdenes por estado
+  const groupedOrders = useMemo(() => {
+    const paid = compras.filter(c => c.status === 'paid')
+    const shipped = compras.filter(c => c.status === 'shipped' || c.status === 'delivered')
+    const cancelled = compras.filter(c => c.status === 'cancelled')
+    
+    return { paid, shipped, cancelled }
+  }, [compras])
+
+  // Renderizar una orden
+  const renderOrder = (compra: CompraWithItems) => (
+    <Card key={compra.id}>
+      <CardHeader className="border-b">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-lg">Compra #{compra.id.slice(0, 8)}</CardTitle>
+            <div className="flex items-center text-sm text-gray-600">
+              <Calendar className="w-4 h-4 mr-1" />
+              {formatDate(compra.created_at)}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge className={getStatusColor(compra.status)}>
+              {getStatusLabel(compra.status)}
+            </Badge>
+            <div className="flex items-center font-semibold text-lg">
+              <DollarSign className="w-5 h-5" />
+              {compra.total_amount.toFixed(2)}
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          {compra.order_items?.map((item: OrderItem & { product?: Product }) => (
+            <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+              {item.product?.image_url || (item.product?.images && item.product.images[0]) ? (
+                <Image
+                  src={item.product.image_url || (item.product.images ? item.product.images[0] : '')}
+                  alt={item.product.title}
+                  width={80}
+                  height={80}
+                  className="rounded-md object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
+                  <Package className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+              <div className="flex-1">
+                <h4 className="font-semibold">{item.product?.title || "Producto"}</h4>
+                <p className="text-sm text-gray-600">
+                  Cantidad: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
+                </p>
+              </div>
+              <div className="font-semibold">
+                ${(item.quantity * item.price_at_purchase).toFixed(2)}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {compra.shipping_address && (
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-semibold mb-2">Dirección de Envío</h4>
+            <p className="text-sm text-gray-700">
+              {(compra.shipping_address as any).full_name && (
+                <>
+                  {(compra.shipping_address as any).full_name}
+                  <br />
+                </>
+              )}
+              {(compra.shipping_address as any).address_line1 || compra.shipping_address.street}
+              {(compra.shipping_address as any).address_line2 && (
+                <>
+                  <br />
+                  {(compra.shipping_address as any).address_line2}
+                </>
+              )}
+              <br />
+              {compra.shipping_address.city}, {compra.shipping_address.state}{" "}
+              {(compra.shipping_address as any).postal_code || compra.shipping_address.zip}
+            </p>
+          </div>
+        )}
+
+        {(compra.status === "shipped" || compra.status === "delivered") && (compra as any).shipments && (compra as any).shipments.length > 0 && (
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Truck className="w-5 h-5 text-green-700" />
+              <h4 className="font-semibold text-green-900">Información de Envío</h4>
+            </div>
+            {(compra as any).shipments.map((shipment: any) => (
+              <div key={shipment.id} className="mt-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <span className="text-sm font-medium text-green-800">Número de Rastreo:</span>
+                  <Link
+                    href={getTrackingUrl(shipment.tracking_number, shipment.carrier || 'USPS')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                    data-testid={`link-tracking-${shipment.tracking_number}`}
+                  >
+                    {shipment.tracking_number}
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
+                {shipment.carrier && (
+                  <p className="text-sm text-green-700 mt-1">
+                    Transportista: {shipment.carrier}
+                  </p>
+                )}
+                {shipment.estimated_delivery && (
+                  <p className="text-sm text-green-700 mt-1">
+                    Entrega estimada: {formatDate(shipment.estimated_delivery)}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {(compra.status === "paid") && (
+          <div className="mt-4">
+            <CancelOrderDialog
+              orderId={compra.id}
+              userType="buyer"
+              onCancelled={() => window.location.reload()}
+            />
+          </div>
+        )}
+
+        {compra.status === "cancelled" && compra.cancellation_reason && (
+          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm font-medium text-red-900 mb-1">Compra Cancelada</p>
+            <p className="text-sm text-red-800">{compra.cancellation_reason}</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader user={user} />
@@ -93,139 +236,106 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {compras.map((compra) => (
-              <Card key={compra.id}>
-                <CardHeader className="border-b">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg">Compra #{compra.id.slice(0, 8)}</CardTitle>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(compra.created_at)}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={getStatusColor(compra.status)}>
-                        {getStatusLabel(compra.status)}
-                      </Badge>
-                      <div className="flex items-center font-semibold text-lg">
-                        <DollarSign className="w-5 h-5" />
-                        {compra.total_amount.toFixed(2)}
-                      </div>
-                    </div>
+          <Tabs defaultValue="paid" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="paid" className="relative" data-testid="tab-paid">
+                Pagados
+                {groupedOrders.paid.length > 0 && (
+                  <Badge className="ml-2 bg-green-600 text-white hover:bg-green-700">
+                    {groupedOrders.paid.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="shipped" className="relative" data-testid="tab-shipped">
+                Enviados
+                {groupedOrders.shipped.length > 0 && (
+                  <Badge className="ml-2 bg-blue-600 text-white hover:bg-blue-700">
+                    {groupedOrders.shipped.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="cancelled" className="relative" data-testid="tab-cancelled">
+                Cancelados
+                {groupedOrders.cancelled.length > 0 && (
+                  <Badge className="ml-2 bg-red-600 text-white hover:bg-red-700">
+                    {groupedOrders.cancelled.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Tab: Pagados */}
+            <TabsContent value="paid" className="space-y-4">
+              {groupedOrders.paid.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <DollarSign className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-xl font-semibold mb-2">No tienes compras pagadas</h3>
+                    <p className="text-gray-600">Las compras que hayas pagado pero aún no enviadas aparecerán aquí</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <p className="text-green-900 font-medium">
+                      💰 Tienes {groupedOrders.paid.length} {groupedOrders.paid.length === 1 ? 'compra pagada' : 'compras pagadas'} esperando envío
+                    </p>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-6">
                   <div className="space-y-4">
-                    {compra.order_items?.map((item: OrderItem & { product?: Product }) => (
-                      <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                        {item.product?.image_url || (item.product?.images && item.product.images[0]) ? (
-                          <Image
-                            src={item.product.image_url || (item.product.images ? item.product.images[0] : '')}
-                            alt={item.product.title}
-                            width={80}
-                            height={80}
-                            className="rounded-md object-cover"
-                          />
-                        ) : (
-                          <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
-                            <Package className="w-8 h-8 text-gray-400" />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{item.product?.title || "Producto"}</h4>
-                          <p className="text-sm text-gray-600">
-                            Cantidad: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="font-semibold">
-                          ${(item.quantity * item.price_at_purchase).toFixed(2)}
-                        </div>
-                      </div>
-                    ))}
+                    {groupedOrders.paid.map(renderOrder)}
                   </div>
-                  
-                  {compra.shipping_address && (
-                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                      <h4 className="font-semibold mb-2">Dirección de Envío</h4>
-                      <p className="text-sm text-gray-700">
-                        {(compra.shipping_address as any).full_name && (
-                          <>
-                            {(compra.shipping_address as any).full_name}
-                            <br />
-                          </>
-                        )}
-                        {(compra.shipping_address as any).address_line1 || compra.shipping_address.street}
-                        {(compra.shipping_address as any).address_line2 && (
-                          <>
-                            <br />
-                            {(compra.shipping_address as any).address_line2}
-                          </>
-                        )}
-                        <br />
-                        {compra.shipping_address.city}, {compra.shipping_address.state}{" "}
-                        {(compra.shipping_address as any).postal_code || compra.shipping_address.zip}
-                      </p>
-                    </div>
-                  )}
+                </>
+              )}
+            </TabsContent>
 
-                  {(compra.status === "shipped" || compra.status === "delivered") && (compra as any).shipments && (compra as any).shipments.length > 0 && (
-                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Truck className="w-5 h-5 text-green-700" />
-                        <h4 className="font-semibold text-green-900">Información de Envío</h4>
-                      </div>
-                      {(compra as any).shipments.map((shipment: any) => (
-                        <div key={shipment.id} className="mt-2">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <span className="text-sm font-medium text-green-800">Número de Rastreo:</span>
-                            <Link
-                              href={getTrackingUrl(shipment.tracking_number, shipment.carrier || 'USPS')}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                              data-testid={`link-tracking-${shipment.tracking_number}`}
-                            >
-                              {shipment.tracking_number}
-                              <ExternalLink className="w-3 h-3" />
-                            </Link>
-                          </div>
-                          {shipment.carrier && (
-                            <p className="text-sm text-green-700 mt-1">
-                              Transportista: {shipment.carrier}
-                            </p>
-                          )}
-                          {shipment.estimated_delivery && (
-                            <p className="text-sm text-green-700 mt-1">
-                              Entrega estimada: {formatDate(shipment.estimated_delivery)}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+            {/* Tab: Enviados */}
+            <TabsContent value="shipped" className="space-y-4">
+              {groupedOrders.shipped.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Truck className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-xl font-semibold mb-2">No tienes compras enviadas</h3>
+                    <p className="text-gray-600">Las compras que hayan sido enviadas aparecerán aquí</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <p className="text-blue-900 font-medium">
+                      🚚 {groupedOrders.shipped.length} {groupedOrders.shipped.length === 1 ? 'compra en tránsito o entregada' : 'compras en tránsito o entregadas'}
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    {groupedOrders.shipped.map(renderOrder)}
+                  </div>
+                </>
+              )}
+            </TabsContent>
 
-                  {(compra.status === "paid") && (
-                    <div className="mt-4">
-                      <CancelOrderDialog
-                        orderId={compra.id}
-                        userType="buyer"
-                        onCancelled={() => window.location.reload()}
-                      />
-                    </div>
-                  )}
-
-                  {compra.status === "cancelled" && compra.cancellation_reason && (
-                    <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-sm font-medium text-red-900 mb-1">Compra Cancelada</p>
-                      <p className="text-sm text-red-800">{compra.cancellation_reason}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+            {/* Tab: Cancelados */}
+            <TabsContent value="cancelled" className="space-y-4">
+              {groupedOrders.cancelled.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-xl font-semibold mb-2">No tienes compras canceladas</h3>
+                    <p className="text-gray-600">El historial de compras canceladas aparecerá aquí</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <p className="text-red-900 font-medium">
+                      ❌ {groupedOrders.cancelled.length} {groupedOrders.cancelled.length === 1 ? 'compra cancelada' : 'compras canceladas'}
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    {groupedOrders.cancelled.map(renderOrder)}
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </main>
     </div>
