@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { ArrowLeft, Star, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -77,9 +77,22 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
   const { toast } = useToast()
 
   const images = product.images || [product.image_url]
-  const trustScore = 75 + Math.floor(Math.random() * 20)
-  const rating = 4 + Math.random()
-  const reviews = Math.floor(Math.random() * 2000) + 100
+  
+  // Generate consistent values based on product id
+  const trustScore = useMemo(() => {
+    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
+    return 75 + Math.floor((hash % 20))
+  }, [product.id])
+  
+  const rating = useMemo(() => {
+    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
+    return 4 + (hash % 100) / 100
+  }, [product.id])
+  
+  const reviews = useMemo(() => {
+    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
+    return Math.floor((hash % 2000)) + 100
+  }, [product.id])
 
   const handleTestShippingRates = async () => {
     setTestingRates(true)

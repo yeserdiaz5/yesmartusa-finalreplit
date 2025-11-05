@@ -98,8 +98,17 @@ function ProductCard({
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const rating = 4 + Math.random()
-  const reviews = Math.floor(Math.random() * 2000) + 100
+  
+  // Generate consistent rating and reviews based on product id
+  const rating = useMemo(() => {
+    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
+    return 4 + (hash % 100) / 100
+  }, [product.id])
+  
+  const reviews = useMemo(() => {
+    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
+    return Math.floor((hash % 2000)) + 100
+  }, [product.id])
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
