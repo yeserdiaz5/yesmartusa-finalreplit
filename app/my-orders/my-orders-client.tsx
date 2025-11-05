@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SiteHeader from "@/components/site-header"
 import type { User } from "@/lib/types/database"
-import { Package, Truck, ExternalLink } from "lucide-react"
+import { Package, Truck, ExternalLink, Printer } from "lucide-react"
 import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
 import { CancelOrderDialog } from "@/components/cancel-order-dialog"
@@ -151,15 +151,28 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                 </div>
               </div>
 
-              {firstShipment?.tracking_url && (
-                <Button
-                  onClick={() => window.open(firstShipment.tracking_url, "_blank")}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Rastrear envío
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {firstShipment?.tracking_url && (
+                  <Button
+                    onClick={() => window.open(firstShipment.tracking_url, "_blank")}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    data-testid={`button-track-shipment-${order.id}`}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Rastrear envío
+                  </Button>
+                )}
+                {firstShipment?.label_url && (
+                  <Button
+                    onClick={() => window.open(firstShipment.label_url, "_blank")}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    data-testid={`button-print-label-${order.id}`}
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimir Etiqueta
+                  </Button>
+                )}
+              </div>
             </div>
           ) : order.status === "paid" ? (
             <div className="flex gap-2">
