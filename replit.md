@@ -60,6 +60,17 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
   - Muestra transportista y fecha estimada de entrega
   - Información obtenida de la tabla `shipments` relacionada con cada orden
 
+### Gestión de Pedidos del Vendedor (My Orders)
+- **Vista de Pedidos** (`/my-orders`):
+  - Órdenes agrupadas y ordenadas por estado
+  - Prioridad de visualización:
+    1. **Paid** (Pagadas) - Aparecen primero para crear etiquetas de envío
+    2. **Shipped** (Enviadas) - Pedidos ya enviados con tracking
+    3. **Cancelled** (Canceladas) - Pedidos cancelados
+  - Sin mensaje "preparado para envío" - interfaz limpia centrada en acción
+  - Botón directo "Comprar Envío" para pedidos pagados
+  - Opción de cancelar pedidos no enviados desde la misma vista
+
 ## System Architecture
 
 ### Frontend Architecture
