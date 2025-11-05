@@ -60,6 +60,27 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
   - Muestra transportista y fecha estimada de entrega
   - Información obtenida de la tabla `shipments` relacionada con cada orden
 
+### Sistema de Almacenamiento Permanente de Etiquetas de Envío
+- **Arquitectura Dual de Almacenamiento**:
+  - **Fuente Primaria**: Enlaces de Shippo/ShipEngine (pueden expirar)
+  - **Fuente de Respaldo**: Base de datos PostgreSQL (permanente)
+- **Tabla `shipment_labels`**:
+  - Almacena PDFs en formato bytea (binario)
+  - Campos: shipment_id, file_bytes, file_size, tracking_number, shippo_label_url, source
+  - Relación con `shipments` mediante `label_backup_id`
+- **Flujo Automático**:
+  1. Al comprar etiqueta, el sistema descarga automáticamente el PDF desde Shippo
+  2. Guarda el PDF en `shipment_labels` en formato binario
+  3. Actualiza `shipments.label_backup_id` para vincular el respaldo
+- **API Endpoint**: `/api/shipment-labels/[id]`
+  - Autentica y autoriza al usuario (comprador o vendedor)
+  - Sirve el PDF con headers correctos (application/pdf)
+  - Decodifica bytea desde base64 correctamente
+- **Beneficios**:
+  - Vendedores pueden reimprimir etiquetas indefinidamente
+  - No dependen de la disponibilidad de enlaces de Shippo
+  - Respaldo permanente de todas las etiquetas compradas
+
 ### Gestión de Pedidos del Vendedor (My Orders)
 - **Vista de Pedidos** (`/my-orders`):
   - **Interfaz con Tabs Profesional**: Navegación superior con 3 pestañas para filtrar por estado
@@ -76,10 +97,12 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
        - Pedidos en tránsito o entregados
        - Banner informativo: "🚚 X pedidos enviados"
        - Muestra información de tracking (número, transportista, enlace)
-       - **Botón "Imprimir Etiqueta"**: Solo aparece en pedidos comprados con Shippo
-         - Abre el PDF de la etiqueta en nueva pestaña
-         - Permite reimprimir etiquetas cuando sea necesario
-         - Solo visible si existe `label_url` en el shipment
+       - **Sistema Dual de Impresión de Etiquetas**:
+         - **Botón "Imprimir desde Shippo"**: Descarga PDF directamente de Shippo
+           - Fuente primaria mientras el enlace esté disponible
+         - **Botón "Imprimir copia de respaldo"**: Descarga PDF desde base de datos
+           - Siempre disponible, respaldo permanente
+           - Solo visible si existe `label_backup_id` en el shipment
     3. **"Cancelados"** - Tab con badge rojo
        - Historial de pedidos cancelados
        - Banner informativo: "❌ X pedidos cancelados"

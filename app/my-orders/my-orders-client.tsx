@@ -87,6 +87,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
     const hasShipment = orderShipments[order.id] && orderShipments[order.id].length > 0
     const firstShipment = hasShipment ? orderShipments[order.id][0] : null
     const hasLabelUrl = hasShipment && firstShipment?.label_url
+    const hasBackupLabel = hasShipment && firstShipment?.label_backup_id
     const isShipped = order.status === "shipped"
     const isPaid = order.status === "paid"
 
@@ -153,45 +154,71 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                {firstShipment?.tracking_url && (
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  {firstShipment?.tracking_url && (
+                    <Button
+                      onClick={() => window.open(firstShipment.tracking_url, "_blank")}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                      data-testid={`button-track-shipment-${order.id}`}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Rastrear envío
+                    </Button>
+                  )}
+                  {hasLabelUrl && (
+                    <Button
+                      onClick={() => window.open(firstShipment.label_url, "_blank")}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      data-testid={`button-print-label-shippo-${order.id}`}
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Imprimir desde Shippo
+                    </Button>
+                  )}
+                </div>
+                {hasBackupLabel && (
                   <Button
-                    onClick={() => window.open(firstShipment.tracking_url, "_blank")}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                    data-testid={`button-track-shipment-${order.id}`}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Rastrear envío
-                  </Button>
-                )}
-                {hasLabelUrl && (
-                  <Button
-                    onClick={() => window.open(firstShipment.label_url, "_blank")}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                    data-testid={`button-print-label-${order.id}`}
+                    onClick={() => window.open(`/api/shipment-labels/${firstShipment.label_backup_id}`, "_blank")}
+                    variant="outline"
+                    className="w-full"
+                    data-testid={`button-print-label-backup-${order.id}`}
                   >
                     <Printer className="w-4 h-4 mr-2" />
-                    Imprimir Etiqueta
+                    Imprimir copia de respaldo (Base de datos)
                   </Button>
                 )}
               </div>
             </div>
           ) : isPaid ? (
             hasLabelUrl ? (
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => window.open(firstShipment.label_url, "_blank")}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  data-testid={`button-print-label-${order.id}`}
-                >
-                  <Printer className="w-4 h-4 mr-2" />
-                  Imprimir Etiqueta
-                </Button>
-                <CancelOrderDialog
-                  orderId={order.id}
-                  userType="seller"
-                  onCancelled={() => window.location.reload()}
-                />
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => window.open(firstShipment.label_url, "_blank")}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    data-testid={`button-print-label-shippo-${order.id}`}
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimir desde Shippo
+                  </Button>
+                  <CancelOrderDialog
+                    orderId={order.id}
+                    userType="seller"
+                    onCancelled={() => window.location.reload()}
+                  />
+                </div>
+                {hasBackupLabel && (
+                  <Button
+                    onClick={() => window.open(`/api/shipment-labels/${firstShipment.label_backup_id}`, "_blank")}
+                    variant="outline"
+                    className="w-full"
+                    data-testid={`button-print-label-backup-${order.id}`}
+                  >
+                    <Printer className="w-4 h-4 mr-2" />
+                    Imprimir copia de respaldo (Base de datos)
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="flex gap-2">

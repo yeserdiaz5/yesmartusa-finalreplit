@@ -74,7 +74,7 @@ export async function GET(
       )
     }
     
-    const pdfBuffer = Buffer.from(label.file_bytes)
+    const pdfBuffer = Buffer.from(label.file_bytes, "base64")
     
     return new NextResponse(pdfBuffer, {
       status: 200,
