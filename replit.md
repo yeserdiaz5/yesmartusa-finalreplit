@@ -68,7 +68,10 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
     1. **"Pagados"** - Tab con badge verde
        - Pedidos que necesitan etiqueta de envío
        - Banner informativo: "📦 Tienes X pedidos que necesitan etiqueta de envío"
-       - Botón "Comprar Envío" y opción de cancelar
+       - **Para pedidos SIN etiqueta**: Botón "Comprar Envío" y opción de cancelar
+       - **Para pedidos CON etiqueta comprada**: Botón "Imprimir Etiqueta" y opción de cancelar
+         - Permite reimprimir etiquetas de pedidos que aún no se han marcado como enviados
+         - Solo visible si existe `label_url` en el shipment asociado
     2. **"Enviados"** - Tab con badge azul
        - Pedidos en tránsito o entregados
        - Banner informativo: "🚚 X pedidos enviados"

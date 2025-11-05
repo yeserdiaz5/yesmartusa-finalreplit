@@ -44,8 +44,6 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
         const result = await getOrderShipments(order.id)
         if (result.success && result.data) {
           shipmentsMap[order.id] = result.data
-          // Log para debugging
-          console.log('[v0] Shipment data for order', order.id.slice(0, 8), ':', result.data)
         }
       }
 
@@ -88,17 +86,9 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
   const OrderCard = ({ order }: { order: any }) => {
     const hasShipment = orderShipments[order.id] && orderShipments[order.id].length > 0
     const firstShipment = hasShipment ? orderShipments[order.id][0] : null
-    const hasLabel = order.status === "shipped" || (hasShipment && firstShipment?.tracking_number)
-    
-    // Log para debugging del label_url
-    if (hasShipment && firstShipment) {
-      console.log('[v0] Order', order.id.slice(0, 8), 'firstShipment:', {
-        has_label_url: !!firstShipment.label_url,
-        label_url: firstShipment.label_url,
-        tracking_url: firstShipment.tracking_url,
-        carrier: firstShipment.carrier
-      })
-    }
+    const hasLabelUrl = hasShipment && firstShipment?.label_url
+    const isShipped = order.status === "shipped"
+    const isPaid = order.status === "paid"
 
     return (
       <Card key={order.id}>
@@ -141,7 +131,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
             <span className="text-xl font-bold text-green-600">${order.total_amount?.toFixed(2)}</span>
           </div>
 
-          {hasLabel ? (
+          {isShipped ? (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Truck className="w-5 h-5 text-blue-600" />
@@ -174,7 +164,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                     Rastrear envío
                   </Button>
                 )}
-                {firstShipment?.label_url && (
+                {hasLabelUrl && (
                   <Button
                     onClick={() => window.open(firstShipment.label_url, "_blank")}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"
@@ -186,22 +176,40 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                 )}
               </div>
             </div>
-          ) : order.status === "paid" ? (
-            <div className="flex gap-2">
-              <Button
-                onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                data-testid={`button-create-shipping-${order.id}`}
-              >
-                <Truck className="w-4 h-4 mr-2" />
-                Comprar Envío
-              </Button>
-              <CancelOrderDialog
-                orderId={order.id}
-                userType="seller"
-                onCancelled={() => window.location.reload()}
-              />
-            </div>
+          ) : isPaid ? (
+            hasLabelUrl ? (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => window.open(firstShipment.label_url, "_blank")}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid={`button-print-label-${order.id}`}
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimir Etiqueta
+                </Button>
+                <CancelOrderDialog
+                  orderId={order.id}
+                  userType="seller"
+                  onCancelled={() => window.location.reload()}
+                />
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  data-testid={`button-create-shipping-${order.id}`}
+                >
+                  <Truck className="w-4 h-4 mr-2" />
+                  Comprar Envío
+                </Button>
+                <CancelOrderDialog
+                  orderId={order.id}
+                  userType="seller"
+                  onCancelled={() => window.location.reload()}
+                />
+              </div>
+            )
           ) : order.status === "pending" ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center gap-2">
