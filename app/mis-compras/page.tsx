@@ -16,7 +16,10 @@ export default async function MisComprasPage() {
   const { data: userProfile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   const ordersResult = await getOrders()
-  const orders = ordersResult.success ? ordersResult.data || [] : []
+  const allOrders = ordersResult.success ? ordersResult.data || [] : []
+  
+  // Filtrar pedidos pendientes
+  const orders = allOrders.filter((order: any) => order.status !== "pending")
 
   return <MisComprasClient user={userProfile} orders={orders} />
 }

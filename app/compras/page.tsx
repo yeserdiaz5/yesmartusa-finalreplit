@@ -14,7 +14,7 @@ export default async function ComprasPage() {
 
   const { data: userProfile } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-  // Fetch purchases (compras) filtering by buyer_id
+  // Fetch purchases (compras) filtering by buyer_id and excluding pending orders
   const { data: compras, error } = await supabase
     .from("orders")
     .select(`
@@ -30,6 +30,7 @@ export default async function ComprasPage() {
       )
     `)
     .eq("buyer_id", user.id)
+    .neq("status", "pending")
     .order("created_at", { ascending: false })
 
   const purchases = error ? [] : compras || []
