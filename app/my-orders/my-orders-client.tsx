@@ -44,6 +44,8 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
         const result = await getOrderShipments(order.id)
         if (result.success && result.data) {
           shipmentsMap[order.id] = result.data
+          // Log para debugging
+          console.log('[v0] Shipment data for order', order.id.slice(0, 8), ':', result.data)
         }
       }
 
@@ -87,6 +89,16 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
     const hasShipment = orderShipments[order.id] && orderShipments[order.id].length > 0
     const firstShipment = hasShipment ? orderShipments[order.id][0] : null
     const hasLabel = order.status === "shipped" || (hasShipment && firstShipment?.tracking_number)
+    
+    // Log para debugging del label_url
+    if (hasShipment && firstShipment) {
+      console.log('[v0] Order', order.id.slice(0, 8), 'firstShipment:', {
+        has_label_url: !!firstShipment.label_url,
+        label_url: firstShipment.label_url,
+        tracking_url: firstShipment.tracking_url,
+        carrier: firstShipment.carrier
+      })
+    }
 
     return (
       <Card key={order.id}>
