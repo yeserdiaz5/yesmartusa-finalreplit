@@ -196,6 +196,11 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
     )
   }
 
+  // Agrupar órdenes por estado
+  const paidOrders = sortedOrders.filter(order => order.status === 'paid')
+  const shippedOrders = sortedOrders.filter(order => order.status === 'shipped')
+  const cancelledOrders = sortedOrders.filter(order => order.status === 'cancelled')
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader user={user} />
@@ -218,10 +223,60 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {sortedOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
-            ))}
+          <div className="space-y-8">
+            {/* Órdenes Pagadas - Requieren Acción */}
+            {paidOrders.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-green-600 rounded-full"></div>
+                  <h2 className="text-2xl font-bold text-green-900">
+                    Pedidos Pagados ({paidOrders.length})
+                  </h2>
+                </div>
+                <p className="text-gray-600 mb-4">Estos pedidos necesitan que crees la etiqueta de envío</p>
+                <div className="space-y-4">
+                  {paidOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Órdenes Enviadas */}
+            {shippedOrders.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-blue-600 rounded-full"></div>
+                  <h2 className="text-2xl font-bold text-blue-900">
+                    Pedidos Enviados ({shippedOrders.length})
+                  </h2>
+                </div>
+                <p className="text-gray-600 mb-4">Pedidos que ya han sido enviados al cliente</p>
+                <div className="space-y-4">
+                  {shippedOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Órdenes Canceladas */}
+            {cancelledOrders.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-8 w-1 bg-red-600 rounded-full"></div>
+                  <h2 className="text-2xl font-bold text-red-900">
+                    Pedidos Cancelados ({cancelledOrders.length})
+                  </h2>
+                </div>
+                <p className="text-gray-600 mb-4">Historial de pedidos cancelados</p>
+                <div className="space-y-4">
+                  {cancelledOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
