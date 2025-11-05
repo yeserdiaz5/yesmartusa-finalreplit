@@ -111,13 +111,19 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
           <div className="space-y-3 mb-4">
             {(order.items || order.order_items)?.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
-                <img
-                  src={item.product?.image_url || "/placeholder.svg"}
-                  alt={item.product?.title || "Product"}
-                  className="w-16 h-16 object-cover rounded"
-                />
+                <Link href={`/productdes/${item.product_id}`} className="shrink-0">
+                  <img
+                    src={item.product?.image_url || "/placeholder.svg"}
+                    alt={item.product?.title || "Product"}
+                    className="w-16 h-16 object-cover rounded hover:opacity-80 transition-opacity"
+                  />
+                </Link>
                 <div className="flex-1">
-                  <p className="font-medium">{item.product?.title}</p>
+                  <Link href={`/productdes/${item.product_id}`}>
+                    <p className="font-medium hover:text-blue-600 transition-colors cursor-pointer">
+                      {item.product?.title}
+                    </p>
+                  </Link>
                   <p className="text-sm text-gray-600">
                     Cantidad: {item.quantity} × ${item.price_at_purchase}
                   </p>
