@@ -51,6 +51,12 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
 - **Vista de Compras** (`/compras`): 
   - Muestra información de envío para pedidos en estado "shipped" o "delivered"
   - Número de rastreo clickeable que abre el tracking en nueva pestaña
+  - Links automáticos según el transportista:
+    - USPS: Enlace directo a USPS Tracking
+    - UPS: Enlace directo a UPS Tracking
+    - FedEx: Enlace directo a FedEx Tracking
+    - DHL: Enlace directo a DHL Tracking
+    - Otros: Búsqueda en Google del número de tracking
   - Muestra transportista y fecha estimada de entrega
   - Información obtenida de la tabla `shipments` relacionada con cada orden
 
