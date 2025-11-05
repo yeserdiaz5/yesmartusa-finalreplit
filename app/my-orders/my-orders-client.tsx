@@ -20,6 +20,17 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
   const [orderShipments, setOrderShipments] = useState<Record<string, Shipment[]>>({})
   const router = useRouter()
 
+  // Agrupar y ordenar órdenes: paid primero, luego shipped, luego cancelled
+  const sortedOrders = [...orders].sort((a, b) => {
+    const statusOrder: Record<string, number> = {
+      paid: 1,
+      shipped: 2,
+      cancelled: 3,
+      pending: 4
+    }
+    return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99)
+  })
+
   useEffect(() => {
     const fetchShipments = async () => {
       if (!Array.isArray(orders) || orders.length === 0) {
@@ -150,28 +161,20 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
               )}
             </div>
           ) : order.status === "paid" ? (
-            <div className="space-y-3">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-orange-600" />
-                  <p className="text-orange-900 font-medium">Tu pedido está siendo preparado para envío 🚚</p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  data-testid={`button-create-shipping-${order.id}`}
-                >
-                  <Truck className="w-4 h-4 mr-2" />
-                  Comprar Envío
-                </Button>
-                <CancelOrderDialog
-                  orderId={order.id}
-                  userType="seller"
-                  onCancelled={() => window.location.reload()}
-                />
-              </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => router.push(`/create-shippo-label?order_id=${order.id}`)}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                data-testid={`button-create-shipping-${order.id}`}
+              >
+                <Truck className="w-4 h-4 mr-2" />
+                Comprar Envío
+              </Button>
+              <CancelOrderDialog
+                orderId={order.id}
+                userType="seller"
+                onCancelled={() => window.location.reload()}
+              />
             </div>
           ) : order.status === "pending" ? (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -216,7 +219,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
           </Card>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
+            {sortedOrders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>
