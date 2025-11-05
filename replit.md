@@ -73,6 +73,10 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
        - Pedidos en tránsito o entregados
        - Banner informativo: "🚚 X pedidos enviados"
        - Muestra información de tracking (número, transportista, enlace)
+       - **Botón "Imprimir Etiqueta"**: Solo aparece en pedidos comprados con Shippo
+         - Abre el PDF de la etiqueta en nueva pestaña
+         - Permite reimprimir etiquetas cuando sea necesario
+         - Solo visible si existe `label_url` en el shipment
     3. **"Cancelados"** - Tab con badge rojo
        - Historial de pedidos cancelados
        - Banner informativo: "❌ X pedidos cancelados"
