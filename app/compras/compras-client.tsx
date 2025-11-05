@@ -58,6 +58,23 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
     })
   }
 
+  const getTrackingUrl = (trackingNumber: string, carrier: string) => {
+    const carrierLower = carrier.toLowerCase()
+    
+    if (carrierLower.includes('usps')) {
+      return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${trackingNumber}`
+    } else if (carrierLower.includes('ups')) {
+      return `https://www.ups.com/track?loc=en_US&tracknum=${trackingNumber}`
+    } else if (carrierLower.includes('fedex')) {
+      return `https://www.fedex.com/fedextrack/?tracknumbers=${trackingNumber}`
+    } else if (carrierLower.includes('dhl')) {
+      return `https://www.dhl.com/en/express/tracking.html?AWB=${trackingNumber}`
+    } else {
+      // Default generic search
+      return `https://www.google.com/search?q=track+${carrier}+${trackingNumber}`
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader user={user} />
@@ -163,20 +180,16 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                         <div key={shipment.id} className="mt-2">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                             <span className="text-sm font-medium text-green-800">Número de Rastreo:</span>
-                            {shipment.tracking_url ? (
-                              <Link
-                                href={shipment.tracking_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
-                                data-testid={`link-tracking-${shipment.tracking_number}`}
-                              >
-                                {shipment.tracking_number}
-                                <ExternalLink className="w-3 h-3" />
-                              </Link>
-                            ) : (
-                              <span className="text-sm text-green-800 font-mono">{shipment.tracking_number}</span>
-                            )}
+                            <Link
+                              href={getTrackingUrl(shipment.tracking_number, shipment.carrier || 'USPS')}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                              data-testid={`link-tracking-${shipment.tracking_number}`}
+                            >
+                              {shipment.tracking_number}
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
                           </div>
                           {shipment.carrier && (
                             <p className="text-sm text-green-700 mt-1">
