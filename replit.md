@@ -62,17 +62,24 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
 
 ### Gestión de Pedidos del Vendedor (My Orders)
 - **Vista de Pedidos** (`/my-orders`):
-  - Órdenes organizadas en **3 secciones visuales** por estado:
-    1. **"Pedidos Pagados"** - Sección verde con barra lateral
-       - Aparece primero, muestra pedidos que necesitan crear etiqueta de envío
-       - Botón directo "Comprar Envío" y opción de cancelar
-    2. **"Pedidos Enviados"** - Sección azul con barra lateral
-       - Muestra información de tracking (número, transportista, enlace para rastrear)
-    3. **"Pedidos Cancelados"** - Sección roja con barra lateral
-       - Historial de pedidos cancelados con razón de cancelación
-  - Cada sección muestra contador de pedidos
-  - Sin mensaje "preparado para envío" - interfaz limpia centrada en acción
-  - Las secciones solo aparecen si hay pedidos en ese estado
+  - **Interfaz con Tabs Profesional**: Navegación superior con 3 pestañas para filtrar por estado
+  - **Diseño UX Optimizado**: Sin scroll largo - cada tab muestra solo las órdenes de su categoría
+  - **Tabs Disponibles**:
+    1. **"Pagados"** - Tab con badge verde
+       - Pedidos que necesitan etiqueta de envío
+       - Banner informativo: "📦 Tienes X pedidos que necesitan etiqueta de envío"
+       - Botón "Comprar Envío" y opción de cancelar
+    2. **"Enviados"** - Tab con badge azul
+       - Pedidos en tránsito o entregados
+       - Banner informativo: "🚚 X pedidos enviados"
+       - Muestra información de tracking (número, transportista, enlace)
+    3. **"Cancelados"** - Tab con badge rojo
+       - Historial de pedidos cancelados
+       - Banner informativo: "❌ X pedidos cancelados"
+       - Muestra razón de cancelación
+  - **Badges con Contadores**: Cada tab muestra el número de órdenes en ese estado
+  - **Estados Vacíos**: Mensaje amigable cuando no hay órdenes en una categoría
+  - **Ventajas**: Vendedores con muchos pedidos (100+) pueden navegar fácilmente sin scroll largo
 
 ## System Architecture
 
