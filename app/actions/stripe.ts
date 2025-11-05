@@ -61,7 +61,7 @@ export async function createStripeCheckoutSession(
     .from("orders")
     .insert({
       buyer_id: userId,
-      buyer_email: isGuest ? userEmail : null,
+      buyer_email: userEmail,
       status: "pending",
       total_amount: totalAmount,
       shipping_address: null, // Stripe will collect this
@@ -116,6 +116,7 @@ export async function createStripeCheckoutSession(
     success_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:3000"}/checkoutplus/success?order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:3000"}/checkoutplus`,
     customer_email: userEmail || undefined,
+    billing_address_collection: 'required',
     shipping_address_collection: {
       allowed_countries: ['US', 'CA', 'MX', 'GB', 'AU', 'ES', 'FR', 'DE', 'IT', 'BR', 'AR', 'CL', 'CO', 'PE'],
     },

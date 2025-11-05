@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Minus, Plus, Trash2, CreditCard, ShoppingBag } from "lucide-react"
+import { ArrowLeft, Minus, Plus, Trash2, CreditCard, ShoppingBag, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
@@ -23,6 +25,7 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [isGuest, setIsGuest] = useState(false)
+  const [guestEmail, setGuestEmail] = useState("")
 
   useEffect(() => {
     loadCart()
@@ -106,13 +109,37 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
 
   const handleStripeCheckout = async () => {
     console.log("[v0] handleStripeCheckout - Starting")
+    
+    // Validate email for guest users
+    if (isGuest && !guestEmail) {
+      toast({
+        title: "Email requerido",
+        description: "Por favor ingresa tu email para continuar con el pago",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Validate email format
+    if (isGuest && guestEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(guestEmail)) {
+        toast({
+          title: "Email inválido",
+          description: "Por favor ingresa un email válido",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+    
     setProcessing(true)
 
     try {
       const result = await createStripeCheckoutSession(
         isGuest,
         isGuest ? cartItems : undefined,
-        initialUser?.email || null
+        initialUser?.email || guestEmail
       )
 
       console.log("[v0] handleStripeCheckout - Stripe session created:", result)
@@ -205,8 +232,13 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
             <div>
               <h3 className="font-bold text-green-900 mb-2 text-lg">✓ Pago Rápido y Seguro</h3>
               <p className="text-sm text-green-800 mb-2">
-                <strong>¡Haz clic en "Pagar con Stripe" para continuar!</strong> Stripe te pedirá tus datos de pago y dirección de envío de forma segura.
+                <strong>¡Haz clic en "Pagar con Stripe" para continuar!</strong> Stripe te pedirá de forma segura:
               </p>
+              <ul className="text-sm text-green-800 mb-2 ml-4 space-y-1 list-disc">
+                <li>Información de tu tarjeta de crédito/débito</li>
+                <li>Dirección de facturación completa</li>
+                <li>Dirección de envío completa</li>
+              </ul>
               {isGuest && (
                 <p className="text-xs text-green-700">
                   <em>Opcional:</em> Si quieres guardar tu historial de pedidos,{" "}
@@ -305,11 +337,34 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
 
                 <Separator />
 
+                {isGuest && (
+                  <div className="space-y-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <Label htmlFor="guest-email" className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Email para Confirmación de Pago *
+                    </Label>
+                    <Input
+                      id="guest-email"
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={guestEmail}
+                      onChange={(e) => setGuestEmail(e.target.value)}
+                      className="w-full"
+                      data-testid="input-guest-email"
+                      required
+                    />
+                    <p className="text-xs text-blue-700">
+                      Te enviaremos la confirmación de tu pedido a este email
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   <Button
                     onClick={handleStripeCheckout}
                     disabled={processing}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-6 text-lg shadow-lg"
+                    data-testid="button-pay-stripe"
                   >
                     <CreditCard className="mr-2 h-5 w-5" />
                     {processing ? "Procesando pago..." : "Pagar con Stripe"}
