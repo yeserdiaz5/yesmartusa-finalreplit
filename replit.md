@@ -11,6 +11,22 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
 
 ## Recent Changes (November 2025)
 
+### Enlaces de Productos a Páginas de Descripción
+- **Implementación Universal**: Todas las imágenes y nombres de productos ahora incluyen enlaces clickeables a la página de descripción (`/productdes/${productId}`)
+- **Páginas Actualizadas**:
+  - `/` - Homepage del comprador (buyer-homepage-client.tsx)
+  - `/tienda/[sellerId]` - Página de tienda del vendedor (tienda-client.tsx)
+  - `/cartplus` - Carrito de compras (cart-page-client.tsx)
+  - `/compras` - Vista de compras del comprador (compras-client.tsx)
+  - `/mis-compras` - Vista alternativa de compras (mis-compras-client.tsx)
+  - `/my-orders` - Vista de pedidos del vendedor (my-orders-client.tsx)
+  - `/orders` - Vista de gestión de pedidos (orders-page-client.tsx)
+- **Efectos Visuales**:
+  - Hover en imágenes: Reducción de opacidad (opacity-80)
+  - Hover en títulos: Cambio a color azul (text-blue-600)
+  - Transiciones suaves para mejor UX
+- **Beneficios**: Navegación más intuitiva, usuarios pueden ver detalles de productos desde cualquier página
+
 ### Optimización del Contador del Carrito
 - Implementado sistema de eventos 'cartUpdated' para actualizaciones en tiempo real
 - CartIcon ahora detecta automáticamente usuarios autenticados vs invitados

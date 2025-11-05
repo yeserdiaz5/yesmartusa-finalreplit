@@ -145,13 +145,19 @@ export function CartPageClient({ user }: CartPageClientProps) {
                 return (
                   <div key={itemId} className="bg-white rounded-lg shadow p-4">
                     <div className="flex gap-4">
-                      <img
-                        src={product.image_url || "/placeholder.svg"}
-                        alt={product.title}
-                        className="w-24 h-24 object-cover rounded"
-                      />
+                      <Link href={`/productdes/${product.id}`} className="shrink-0">
+                        <img
+                          src={product.image_url || "/placeholder.svg"}
+                          alt={product.title}
+                          className="w-24 h-24 object-cover rounded hover:opacity-80 transition-opacity"
+                        />
+                      </Link>
                       <div className="flex-1">
-                        <h3 className="font-semibold mb-2">{product.title}</h3>
+                        <Link href={`/productdes/${product.id}`}>
+                          <h3 className="font-semibold mb-2 hover:text-blue-600 transition-colors cursor-pointer">
+                            {product.title}
+                          </h3>
+                        </Link>
                         <p className="text-lg font-bold text-gray-900 mb-2">${product.price}</p>
                         <div className="flex items-center gap-2">
                           <Button
