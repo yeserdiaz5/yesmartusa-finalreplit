@@ -146,6 +146,8 @@ function ProductCard({
         description: `${quantity} producto(s) agregado(s) al carrito`,
       })
       setQuantity(1)
+      // Dispatch event to update cart count
+      window.dispatchEvent(new Event("cartUpdated"))
     } else {
       toast({
         title: "Error",
@@ -182,6 +184,8 @@ function ProductCard({
     setIsAdding(false)
 
     if (result && result.success) {
+      // Dispatch event to update cart count
+      window.dispatchEvent(new Event("cartUpdated"))
       router.push("/cartplus")
     } else {
       toast({

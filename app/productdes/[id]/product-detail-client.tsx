@@ -69,6 +69,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         title: "Producto agregado",
         description: `${quantity} producto(s) agregado(s) al carrito`,
       })
+      // Dispatch event to update cart count
+      window.dispatchEvent(new Event("cartUpdated"))
     } else {
       toast({
         title: "Error",
@@ -100,6 +102,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
     setIsAdding(false)
 
     if (result && result.success) {
+      // Dispatch event to update cart count
+      window.dispatchEvent(new Event("cartUpdated"))
       router.push("/cartplus")
     } else {
       toast({

@@ -56,6 +56,8 @@ export function CartPageClient({ user }: CartPageClientProps) {
       const result = await updateCartItemQuantity(itemId, newQuantity)
       if (result.success) {
         await loadCart()
+        // Dispatch event to update cart count
+        window.dispatchEvent(new Event("cartUpdated"))
       } else {
         toast({
           title: "Error",
@@ -80,6 +82,8 @@ export function CartPageClient({ user }: CartPageClientProps) {
           description: "El producto se eliminó del carrito",
         })
         await loadCart()
+        // Dispatch event to update cart count
+        window.dispatchEvent(new Event("cartUpdated"))
       } else {
         toast({
           title: "Error",
