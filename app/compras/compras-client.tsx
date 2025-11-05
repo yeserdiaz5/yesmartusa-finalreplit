@@ -185,7 +185,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                           )}
                           {shipment.estimated_delivery && (
                             <p className="text-sm text-green-700 mt-1">
-                              Entrega estimada: {new Date(shipment.estimated_delivery).toLocaleDateString("es-ES")}
+                              Entrega estimada: {formatDate(shipment.estimated_delivery)}
                             </p>
                           )}
                         </div>
