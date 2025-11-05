@@ -118,21 +118,27 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
         <div className="space-y-4">
           {compra.order_items?.map((item: OrderItem & { product?: Product }) => (
             <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              {item.product?.image_url || (item.product?.images && item.product.images[0]) ? (
-                <Image
-                  src={item.product.image_url || (item.product.images ? item.product.images[0] : '')}
-                  alt={item.product.title}
-                  width={80}
-                  height={80}
-                  className="rounded-md object-cover"
-                />
-              ) : (
-                <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center">
-                  <Package className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
+              <Link href={`/productdes/${item.product_id}`} className="shrink-0">
+                {item.product?.image_url || (item.product?.images && item.product.images[0]) ? (
+                  <Image
+                    src={item.product.image_url || (item.product.images ? item.product.images[0] : '')}
+                    alt={item.product.title}
+                    width={80}
+                    height={80}
+                    className="rounded-md object-cover hover:opacity-80 transition-opacity"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gray-200 rounded-md flex items-center justify-center hover:opacity-80 transition-opacity">
+                    <Package className="w-8 h-8 text-gray-400" />
+                  </div>
+                )}
+              </Link>
               <div className="flex-1">
-                <h4 className="font-semibold">{item.product?.title || "Producto"}</h4>
+                <Link href={`/productdes/${item.product_id}`}>
+                  <h4 className="font-semibold hover:text-blue-600 transition-colors cursor-pointer">
+                    {item.product?.title || "Producto"}
+                  </h4>
+                </Link>
                 <p className="text-sm text-gray-600">
                   Cantidad: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
                 </p>
