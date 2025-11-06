@@ -218,62 +218,6 @@ export default function ProductForm({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>{t("shippingPolicy")}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="shipping_policy">{t("shippingPolicyDescription")}</Label>
-            <Select
-              value={formData.shipping_policy}
-              onValueChange={(value: ShippingPolicy) => 
-                setFormData({ ...formData, shipping_policy: value })
-              }
-            >
-              <SelectTrigger id="shipping_policy" data-testid="select-shipping-policy">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="seller_pays" data-testid="option-seller-pays">
-                  {t("sellerPaysShipping")}
-                </SelectItem>
-                <SelectItem value="buyer_pays" data-testid="option-buyer-pays">
-                  {t("buyerPaysShipping")}
-                </SelectItem>
-                <SelectItem value="shared" data-testid="option-shared">
-                  {t("sharedShipping")}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="shipping_cost">
-              {t("shippingCost")} 
-              {formData.shipping_policy === 'seller_pays' && " (opcional)"}
-              {(formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared') && " *"}
-            </Label>
-            <Input
-              id="shipping_cost"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.shipping_cost}
-              onChange={(e) => setFormData({ ...formData, shipping_cost: e.target.value })}
-              placeholder={t("shippingCostPlaceholder")}
-              data-testid="input-shipping-cost"
-              required={formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared'}
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              {formData.shipping_policy === 'seller_pays' && t("freeShipping")}
-              {formData.shipping_policy === 'buyer_pays' && `${t("buyer")} ${t("shippingPaidBy").toLowerCase()}`}
-              {formData.shipping_policy === 'shared' && t("sharedCost")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="mb-6">
-        <CardHeader>
           <CardTitle>{t("packageDimensions")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -337,6 +281,62 @@ export default function ProductForm({
                 data-testid="input-package-weight"
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t("shippingPolicy")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="shipping_policy">{t("shippingPolicyDescription")}</Label>
+            <Select
+              value={formData.shipping_policy}
+              onValueChange={(value: ShippingPolicy) => 
+                setFormData({ ...formData, shipping_policy: value })
+              }
+            >
+              <SelectTrigger id="shipping_policy" data-testid="select-shipping-policy">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="seller_pays" data-testid="option-seller-pays">
+                  {t("sellerPaysShipping")}
+                </SelectItem>
+                <SelectItem value="buyer_pays" data-testid="option-buyer-pays">
+                  {t("buyerPaysShipping")}
+                </SelectItem>
+                <SelectItem value="shared" data-testid="option-shared">
+                  {t("sharedShipping")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="shipping_cost">
+              {t("shippingCost")} 
+              {formData.shipping_policy === 'seller_pays' && " (opcional)"}
+              {(formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared') && " *"}
+            </Label>
+            <Input
+              id="shipping_cost"
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.shipping_cost}
+              onChange={(e) => setFormData({ ...formData, shipping_cost: e.target.value })}
+              placeholder={t("shippingCostPlaceholder")}
+              data-testid="input-shipping-cost"
+              required={formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared'}
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              {formData.shipping_policy === 'seller_pays' && t("freeShipping")}
+              {formData.shipping_policy === 'buyer_pays' && `${t("buyer")} ${t("shippingPaidBy").toLowerCase()}`}
+              {formData.shipping_policy === 'shared' && t("sharedCost")}
+            </p>
           </div>
         </CardContent>
       </Card>
