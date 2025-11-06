@@ -190,6 +190,8 @@ export default function ProductForm({
         stock_quantity: Number.parseInt(formData.stock_quantity),
         image_url: formData.images[0] || "",
         images: formData.images,
+        brand: formData.brand || null,
+        condition: formData.condition || null,
         category_ids: formData.category_ids,
         tag_ids: formData.tag_ids,
         shipping_policy: formData.shipping_policy,
