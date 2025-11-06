@@ -61,6 +61,7 @@ All pages below now support **dynamic language switching** via the language sele
 **Fully Translated Components**:
 - ✅ **Buyer Homepage** (/): Product cards, search bar, filters, buttons ("Add to Cart"/"Agregar al Carrito", "Buy Now"/"Comprar Ahora")
 - ✅ **Product Detail Pages** (/productdes/[id]): Product descriptions, quantity selector, stock status, cart actions
+- ✅ **Product Detail Test Page** (/product/[id]): Trust score badges (Excellent/Excelente, Very Good/Muy Bueno, Good/Bueno, Poor/Pobre), shipping rates testing section, product info (reviews/reseñas, in stock/en stock, out of stock/agotado), seller info (sold by/vendido por), description/descripción, navigation (back to home/volver a inicio), all toast messages
 - ✅ **Purchases Page** (/compras): Order cards, status labels (Paid/Pagado, Shipped/Enviado, etc.), tabs, empty states, shipping information, tracking details, cancellation messages, banner notifications with proper pluralization
 - ✅ **My Orders Page - Seller** (/my-orders): Order cards, status labels, tabs (Paid/Pagados, Shipped/Enviados, Cancelled/Cancelados), shipping information, tracking details, label printing buttons, empty states, banner notifications with proper pluralization
 - ✅ **Cancel Order Dialog**: Button labels, dialog title, descriptions (seller/buyer specific), form fields, warnings, confirmation messages, error notifications
