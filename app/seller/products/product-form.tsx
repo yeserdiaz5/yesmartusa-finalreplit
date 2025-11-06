@@ -14,6 +14,7 @@ import { createProduct, updateProduct, type CreateProductInput } from "@/app/act
 import type { Category, Tag, Product } from "@/lib/types/database"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import ImageUploadGrid from "@/components/image-upload-grid"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface ProductFormProps {
   categories: Category[]
@@ -30,6 +31,7 @@ export default function ProductForm({
   productCategories = [],
   productTags = [],
 }: ProductFormProps) {
+  const { t } = useLanguage()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -58,7 +60,7 @@ export default function ProductForm({
 
     try {
       if (!product && formData.images.length === 0) {
-        setError("Debes subir al menos una imagen del producto")
+        setError(t("mustUploadImage"))
         setLoading(false)
         return
       }
@@ -88,7 +90,7 @@ export default function ProductForm({
         router.refresh()
       }
     } catch (err) {
-      setError("An unexpected error occurred")
+      setError(t("unexpectedError"))
     } finally {
       setLoading(false)
     }
@@ -113,44 +115,46 @@ export default function ProductForm({
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-6">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
+        <Button type="button" variant="ghost" onClick={() => router.back()} data-testid="button-back">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
+          {t("backButton")}
         </Button>
       </div>
 
-      {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">{error}</div>}
+      {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800" data-testid="text-error">{error}</div>}
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Información del Producto</CardTitle>
+          <CardTitle>{t("productInformation")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="title">Nombre del Producto *</Label>
+            <Label htmlFor="title">{t("productName")} *</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
-              placeholder="Ingresa el nombre del producto"
+              placeholder={t("productNamePlaceholder")}
+              data-testid="input-product-name"
             />
           </div>
 
           <div>
-            <Label htmlFor="description">Descripción</Label>
+            <Label htmlFor="description">{t("description")}</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Describe tu producto"
+              placeholder={t("productDescriptionPlaceholder")}
               rows={5}
+              data-testid="input-description"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="price">Precio ($) *</Label>
+              <Label htmlFor="price">{t("price")} *</Label>
               <Input
                 id="price"
                 type="number"
@@ -160,11 +164,12 @@ export default function ProductForm({
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 required
                 placeholder="0.00"
+                data-testid="input-price"
               />
             </div>
 
             <div>
-              <Label htmlFor="stock">Cantidad en Stock *</Label>
+              <Label htmlFor="stock">{t("stockQuantity")} *</Label>
               <Input
                 id="stock"
                 type="number"
@@ -173,12 +178,13 @@ export default function ProductForm({
                 onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
                 required
                 placeholder="0"
+                data-testid="input-stock"
               />
             </div>
           </div>
 
           <div>
-            <Label>Imágenes del Producto *</Label>
+            <Label>{t("productImages")} *</Label>
             <div className="mt-2">
               <ImageUploadGrid
                 images={formData.images}
@@ -192,7 +198,7 @@ export default function ProductForm({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Categorías</CardTitle>
+          <CardTitle>{t("categories")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -202,6 +208,7 @@ export default function ProductForm({
                   id={`category-${category.id}`}
                   checked={formData.category_ids.includes(category.id)}
                   onCheckedChange={() => handleCategoryToggle(category.id)}
+                  data-testid={`checkbox-category-${category.id}`}
                 />
                 <label
                   htmlFor={`category-${category.id}`}
@@ -217,7 +224,7 @@ export default function ProductForm({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Etiquetas</CardTitle>
+          <CardTitle>{t("tags")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -227,6 +234,7 @@ export default function ProductForm({
                   id={`tag-${tag.id}`}
                   checked={formData.tag_ids.includes(tag.id)}
                   onCheckedChange={() => handleTagToggle(tag.id)}
+                  data-testid={`checkbox-tag-${tag.id}`}
                 />
                 <label
                   htmlFor={`tag-${tag.id}`}
@@ -241,12 +249,12 @@ export default function ProductForm({
       </Card>
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={loading} className="flex-1">
+        <Button type="submit" disabled={loading} className="flex-1" data-testid="button-submit">
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          {product ? "Actualizar Producto" : "Crear Producto"}
+          {product ? t("updateProduct") : t("createProduct")}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancelar
+        <Button type="button" variant="outline" onClick={() => router.back()} data-testid="button-cancel">
+          {t("cancel")}
         </Button>
       </div>
     </form>
