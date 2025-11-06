@@ -13,26 +13,58 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("en")
+  const [language, setLanguageState] = useState<Language>(() => {
+    // Initialize with localStorage value if available (client-side only)
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("language") as Language
+        if (saved === "en" || saved === "es") {
+          return saved
+        }
+      } catch (e) {
+        // localStorage might not be available
+        console.error("Failed to read language from localStorage:", e)
+      }
+    }
+    return "en" // Default to English
+  })
+
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Load saved language from localStorage after mount
-    const saved = localStorage.getItem("language") as Language
-    if (saved === "en" || saved === "es") {
-      setLanguageState(saved)
+    setMounted(true)
+    // Double-check localStorage after mount
+    try {
+      const saved = localStorage.getItem("language") as Language
+      if (saved && (saved === "en" || saved === "es") && saved !== language) {
+        setLanguageState(saved)
+      }
+    } catch (e) {
+      console.error("Failed to read language from localStorage:", e)
     }
   }, [])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
-    if (typeof window !== "undefined") {
+    try {
       localStorage.setItem("language", lang)
+    } catch (e) {
+      console.error("Failed to save language to localStorage:", e)
     }
   }
 
   const t = (key: string) => {
     const translations = language === "en" ? translationsEN : translationsES
     return translations[key] || key
+  }
+
+  // Don't render until mounted on client to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <LanguageContext.Provider value={{ language: "en", setLanguage: () => {}, t: (key: string) => translationsEN[key] || key }}>
+        {children}
+      </LanguageContext.Provider>
+    )
   }
 
   return (
