@@ -28,6 +28,7 @@ import {
   getBuyerCancellationReasons,
   type CancellationReason 
 } from "@/app/actions/cancel-order"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface CancelOrderDialogProps {
   orderId: string
@@ -48,6 +49,7 @@ export function CancelOrderDialog({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [reasons, setReasons] = useState<{ value: string; label: string }[]>([])
   const { toast } = useToast()
+  const { t } = useLanguage()
 
   useEffect(() => {
     const loadReasons = async () => {
@@ -63,7 +65,7 @@ export function CancelOrderDialog({
     if (!reason) {
       toast({
         title: "Error",
-        description: "Por favor selecciona una razón para cancelar",
+        description: t("pleaseSelectReason"),
         variant: "destructive",
       })
       return
@@ -81,7 +83,7 @@ export function CancelOrderDialog({
 
       if (result.success) {
         toast({
-          title: "Pedido cancelado",
+          title: t("orderCancelledTitle"),
           description: result.message,
         })
         setOpen(false)
@@ -91,14 +93,14 @@ export function CancelOrderDialog({
       } else {
         toast({
           title: "Error",
-          description: result.error || "No se pudo cancelar el pedido",
+          description: result.error || t("couldNotCancelOrder"),
           variant: "destructive",
         })
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Ocurrió un error al cancelar el pedido",
+        description: t("errorCancellingOrder"),
         variant: "destructive",
       })
     } finally {
@@ -116,27 +118,27 @@ export function CancelOrderDialog({
             data-testid="button-cancel-order"
           >
             <XCircle className="w-4 h-4 mr-2" />
-            Cancelar Pedido
+            {t("cancelOrder")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Cancelar Pedido</DialogTitle>
+          <DialogTitle>{t("cancelOrderTitle")}</DialogTitle>
           <DialogDescription>
             {userType === "seller" 
-              ? "Al cancelar este pedido, se procesará un reembolso automático al comprador si el pago ya fue procesado."
-              : "Al cancelar este pedido, recibirás un reembolso automático si el pago ya fue procesado."
+              ? t("cancelOrderDescriptionSeller")
+              : t("cancelOrderDescriptionBuyer")
             }
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Razón de cancelación *</Label>
+            <Label htmlFor="reason">{t("cancellationReason")} *</Label>
             <Select value={reason} onValueChange={(value) => setReason(value as CancellationReason)}>
               <SelectTrigger id="reason" data-testid="select-cancel-reason">
-                <SelectValue placeholder="Selecciona una razón" />
+                <SelectValue placeholder={t("selectReason")} />
               </SelectTrigger>
               <SelectContent>
                 {reasons.map((r) => (
@@ -149,10 +151,10 @@ export function CancelOrderDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas adicionales (opcional)</Label>
+            <Label htmlFor="notes">{t("additionalNotes")}</Label>
             <Textarea
               id="notes"
-              placeholder="Agrega detalles adicionales sobre la cancelación..."
+              placeholder={t("additionalNotesPlaceholder")}
               value={additionalNotes}
               onChange={(e) => setAdditionalNotes(e.target.value)}
               rows={3}
@@ -162,8 +164,8 @@ export function CancelOrderDialog({
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
             <p className="text-sm text-yellow-900">
-              <strong>Importante:</strong> Esta acción no se puede deshacer. 
-              {userType === "buyer" && " El reembolso puede tardar de 5 a 10 días hábiles en reflejarse."}
+              <strong>{t("importantLabel")}</strong> {t("cannotUndoAction")}
+              {userType === "buyer" && ` ${t("refundTimeBuyer")}`}
             </p>
           </div>
         </div>
@@ -175,7 +177,7 @@ export function CancelOrderDialog({
             disabled={isSubmitting}
             data-testid="button-cancel-dialog-close"
           >
-            Volver
+            {t("back")}
           </Button>
           <Button
             variant="destructive"
@@ -184,7 +186,7 @@ export function CancelOrderDialog({
             data-testid="button-confirm-cancel"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Confirmar Cancelación
+            {t("confirmCancellation")}
           </Button>
         </DialogFooter>
       </DialogContent>
