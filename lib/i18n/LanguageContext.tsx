@@ -346,6 +346,11 @@ const translationsEN: Record<string, string> = {
   "heightInches": "Height (inches)",
   "weightPounds": "Weight (lbs)",
   "dimensionsOptional": "Dimensions are optional but help calculate accurate shipping costs",
+  "estimateShipping": "Estimate Shipping",
+  "estimating": "Estimating...",
+  "shippingEstimated": "Estimated shipping cost: ${cost}",
+  "fillDimensions": "Please fill in all package dimensions to estimate shipping",
+  "shippingEstimateError": "Could not estimate shipping cost. Please try again.",
   
   "checkout": "Checkout",
   "total": "Total",
@@ -746,6 +751,11 @@ const translationsES: Record<string, string> = {
   "heightInches": "Alto (pulgadas)",
   "weightPounds": "Peso (lbs)",
   "dimensionsOptional": "Las dimensiones son opcionales pero ayudan a calcular costos de envío precisos",
+  "estimateShipping": "Estimar Envío",
+  "estimating": "Estimando...",
+  "shippingEstimated": "Costo de envío estimado: ${cost}",
+  "fillDimensions": "Por favor completa todas las dimensiones del paquete para estimar el envío",
+  "shippingEstimateError": "No se pudo estimar el costo de envío. Por favor intenta de nuevo.",
   
   "checkout": "Pagar",
   "total": "Total",
