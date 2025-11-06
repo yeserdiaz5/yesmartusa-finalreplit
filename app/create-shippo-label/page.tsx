@@ -86,9 +86,19 @@ export default function CreateShippoLabelPage() {
     const loadUser = async () => {
       const supabase = createClient()
       const {
-        data: { user },
+        data: { user: authUser },
       } = await supabase.auth.getUser()
-      setUser(user)
+      
+      if (authUser) {
+        // Get full user profile with store_name and full_name
+        const { data: userProfile } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", authUser.id)
+          .single()
+        
+        setUser(userProfile)
+      }
     }
     loadUser()
 
