@@ -146,28 +146,32 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="grid md:grid-cols-2 gap-8">
             <div>
-              <div className="mb-4">
+              <div className="mb-4 bg-gray-50 rounded-lg p-4">
                 <img
                   src={selectedImage || "/placeholder.svg"}
                   alt={product.title}
-                  className="w-full h-96 object-cover rounded-lg"
+                  className="w-full h-[500px] object-contain rounded-lg"
+                  data-testid="image-main-product"
                 />
               </div>
-              {images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {images.map((img: string, idx: number) => (
+              <div className="grid grid-cols-5 gap-3">
+                {images.map((img: string, idx: number) => (
+                  <div
+                    key={idx}
+                    className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:shadow-lg ${
+                      selectedImage === img ? "border-blue-600 shadow-md" : "border-gray-300 hover:border-gray-400"
+                    }`}
+                    onClick={() => setSelectedImage(img)}
+                    data-testid={`thumbnail-product-image-${idx}`}
+                  >
                     <img
-                      key={idx}
                       src={img || "/placeholder.svg"}
                       alt={`${product.title} ${idx + 1}`}
-                      className={`w-full h-20 object-cover rounded cursor-pointer border-2 ${
-                        selectedImage === img ? "border-blue-500" : "border-gray-200"
-                      }`}
-                      onClick={() => setSelectedImage(img)}
+                      className="w-full h-20 object-cover"
                     />
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div>
