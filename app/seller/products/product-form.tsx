@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,51 +62,62 @@ export default function ProductForm({
 
   console.log("[v0] Form data images:", formData.images)
 
-  const handleEstimateShipping = async () => {
-    // Validate all dimensions are filled
-    if (!formData.package_length || !formData.package_width || !formData.package_height || !formData.package_weight) {
-      setError(t("fillDimensions"))
-      return
-    }
+  // Automatically estimate shipping when all dimensions are filled
+  useEffect(() => {
+    const estimateShippingAutomatically = async () => {
+      // Check if all dimensions are filled and valid
+      if (
+        formData.package_length &&
+        formData.package_width &&
+        formData.package_height &&
+        formData.package_weight &&
+        parseFloat(formData.package_length) > 0 &&
+        parseFloat(formData.package_width) > 0 &&
+        parseFloat(formData.package_height) > 0 &&
+        parseFloat(formData.package_weight) > 0
+      ) {
+        setEstimating(true)
+        setError(null)
 
-    setEstimating(true)
-    setError(null)
+        try {
+          const response = await fetch("/api/estimate-shipping", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              package_length: parseFloat(formData.package_length),
+              package_width: parseFloat(formData.package_width),
+              package_height: parseFloat(formData.package_height),
+              package_weight: parseFloat(formData.package_weight),
+            }),
+          })
 
-    try {
-      const response = await fetch("/api/estimate-shipping", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          package_length: parseFloat(formData.package_length),
-          package_width: parseFloat(formData.package_width),
-          package_height: parseFloat(formData.package_height),
-          package_weight: parseFloat(formData.package_weight),
-        }),
-      })
+          const data = await response.json()
 
-      const data = await response.json()
+          if (!response.ok) {
+            throw new Error(data.error || t("shippingEstimateError"))
+          }
 
-      if (!response.ok) {
-        throw new Error(data.error || t("shippingEstimateError"))
+          // Set the estimated cost
+          setEstimatedCost(data.estimated_cost)
+
+          // Pre-fill the shipping cost field
+          setFormData((prev) => ({
+            ...prev,
+            shipping_cost: data.estimated_cost.toString(),
+          }))
+
+          console.log("[v0] Shipping estimated automatically:", data)
+        } catch (err) {
+          console.error("[v0] Error estimating shipping:", err)
+          // Don't show error to user for automatic estimation
+        } finally {
+          setEstimating(false)
+        }
       }
-
-      // Set the estimated cost
-      setEstimatedCost(data.estimated_cost)
-      
-      // Pre-fill the shipping cost field
-      setFormData((prev) => ({
-        ...prev,
-        shipping_cost: data.estimated_cost.toString(),
-      }))
-
-      console.log("[v0] Shipping estimated:", data)
-    } catch (err) {
-      console.error("[v0] Error estimating shipping:", err)
-      setError(err instanceof Error ? err.message : t("shippingEstimateError"))
-    } finally {
-      setEstimating(false)
     }
-  }
+
+    estimateShippingAutomatically()
+  }, [formData.package_length, formData.package_width, formData.package_height, formData.package_weight, t])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -209,13 +220,14 @@ export default function ProductForm({
           </div>
 
           <div>
-            <Label htmlFor="description">{t("description")}</Label>
+            <Label htmlFor="description">{t("description")} *</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder={t("productDescriptionPlaceholder")}
               rows={5}
+              required
               data-testid="input-description"
             />
           </div>
@@ -269,13 +281,9 @@ export default function ProductForm({
           <CardTitle>{t("packageDimensions")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {t("dimensionsOptional")}
-          </p>
-          
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="package_length">{t("lengthInches")}</Label>
+              <Label htmlFor="package_length">{t("lengthInches")} *</Label>
               <Input
                 id="package_length"
                 type="number"
@@ -284,12 +292,13 @@ export default function ProductForm({
                 value={formData.package_length}
                 onChange={(e) => setFormData({ ...formData, package_length: e.target.value })}
                 placeholder="10"
+                required
                 data-testid="input-package-length"
               />
             </div>
 
             <div>
-              <Label htmlFor="package_width">{t("widthInches")}</Label>
+              <Label htmlFor="package_width">{t("widthInches")} *</Label>
               <Input
                 id="package_width"
                 type="number"
@@ -298,12 +307,13 @@ export default function ProductForm({
                 value={formData.package_width}
                 onChange={(e) => setFormData({ ...formData, package_width: e.target.value })}
                 placeholder="8"
+                required
                 data-testid="input-package-width"
               />
             </div>
 
             <div>
-              <Label htmlFor="package_height">{t("heightInches")}</Label>
+              <Label htmlFor="package_height">{t("heightInches")} *</Label>
               <Input
                 id="package_height"
                 type="number"
@@ -312,12 +322,13 @@ export default function ProductForm({
                 value={formData.package_height}
                 onChange={(e) => setFormData({ ...formData, package_height: e.target.value })}
                 placeholder="6"
+                required
                 data-testid="input-package-height"
               />
             </div>
 
             <div>
-              <Label htmlFor="package_weight">{t("weightPounds")}</Label>
+              <Label htmlFor="package_weight">{t("weightPounds")} *</Label>
               <Input
                 id="package_weight"
                 type="number"
@@ -326,29 +337,23 @@ export default function ProductForm({
                 value={formData.package_weight}
                 onChange={(e) => setFormData({ ...formData, package_weight: e.target.value })}
                 placeholder="2"
+                required
                 data-testid="input-package-weight"
               />
             </div>
           </div>
 
-          <div className="pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleEstimateShipping}
-              disabled={estimating}
-              data-testid="button-estimate-shipping"
-              className="w-full"
-            >
-              {estimating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {estimating ? t("estimating") : t("estimateShipping")}
-            </Button>
-            {estimatedCost !== null && (
-              <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
-                {t("shippingEstimated").replace("${cost}", estimatedCost.toString())}
-              </p>
-            )}
-          </div>
+          {estimating && (
+            <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 font-medium flex items-center">
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {t("estimating")}
+            </p>
+          )}
+          {estimatedCost !== null && !estimating && (
+            <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
+              {t("shippingEstimated").replace("${cost}", estimatedCost.toString())}
+            </p>
+          )}
         </CardContent>
       </Card>
 
