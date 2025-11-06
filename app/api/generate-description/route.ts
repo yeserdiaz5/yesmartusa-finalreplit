@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       : `Generate an attractive and professional 2-3 sentence description for a product called "${productName}". The description should highlight key features, benefits, and why someone would want to buy it. Write in English and don't use emojis.`
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+      model: "gpt-4o", // Using GPT-4o model (OpenAI's multimodal model available via Replit AI Integrations)
       messages: [{ role: "user", content: prompt }],
       max_completion_tokens: 300,
       temperature: 1,

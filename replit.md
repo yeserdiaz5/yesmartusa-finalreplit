@@ -65,9 +65,9 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
   - **No Manual Adjustments Needed**: Stripe Connect automatically handles all fund transfers; no refunds or complex accounting required
   - **Best Practice**: Estimated cost is rounded UP to minimize seller losses and account for packaging materials
 
-- **AI Product Description Generation**: Automated content generation using OpenAI GPT-4 to help sellers create compelling product descriptions:
+- **AI Product Description Generation**: Automated content generation using OpenAI GPT-4o to help sellers create compelling product descriptions:
   - **Integration**: Uses Replit AI Integrations (OpenAI) - no API key needed, charges to user credits
-  - **AI Model**: GPT-4 (latest available model)
+  - **AI Model**: GPT-4o (OpenAI's multimodal model available via Replit AI Integrations)
   - **Default Language**: Generates descriptions in Spanish (aligning with user preference)
   - **User Workflow**: Seller enters product name → clicks "Generate with AI" button → description auto-fills → seller can edit if needed
   - **API Endpoint**: `/api/generate-description` accepts product name, returns AI-generated description
