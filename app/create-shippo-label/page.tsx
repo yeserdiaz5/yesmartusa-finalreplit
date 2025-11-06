@@ -172,8 +172,12 @@ export default function CreateShippoLabelPage() {
               }
             }
 
+            const displayName = seller.store_name || 
+                               seller.full_name || 
+                               (seller.email ? seller.email.split('@')[0] : 'Seller')
+            
             setSellerAddress({
-              name: seller.store_name || seller.full_name || seller.email,
+              name: displayName,
               email: seller.email,
               phone: seller.phone,
               street1: sellerAddressData?.street1 || sellerAddressData?.address_line1 || "",
