@@ -115,13 +115,13 @@ export default function CreateShippoLabelPage() {
       try {
         const supabase = createClient()
 
-        const { data: orderData, error: orderError } = await supabase
+        const { data: orderData, error: orderError} = await supabase
           .from("orders")
           .select(`
             *,
             order_items(
               *,
-              products(id, title, image_url)
+              products(id, title, image_url, package_length, package_width, package_height, package_weight)
             )
           `)
           .eq("id", orderId)
@@ -199,12 +199,22 @@ export default function CreateShippoLabelPage() {
           }
         }
 
-        const totalItems = processedOrder.order_items.reduce((sum: number, item: any) => sum + item.quantity, 0)
-        const calculatedWeight = Math.max(1, totalItems * 0.5)
-        setPackageDimensions((prev) => ({
-          ...prev,
-          weight: calculatedWeight.toFixed(1),
-        }))
+        // Pre-fill package dimensions from first product (if available)
+        if (processedOrder.order_items && processedOrder.order_items.length > 0) {
+          const firstProduct = processedOrder.order_items[0].products
+          
+          if (firstProduct) {
+            const totalItems = processedOrder.order_items.reduce((sum: number, item: any) => sum + item.quantity, 0)
+            const calculatedWeight = firstProduct.package_weight || Math.max(1, totalItems * 0.5)
+            
+            setPackageDimensions({
+              length: firstProduct.package_length?.toString() || "12",
+              width: firstProduct.package_width?.toString() || "10",
+              height: firstProduct.package_height?.toString() || "8",
+              weight: calculatedWeight.toString(),
+            })
+          }
+        }
       } catch (err) {
         console.error("[v0] Error loading order data:", err)
         setError(err instanceof Error ? err.message : "Error loading order data")

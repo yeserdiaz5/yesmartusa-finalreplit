@@ -52,6 +52,10 @@ export default function ProductForm({
     tag_ids: productTags,
     shipping_policy: (product?.shipping_policy || "buyer_pays") as ShippingPolicy,
     shipping_cost: product?.shipping_cost?.toString() || "",
+    package_length: product?.package_length?.toString() || "",
+    package_width: product?.package_width?.toString() || "",
+    package_height: product?.package_height?.toString() || "",
+    package_weight: product?.package_weight?.toString() || "",
   })
 
   console.log("[v0] Form data images:", formData.images)
@@ -86,6 +90,10 @@ export default function ProductForm({
         tag_ids: formData.tag_ids,
         shipping_policy: formData.shipping_policy,
         shipping_cost: formData.shipping_cost ? Number.parseFloat(formData.shipping_cost) : null,
+        package_length: formData.package_length ? Number.parseFloat(formData.package_length) : null,
+        package_width: formData.package_width ? Number.parseFloat(formData.package_width) : null,
+        package_height: formData.package_height ? Number.parseFloat(formData.package_height) : null,
+        package_weight: formData.package_weight ? Number.parseFloat(formData.package_weight) : null,
       }
 
       let result
@@ -260,6 +268,75 @@ export default function ProductForm({
               {formData.shipping_policy === 'buyer_pays' && `${t("buyer")} ${t("shippingPaidBy").toLowerCase()}`}
               {formData.shipping_policy === 'shared' && t("sharedCost")}
             </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t("packageDimensions")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            {t("dimensionsOptional")}
+          </p>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="package_length">{t("lengthInches")}</Label>
+              <Input
+                id="package_length"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.package_length}
+                onChange={(e) => setFormData({ ...formData, package_length: e.target.value })}
+                placeholder="10"
+                data-testid="input-package-length"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="package_width">{t("widthInches")}</Label>
+              <Input
+                id="package_width"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.package_width}
+                onChange={(e) => setFormData({ ...formData, package_width: e.target.value })}
+                placeholder="8"
+                data-testid="input-package-width"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="package_height">{t("heightInches")}</Label>
+              <Input
+                id="package_height"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.package_height}
+                onChange={(e) => setFormData({ ...formData, package_height: e.target.value })}
+                placeholder="6"
+                data-testid="input-package-height"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="package_weight">{t("weightPounds")}</Label>
+              <Input
+                id="package_weight"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.package_weight}
+                onChange={(e) => setFormData({ ...formData, package_weight: e.target.value })}
+                placeholder="2"
+                data-testid="input-package-weight"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
