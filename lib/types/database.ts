@@ -39,6 +39,10 @@ export interface Product {
   is_active: boolean
   shipping_policy: ShippingPolicy | null
   shipping_cost: number | null
+  package_length: number | null
+  package_width: number | null
+  package_height: number | null
+  package_weight: number | null
   created_at: string
   updated_at: string
 }
