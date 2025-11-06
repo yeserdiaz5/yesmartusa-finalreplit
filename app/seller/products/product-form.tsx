@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createProduct, updateProduct, type CreateProductInput } from "@/app/actions/products"
 import type { Category, Tag, Product, ShippingPolicy } from "@/lib/types/database"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react"
 import ImageUploadGrid from "@/components/image-upload-grid"
 import { useLanguage } from "@/lib/i18n/LanguageContext"
 
@@ -32,12 +32,13 @@ export default function ProductForm({
   productCategories = [],
   productTags = [],
 }: ProductFormProps) {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [estimating, setEstimating] = useState(false)
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
+  const [generatingDescription, setGeneratingDescription] = useState(false)
 
   console.log("[v0] Product data:", product)
   console.log("[v0] Product images:", product?.images)
@@ -118,6 +119,47 @@ export default function ProductForm({
 
     estimateShippingAutomatically()
   }, [formData.package_length, formData.package_width, formData.package_height, formData.package_weight, t])
+
+  const handleGenerateDescription = async () => {
+    // Validate product name is filled
+    if (!formData.title || formData.title.trim() === "") {
+      setError(t("productNameRequired"))
+      return
+    }
+
+    setGeneratingDescription(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productName: formData.title,
+          language: language,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t("descriptionGenerateError"))
+      }
+
+      // Pre-fill the description field
+      setFormData((prev) => ({
+        ...prev,
+        description: data.description,
+      }))
+
+      console.log("[v0] Description generated:", data.description)
+    } catch (err) {
+      console.error("[v0] Error generating description:", err)
+      setError(err instanceof Error ? err.message : t("descriptionGenerateError"))
+    } finally {
+      setGeneratingDescription(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -221,7 +263,29 @@ export default function ProductForm({
           </div>
 
           <div>
-            <Label htmlFor="description">{t("description")} *</Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor="description">{t("description")} *</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateDescription}
+                disabled={generatingDescription || !formData.title}
+                data-testid="button-generate-description"
+              >
+                {generatingDescription ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {t("generating")}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {t("generateDescription")}
+                  </>
+                )}
+              </Button>
+            </div>
             <Textarea
               id="description"
               value={formData.description}
