@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { package_length, package_width, package_height, package_weight, seller_id } = body
+    const { package_length, package_width, package_height, package_weight } = body
 
     // Validate dimensions
     if (!package_length || !package_width || !package_height || !package_weight) {
@@ -21,8 +21,11 @@ export async function POST(request: NextRequest) {
       weight: package_weight,
     })
 
-    // Get seller's address if available
+    // Get authenticated user (seller)
     const supabase = await createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    
+    // Default address (LA) in case seller doesn't have address set
     let from_address: any = {
       name: "Seller",
       street1: "123 Main St",
@@ -32,11 +35,12 @@ export async function POST(request: NextRequest) {
       country: "US",
     }
 
-    if (seller_id) {
+    // Use authenticated seller's address if available
+    if (authUser) {
       const { data: seller } = await supabase
         .from("users")
         .select("seller_address, store_name, full_name, email, phone")
-        .eq("id", seller_id)
+        .eq("id", authUser.id)
         .single()
 
       if (seller && seller.seller_address) {
