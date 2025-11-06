@@ -1,11 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
 import heroImage from "@assets/generated_images/Abstract_data_visualization_hero_489090e8.png";
 
 export function HeroSection() {
-  const { t } = useLanguage();
-  
   const scrollToCompare = () => {
     const element = document.getElementById("pricing");
     if (element) {
@@ -19,11 +16,13 @@ export function HeroSection() {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight" data-testid="text-hero-headline">
-              {t("hero.title")}{" "}
-              <span className="text-primary">{t("hero.titleHighlight")}</span>
+              Compare Services,{" "}
+              <span className="text-primary">Make Smart Choices</span>
             </h1>
             <p className="text-base md:text-lg leading-relaxed text-muted-foreground" data-testid="text-hero-description">
-              {t("hero.description")}
+              Cut through the noise and find the perfect plan for your needs.
+              Compare pricing, features, and benefits side-by-side with our
+              intuitive comparison tools.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Button
@@ -32,7 +31,7 @@ export function HeroSection() {
                 data-testid="button-cta-hero"
                 className="group backdrop-blur-md bg-primary/90 hover:bg-primary/100"
               >
-                {t("hero.ctaCompare")}
+                Start Comparing
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
               <Button
@@ -47,7 +46,7 @@ export function HeroSection() {
                 data-testid="button-subscribe-hero"
                 className="backdrop-blur-md bg-background/80"
               >
-                {t("hero.ctaUpdates")}
+                Get Updates
               </Button>
             </div>
           </div>

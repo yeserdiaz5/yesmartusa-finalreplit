@@ -6,7 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 
 interface FilterSortBarProps {
@@ -24,15 +23,13 @@ export function FilterSortBar({
   onSortChange,
   categories,
 }: FilterSortBarProps) {
-  const { t } = useLanguage();
-  
   return (
     <div className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-b py-6">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground mr-2">
-              {t("filter.label")}
+              Filter:
             </span>
             <Button
               variant={selectedCategory === "all" ? "default" : "outline"}
@@ -41,7 +38,7 @@ export function FilterSortBar({
               data-testid="filter-all"
               className="transition-colors"
             >
-              {t("filter.allServices")}
+              All Services
             </Button>
             {categories.map((category) => (
               <Button
@@ -59,7 +56,7 @@ export function FilterSortBar({
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm font-medium text-muted-foreground">
-              {t("sort.label")}
+              Sort:
             </span>
             <Select value={sortBy} onValueChange={onSortChange}>
               <SelectTrigger
@@ -70,16 +67,16 @@ export function FilterSortBar({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="popular" data-testid="sort-popular">
-                  {t("sort.popular")}
+                  Most Popular
                 </SelectItem>
                 <SelectItem value="price-low" data-testid="sort-price-low">
-                  {t("sort.priceLow")}
+                  Price: Low to High
                 </SelectItem>
                 <SelectItem value="price-high" data-testid="sort-price-high">
-                  {t("sort.priceHigh")}
+                  Price: High to Low
                 </SelectItem>
                 <SelectItem value="name" data-testid="sort-name">
-                  {t("sort.name")}
+                  Name A-Z
                 </SelectItem>
               </SelectContent>
             </Select>

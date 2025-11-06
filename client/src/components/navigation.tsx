@@ -1,13 +1,10 @@
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LanguageSelector } from "@/components/language-selector";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useState } from "react";
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { t } = useLanguage();
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -33,28 +30,26 @@ export function Navigation() {
               className="text-sm font-medium text-foreground hover-elevate px-3 py-2 rounded-md transition-colors"
               data-testid="link-compare"
             >
-              {t("nav.compare")}
+              Compare
             </button>
             <button
               onClick={() => scrollToSection("pricing")}
               className="text-sm font-medium text-foreground hover-elevate px-3 py-2 rounded-md transition-colors"
               data-testid="link-pricing"
             >
-              {t("nav.pricing")}
+              Pricing
             </button>
             <button
               onClick={() => scrollToSection("subscribe")}
               className="text-sm font-medium text-foreground hover-elevate px-3 py-2 rounded-md transition-colors"
               data-testid="link-subscribe"
             >
-              {t("nav.subscribe")}
+              Subscribe
             </button>
-            <LanguageSelector />
             <ThemeToggle />
           </div>
 
           <div className="md:hidden flex items-center gap-2">
-            <LanguageSelector />
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -81,21 +76,21 @@ export function Navigation() {
               className="block w-full text-left text-sm font-medium text-foreground hover-elevate px-3 py-2 rounded-md transition-colors"
               data-testid="link-compare-mobile"
             >
-              {t("nav.compare")}
+              Compare
             </button>
             <button
               onClick={() => scrollToSection("pricing")}
               className="block w-full text-left text-sm font-medium text-foreground hover-elevate px-3 py-2 rounded-md transition-colors"
               data-testid="link-pricing-mobile"
             >
-              {t("nav.pricing")}
+              Pricing
             </button>
             <button
               onClick={() => scrollToSection("subscribe")}
               className="block w-full text-left text-sm font-medium text-foreground hover-elevate px-3 py-2 rounded-md transition-colors"
               data-testid="link-subscribe-mobile"
             >
-              {t("nav.subscribe")}
+              Subscribe
             </button>
           </div>
         </div>

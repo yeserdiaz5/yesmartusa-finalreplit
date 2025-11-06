@@ -1,8 +1,6 @@
 import { Github, Twitter, Linkedin } from "lucide-react";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function Footer() {
-  const { t } = useLanguage();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -11,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
             <h3 className="font-bold text-lg mb-4" data-testid="text-footer-product-heading">
-              {t("footer.product")}
+              Product
             </h3>
             <ul className="space-y-3">
               <li>
@@ -20,7 +18,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-features"
                 >
-                  {t("footer.features")}
+                  Features
                 </a>
               </li>
               <li>
@@ -29,7 +27,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-pricing"
                 >
-                  {t("footer.pricing")}
+                  Pricing
                 </a>
               </li>
               <li>
@@ -38,7 +36,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-compare"
                 >
-                  {t("footer.compare")}
+                  Compare
                 </a>
               </li>
             </ul>
@@ -46,7 +44,7 @@ export function Footer() {
 
           <div>
             <h3 className="font-bold text-lg mb-4" data-testid="text-footer-resources-heading">
-              {t("footer.resources")}
+              Resources
             </h3>
             <ul className="space-y-3">
               <li>
@@ -55,7 +53,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-blog"
                 >
-                  {t("footer.blog")}
+                  Blog
                 </a>
               </li>
               <li>
@@ -64,7 +62,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-guides"
                 >
-                  {t("footer.guides")}
+                  Guides
                 </a>
               </li>
               <li>
@@ -73,7 +71,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-help"
                 >
-                  {t("footer.helpCenter")}
+                  Help Center
                 </a>
               </li>
             </ul>
@@ -81,7 +79,7 @@ export function Footer() {
 
           <div>
             <h3 className="font-bold text-lg mb-4" data-testid="text-footer-company-heading">
-              {t("footer.company")}
+              Company
             </h3>
             <ul className="space-y-3">
               <li>
@@ -90,7 +88,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-about"
                 >
-                  {t("footer.about")}
+                  About
                 </a>
               </li>
               <li>
@@ -99,7 +97,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-careers"
                 >
-                  {t("footer.careers")}
+                  Careers
                 </a>
               </li>
               <li>
@@ -108,7 +106,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-contact"
                 >
-                  {t("footer.contact")}
+                  Contact
                 </a>
               </li>
             </ul>
@@ -116,7 +114,7 @@ export function Footer() {
 
           <div>
             <h3 className="font-bold text-lg mb-4" data-testid="text-footer-legal-heading">
-              {t("footer.legal")}
+              Legal
             </h3>
             <ul className="space-y-3">
               <li>
@@ -125,7 +123,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-privacy"
                 >
-                  {t("footer.privacy")}
+                  Privacy
                 </a>
               </li>
               <li>
@@ -134,7 +132,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-terms"
                 >
-                  {t("footer.terms")}
+                  Terms
                 </a>
               </li>
               <li>
@@ -143,7 +141,7 @@ export function Footer() {
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="link-footer-cookies"
                 >
-                  {t("footer.cookies")}
+                  Cookie Policy
                 </a>
               </li>
             </ul>
@@ -152,7 +150,7 @@ export function Footer() {
 
         <div className="border-t pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground" data-testid="text-footer-copyright">
-            {t("footer.copyright").replace("{year}", currentYear.toString())}
+            © {currentYear} ServiceCompare. All rights reserved.
           </p>
 
           <div className="flex items-center gap-4">

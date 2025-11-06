@@ -1,15 +1,17 @@
-import { Button } from "@/components/ui/button";
+"use client"
+
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { Globe } from "lucide-react";
+} from "@/components/ui/dropdown-menu"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
+import { Globe } from "lucide-react"
 
 export function LanguageSelector() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage } = useLanguage()
 
   return (
     <DropdownMenu>
@@ -43,5 +45,5 @@ export function LanguageSelector() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
