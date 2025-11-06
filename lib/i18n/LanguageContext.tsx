@@ -351,6 +351,10 @@ const translationsEN: Record<string, string> = {
   "shippingEstimated": "Estimated shipping cost: ${cost}",
   "fillDimensions": "Please fill in all package dimensions to estimate shipping",
   "shippingEstimateError": "Could not estimate shipping cost. Please try again.",
+  "generateDescription": "Generate with AI",
+  "generating": "Generating...",
+  "productNameRequired": "Product name is required to generate description",
+  "descriptionGenerateError": "Could not generate description. Please try again.",
   
   "checkout": "Checkout",
   "total": "Total",
@@ -756,6 +760,10 @@ const translationsES: Record<string, string> = {
   "shippingEstimated": "Costo de envío estimado: ${cost}",
   "fillDimensions": "Por favor completa todas las dimensiones del paquete para estimar el envío",
   "shippingEstimateError": "No se pudo estimar el costo de envío. Por favor intenta de nuevo.",
+  "generateDescription": "Generar con IA",
+  "generating": "Generando...",
+  "productNameRequired": "El nombre del producto es requerido para generar descripción",
+  "descriptionGenerateError": "No se pudo generar la descripción. Por favor intenta de nuevo.",
   
   "checkout": "Pagar",
   "total": "Total",
