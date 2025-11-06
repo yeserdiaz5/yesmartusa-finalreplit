@@ -44,9 +44,9 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
 - **Supported Languages**: English (default), Spanish (es)
 - **Storage**: localStorage for language preference persistence
 - **Components**:
-  - `LanguageContext` (lib/i18n/LanguageContext.tsx): Provider and translation helper with 150+ translation keys
+  - `LanguageContext` (lib/i18n/LanguageContext.tsx): Provider and translation helper with 180+ translation keys
   - `LanguageSelector` (components/language-selector.tsx): Globe icon dropdown with EN/ES text labels (no emoji flags) in site header
-- **Translation Coverage**: Full bilingual support for buyer homepage, product pages, user menu, seller dashboard, and payments
+- **Translation Coverage**: Full bilingual support for buyer homepage, product pages, user menu, seller dashboard, payments, and shipping label creation
 - **Usage Pattern**: `const { t } = useLanguage()` then `t("translationKey")`
 - **Functionality**: ✅ **Language selector fully functional** - Click globe icon to switch between English/Spanish; changes apply instantly
 
@@ -67,6 +67,7 @@ All pages below now support **dynamic language switching** via the language sele
 - ✅ **User Menu**: Sign In/Iniciar Sesión, My Purchases/Mis Compras, My Orders/Mis Pedidos, My Store/Mi Tienda, Admin Panel/Panel de Admin, Sign Out/Cerrar Sesión
 - ✅ **Seller Dashboard** (/seller): All headings, buttons, filters, product labels, empty states
 - ✅ **Payments Panel** (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages
+- ✅ **Create Shippo Label Page** (/create-shippo-label): Page title, order items display, sender/recipient sections, package information form fields (length/width/height/weight), shipping rate selection, carrier selection, action buttons, status messages, error messages, success confirmations with proper day/days pluralization
 - ✅ **Search & Filters**: "Search products..."/"Buscar productos...", "Search results for..."/"Resultados de búsqueda para:", "Clear search"/"Limpiar búsqueda"
 - ✅ **Toast Notifications**: "Product added"/"Producto agregado", error messages, success confirmations
 
