@@ -344,13 +344,17 @@ export default function SellerDashboardClient({ user, products, orders }: Seller
                     <Card key={product.id}>
                       <CardContent className="p-4">
                         <div className="flex items-center gap-4">
-                          <img
-                            src={product.image_url || "/placeholder.svg"}
-                            alt={product.title}
-                            className="w-16 h-16 object-cover rounded-md"
-                          />
+                          <Link href={`/productdes/${product.id}`} className="shrink-0">
+                            <img
+                              src={product.image_url || "/placeholder.svg"}
+                              alt={product.title}
+                              className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity"
+                            />
+                          </Link>
                           <div className="flex-1">
-                            <h3 className="font-medium">{product.title}</h3>
+                            <Link href={`/productdes/${product.id}`}>
+                              <h3 className="font-medium hover:text-blue-600 transition-colors cursor-pointer">{product.title}</h3>
+                            </Link>
                             <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                               <span>${product.price}</span>
                               <span>Stock: {product.stock_quantity}</span>

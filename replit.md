@@ -21,6 +21,8 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
   - `/mis-compras` - Vista alternativa de compras (mis-compras-client.tsx)
   - `/my-orders` - Vista de pedidos del vendedor (my-orders-client.tsx)
   - `/orders` - Vista de gestión de pedidos (orders-page-client.tsx)
+  - `/seller` - Panel del vendedor, pestaña "My Product Listings" (seller-dashboard-client.tsx)
+- **Patrón de Acceso a ID de Producto**: Uso defensivo de `item.product?.id || item.product_id` para manejar diferentes estructuras de datos
 - **Efectos Visuales**:
   - Hover en imágenes: Reducción de opacidad (opacity-80)
   - Hover en títulos: Cambio a color azul (text-blue-600)
