@@ -11,6 +11,14 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
 
 ## Recent Changes (November 2025)
 
+### Banner de Usuario con Nombre de Tienda
+- **Header/User Menu**: El nombre mostrado en el banner sigue esta prioridad:
+  1. Nombre de la tienda (`store_name`) - si existe
+  2. Nombre del usuario (`full_name`) - si no tiene tienda
+  3. Email del usuario - como último recurso
+- **Ubicación**: `components/user-menu.tsx`
+- **Beneficio**: Los vendedores ven su marca/tienda destacada en el header
+
 ### Enlaces de Productos a Páginas de Descripción
 - **Implementación Universal**: Todas las imágenes y nombres de productos ahora incluyen enlaces clickeables a la página de descripción (`/productdes/${productId}`)
 - **Páginas Actualizadas**:
