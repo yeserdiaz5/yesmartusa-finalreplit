@@ -36,6 +36,8 @@ export default function ProductForm({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [estimating, setEstimating] = useState(false)
+  const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
 
   console.log("[v0] Product data:", product)
   console.log("[v0] Product images:", product?.images)
@@ -59,6 +61,52 @@ export default function ProductForm({
   })
 
   console.log("[v0] Form data images:", formData.images)
+
+  const handleEstimateShipping = async () => {
+    // Validate all dimensions are filled
+    if (!formData.package_length || !formData.package_width || !formData.package_height || !formData.package_weight) {
+      setError(t("fillDimensions"))
+      return
+    }
+
+    setEstimating(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/estimate-shipping", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          package_length: parseFloat(formData.package_length),
+          package_width: parseFloat(formData.package_width),
+          package_height: parseFloat(formData.package_height),
+          package_weight: parseFloat(formData.package_weight),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t("shippingEstimateError"))
+      }
+
+      // Set the estimated cost
+      setEstimatedCost(data.estimated_cost)
+      
+      // Pre-fill the shipping cost field
+      setFormData((prev) => ({
+        ...prev,
+        shipping_cost: data.estimated_cost.toString(),
+      }))
+
+      console.log("[v0] Shipping estimated:", data)
+    } catch (err) {
+      console.error("[v0] Error estimating shipping:", err)
+      setError(err instanceof Error ? err.message : t("shippingEstimateError"))
+    } finally {
+      setEstimating(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -281,6 +329,25 @@ export default function ProductForm({
                 data-testid="input-package-weight"
               />
             </div>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleEstimateShipping}
+              disabled={estimating}
+              data-testid="button-estimate-shipping"
+              className="w-full"
+            >
+              {estimating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {estimating ? t("estimating") : t("estimateShipping")}
+            </Button>
+            {estimatedCost !== null && (
+              <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
+                {t("shippingEstimated").replace("${cost}", estimatedCost.toString())}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
