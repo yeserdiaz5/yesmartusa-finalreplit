@@ -6,8 +6,18 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
   const supabase = await createClient()
 
   const {
-    data: { user },
+    data: { user: authUser },
   } = await supabase.auth.getUser()
+
+  let user = null
+  if (authUser) {
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", authUser.id)
+      .single()
+    user = userProfile
+  }
 
   const { data: product, error } = await supabase
     .from("products")
