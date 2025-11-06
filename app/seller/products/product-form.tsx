@@ -336,7 +336,15 @@ export default function ProductForm({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="brand">{t("productBrand")}</Label>
-              <div className="flex items-center gap-2 mb-2">
+              <Input
+                id="brand"
+                value={formData.brand}
+                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                placeholder={t("productBrandPlaceholder")}
+                disabled={isNoBrand}
+                data-testid="input-brand"
+              />
+              <div className="flex items-center gap-2">
                 <Checkbox
                   id="no-brand"
                   checked={isNoBrand}
@@ -357,14 +365,6 @@ export default function ProductForm({
                   {t("noBrand")}
                 </label>
               </div>
-              <Input
-                id="brand"
-                value={formData.brand}
-                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                placeholder={t("productBrandPlaceholder")}
-                disabled={isNoBrand}
-                data-testid="input-brand"
-              />
             </div>
 
             <div>
