@@ -3,6 +3,218 @@
 import { stripe } from "@/lib/stripe"
 import { createClient } from "@/lib/supabase/server"
 
+/**
+ * Obtiene o crea la cuenta de Stripe Connect para un vendedor
+ */
+export async function getOrCreateStripeAccount(userId: string, email: string) {
+  const supabase = await createClient()
+
+  // Verificar si ya tiene una cuenta de Stripe Connect
+  const { data: existingAccount } = await supabase
+    .from("seller_stripe_accounts")
+    .select("*")
+    .eq("seller_id", userId)
+    .single()
+
+  if (existingAccount && existingAccount.stripe_connect_account_id) {
+    return {
+      success: true,
+      accountId: existingAccount.stripe_connect_account_id,
+      onboardingCompleted: existingAccount.account_onboarding_completed,
+    }
+  }
+
+  // Crear nueva cuenta de Stripe Connect
+  try {
+    const account = await stripe.accounts.create({
+      type: "express",
+      email,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+    })
+
+    // Guardar en la base de datos
+    const { error: insertError } = await supabase.from("seller_stripe_accounts").insert({
+      seller_id: userId,
+      stripe_connect_account_id: account.id,
+      account_onboarding_completed: false,
+    })
+
+    if (insertError) {
+      console.error("[v0] Error saving Stripe account:", insertError)
+      return { success: false, error: insertError.message }
+    }
+
+    return {
+      success: true,
+      accountId: account.id,
+      onboardingCompleted: false,
+    }
+  } catch (error: any) {
+    console.error("[v0] Error creating Stripe Connect account:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Crea un link de onboarding para que el vendedor complete su configuración de Stripe
+ */
+export async function createStripeAccountLink(accountId: string) {
+  try {
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:5000"}/seller/pagos`,
+      return_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:5000"}/seller/pagos?setup=complete`,
+      type: "account_onboarding",
+    })
+
+    return { success: true, url: accountLink.url }
+  } catch (error: any) {
+    console.error("[v0] Error creating account link:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Marca la cuenta como completada después del onboarding
+ */
+export async function markAccountOnboardingComplete(userId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from("seller_stripe_accounts")
+    .update({
+      account_onboarding_completed: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("seller_id", userId)
+
+  if (error) {
+    console.error("[v0] Error marking onboarding complete:", error)
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Obtiene el balance actual de Stripe del vendedor
+ */
+export async function getStripeBalance() {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "No autenticado" }
+  }
+
+  try {
+    // Obtener cuenta de Stripe del vendedor
+    const { data: stripeAccount } = await supabase
+      .from("seller_stripe_accounts")
+      .select("*")
+      .eq("seller_id", user.id)
+      .single()
+
+    if (!stripeAccount || !stripeAccount.account_onboarding_completed) {
+      return {
+        success: false,
+        error: "Necesitas completar la configuración de tu cuenta de Stripe",
+        needsOnboarding: true,
+      }
+    }
+
+    // Obtener balance de Stripe
+    const balance = await stripe.balance.retrieve({
+      stripeAccount: stripeAccount.stripe_connect_account_id,
+    })
+
+    const availableBalance = balance.available[0]?.amount || 0
+    const pendingBalance = balance.pending[0]?.amount || 0
+    const currency = balance.available[0]?.currency || "usd"
+
+    return {
+      success: true,
+      data: {
+        available: availableBalance / 100, // Convertir de centavos a dólares
+        pending: pendingBalance / 100,
+        currency: currency.toUpperCase(),
+      },
+    }
+  } catch (error: any) {
+    console.error("[v0] Error fetching Stripe balance:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Obtiene el historial de payouts del vendedor
+ */
+export async function getPayoutHistory(limit = 10) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "No autenticado" }
+  }
+
+  try {
+    // Obtener cuenta de Stripe del vendedor
+    const { data: stripeAccount } = await supabase
+      .from("seller_stripe_accounts")
+      .select("*")
+      .eq("seller_id", user.id)
+      .single()
+
+    if (!stripeAccount || !stripeAccount.account_onboarding_completed) {
+      return {
+        success: false,
+        error: "Necesitas completar la configuración de tu cuenta de Stripe",
+        needsOnboarding: true,
+      }
+    }
+
+    // Obtener payouts de Stripe
+    const payouts = await stripe.payouts.list(
+      {
+        limit,
+      },
+      {
+        stripeAccount: stripeAccount.stripe_connect_account_id,
+      }
+    )
+
+    const formattedPayouts = payouts.data.map((payout) => ({
+      id: payout.id,
+      amount: payout.amount / 100,
+      currency: payout.currency.toUpperCase(),
+      status: payout.status,
+      arrivalDate: payout.arrival_date,
+      createdDate: payout.created,
+      description: payout.description || "Pago automático",
+    }))
+
+    return {
+      success: true,
+      data: formattedPayouts,
+    }
+  } catch (error: any) {
+    console.error("[v0] Error fetching payout history:", error)
+    return { success: false, error: error.message }
+  }
+}
+
+/**
+ * Obtiene estadísticas completas del vendedor combinando datos locales y de Stripe
+ */
 export async function getSellerPayoutStats() {
   const supabase = await createClient()
 
@@ -15,8 +227,56 @@ export async function getSellerPayoutStats() {
   }
 
   try {
-    // Get seller's orders
-    const { data: orderItems, error } = await supabase
+    // Verificar si tiene cuenta de Stripe Connect
+    const { data: stripeAccount } = await supabase
+      .from("seller_stripe_accounts")
+      .select("*")
+      .eq("seller_id", user.id)
+      .single()
+
+    // Si no tiene cuenta, devolver solo estadísticas locales
+    if (!stripeAccount) {
+      const accountResult = await getOrCreateStripeAccount(user.id, user.email!)
+      if (!accountResult.success) {
+        return {
+          success: false,
+          error: "Error al crear cuenta de Stripe",
+          needsSetup: true,
+        }
+      }
+
+      return {
+        success: true,
+        needsOnboarding: true,
+        accountId: accountResult.accountId,
+        data: {
+          totalEarnings: 0,
+          availableBalance: 0,
+          pendingBalance: 0,
+          orderCount: 0,
+          recentPayouts: [],
+        },
+      }
+    }
+
+    // Si tiene cuenta pero no completó onboarding
+    if (!stripeAccount.account_onboarding_completed) {
+      return {
+        success: true,
+        needsOnboarding: true,
+        accountId: stripeAccount.stripe_connect_account_id,
+        data: {
+          totalEarnings: 0,
+          availableBalance: 0,
+          pendingBalance: 0,
+          orderCount: 0,
+          recentPayouts: [],
+        },
+      }
+    }
+
+    // Obtener órdenes del vendedor de la base de datos local
+    const { data: orderItems } = await supabase
       .from("order_items")
       .select(`
         *,
@@ -29,36 +289,35 @@ export async function getSellerPayoutStats() {
         )
       `)
       .eq("seller_id", user.id)
-      .eq("order.status", "paid")
+      .in("order.status", ["paid", "shipped", "delivered"])
 
-    if (error) {
-      console.error("[v0] Error fetching seller orders:", error)
-      return { success: false, error: error.message }
-    }
-
-    // Calculate earnings
     const totalEarnings =
       orderItems?.reduce((sum, item) => {
         return sum + item.price_at_purchase * item.quantity
       }, 0) || 0
 
-    // Get recent payments
-    const recentPayments =
-      orderItems?.slice(0, 10).map((item) => ({
-        id: item.order.id,
-        amount: item.price_at_purchase * item.quantity,
-        date: item.order.created_at,
-        status: item.order.status,
-        paymentIntentId: item.order.payment_intent_id,
-      })) || []
+    // Obtener balance de Stripe
+    const balanceResult = await getStripeBalance()
+    const balance = balanceResult.success && balanceResult.data 
+      ? balanceResult.data 
+      : { available: 0, pending: 0, currency: "USD" }
+
+    // Obtener historial de payouts
+    const payoutsResult = await getPayoutHistory(5)
+    const recentPayouts = payoutsResult.success && payoutsResult.data 
+      ? payoutsResult.data 
+      : []
 
     return {
       success: true,
+      needsOnboarding: false,
       data: {
         totalEarnings,
-        pendingPayouts: 0, // This would come from Stripe Connect
-        recentPayments,
+        availableBalance: balance?.available || 0,
+        pendingBalance: balance?.pending || 0,
+        currency: balance?.currency || "USD",
         orderCount: orderItems?.length || 0,
+        recentPayouts,
       },
     }
   } catch (error: any) {
@@ -67,36 +326,51 @@ export async function getSellerPayoutStats() {
   }
 }
 
-export async function createStripeConnectAccount(email: string) {
-  try {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email,
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-    })
+/**
+ * Obtiene la configuración del calendario de pagos
+ */
+export async function getPayoutSchedule() {
+  const supabase = await createClient()
 
-    return { success: true, accountId: account.id }
-  } catch (error: any) {
-    console.error("[v0] Error creating Stripe Connect account:", error)
-    return { success: false, error: error.message }
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "No autenticado" }
   }
-}
 
-export async function createStripeAccountLink(accountId: string) {
   try {
-    const accountLink = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:3000"}/seller/pagos`,
-      return_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:3000"}/seller/pagos?setup=complete`,
-      type: "account_onboarding",
-    })
+    const { data: stripeAccount } = await supabase
+      .from("seller_stripe_accounts")
+      .select("*")
+      .eq("seller_id", user.id)
+      .single()
 
-    return { success: true, url: accountLink.url }
+    if (!stripeAccount || !stripeAccount.account_onboarding_completed) {
+      return {
+        success: false,
+        error: "Necesitas completar la configuración de tu cuenta de Stripe",
+        needsOnboarding: true,
+      }
+    }
+
+    // Obtener información de la cuenta de Stripe
+    const account = await stripe.accounts.retrieve(stripeAccount.stripe_connect_account_id)
+
+    const schedule = account.settings?.payouts?.schedule
+
+    return {
+      success: true,
+      data: {
+        interval: schedule?.interval || "manual",
+        delayDays: schedule?.delay_days || 0,
+        weeklyAnchor: schedule?.weekly_anchor,
+        monthlyAnchor: schedule?.monthly_anchor,
+      },
+    }
   } catch (error: any) {
-    console.error("[v0] Error creating account link:", error)
+    console.error("[v0] Error fetching payout schedule:", error)
     return { success: false, error: error.message }
   }
 }

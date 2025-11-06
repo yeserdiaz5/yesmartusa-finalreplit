@@ -19,6 +19,7 @@ export interface User {
     postal_code: string
     country: string
   } | null
+  stripe_connect_account_id: string | null
   created_at: string
   updated_at: string
 }

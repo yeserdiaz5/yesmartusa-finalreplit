@@ -7,6 +7,7 @@ import {
   Edit,
   Trash2,
   Settings,
+  DollarSign,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -38,13 +39,19 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
             </div>
             <div className="flex gap-2">
               <Link href="/seller/settings">
-                <Button variant="outline">
+                <Button variant="outline" data-testid="button-settings">
                   <Settings className="w-4 h-4 mr-2" />
                   Configuración
                 </Button>
               </Link>
+              <Link href="/seller/pagos">
+                <Button variant="outline" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100" data-testid="button-earnings">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Mis Ganancias
+                </Button>
+              </Link>
               <Link href="/seller/products/new">
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-add-product">
                   <Plus className="w-4 h-4 mr-2" />
                   Add New Product
                 </Button>

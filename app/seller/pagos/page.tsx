@@ -1,9 +1,17 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import PagosClient from "./pagos-client"
-import { getSellerPayoutStats } from "@/app/actions/stripe-payouts"
+import {
+  getSellerPayoutStats,
+  getPayoutSchedule,
+  markAccountOnboardingComplete,
+} from "@/app/actions/stripe-payouts"
 
-export default async function PagosPage() {
+export default async function PagosPage({
+  searchParams,
+}: {
+  searchParams: { setup?: string }
+}) {
   const supabase = await createClient()
 
   const {
@@ -15,15 +23,27 @@ export default async function PagosPage() {
   }
 
   // Check if user is a seller
-  const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single()
+  const { data: userData } = await supabase.from("users").select("*").eq("id", user.id).single()
 
   if (!userData || (userData.role !== "seller" && userData.role !== "admin")) {
     redirect("/")
   }
 
+  // Si viene de completar el onboarding de Stripe, marcar como completado
+  if (searchParams.setup === "complete") {
+    await markAccountOnboardingComplete(user.id)
+  }
+
   // Get payout stats
   const statsResult = await getSellerPayoutStats()
-  const stats = statsResult.success ? statsResult.data : null
+  const scheduleResult = await getPayoutSchedule()
 
-  return <PagosClient user={user} stats={stats} />
+  return (
+    <PagosClient
+      user={userData}
+      statsResult={statsResult}
+      scheduleResult={scheduleResult}
+      setupComplete={searchParams.setup === "complete"}
+    />
+  )
 }
