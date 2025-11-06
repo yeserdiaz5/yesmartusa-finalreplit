@@ -35,18 +35,20 @@ export function UserMenu({ user }: UserMenuProps) {
     )
   }
 
+  const displayName = user.store_name || user.full_name || (user.email ? user.email.split('@')[0] : 'User')
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="text-white">
           <User className="w-5 h-5" />
-          <span className="ml-1 hidden sm:inline">{user.store_name || user.full_name || user.email}</span>
+          <span className="ml-1 hidden sm:inline">{displayName}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col">
-            <span className="font-medium">{user.store_name || user.full_name}</span>
+            <span className="font-medium">{displayName}</span>
             <span className="text-xs text-muted-foreground">{user.email}</span>
           </div>
         </DropdownMenuLabel>
