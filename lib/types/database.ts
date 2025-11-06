@@ -24,6 +24,8 @@ export interface User {
   updated_at: string
 }
 
+export type ShippingPolicy = "seller_pays" | "buyer_pays" | "shared"
+
 export interface Product {
   id: string
   seller_id: string
@@ -35,6 +37,8 @@ export interface Product {
   image_url: string | null
   images: string[] | null
   is_active: boolean
+  shipping_policy: ShippingPolicy | null
+  shipping_cost: number | null
   created_at: string
   updated_at: string
 }
