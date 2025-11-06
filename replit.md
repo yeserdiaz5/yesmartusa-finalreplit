@@ -42,21 +42,21 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
   - **Bilingual Support**: Full EN/ES translations for all shipping policy labels and UI elements
 - **Package Dimensions System**: Sellers can input package dimensions for each product to streamline shipping label creation:
   - **Database Fields**: `package_length`, `package_width`, `package_height` (in inches), and `package_weight` (in pounds per unit) in `products` table
-  - **Product Form**: Dedicated "Package Dimensions" card appears BEFORE shipping policy section with optional input fields for all dimensions
-  - **Automatic Cost Estimation**: "Estimate Shipping" button calls Shippo API to calculate shipping cost based on:
-    - Package dimensions entered by seller
-    - Seller's address (if available) or default LA address
-    - Central US destination (Chicago) for average estimation
+  - **Product Form**: Dedicated "Package Dimensions" card appears BEFORE shipping policy section with REQUIRED input fields for all dimensions (marked with *)
+  - **Required Fields**: Description, at least one image, and all package dimensions (length, width, height, weight) are mandatory
+  - **Automatic Cost Estimation**: System automatically calls Shippo API to calculate shipping cost when all dimensions are filled:
+    - Uses seller's actual address (if available) or default LA address
+    - Destination to Chicago, IL (central US) for average estimation
     - Returns cheapest available rate, rounded up to nearest dollar
-  - **Auto-Fill Workflow**: Click "Estimate Shipping" → Cost calculated via Shippo → `shipping_cost` field auto-filled with rounded estimate
+  - **Auto-Fill Workflow**: Fill dimensions → Cost automatically calculated and displayed → `shipping_cost` field auto-filled with rounded estimate
   - **Auto-Population**: When creating shipping labels (/create-shippo-label), package dimensions automatically pre-fill from the first product's saved dimensions
   - **Weight Calculation**: Total weight = (product.package_weight || 0.5) × order quantity, with 1 lb minimum
   - **Fallback Logic**: If product dimensions are missing, defaults to 12×10×8 inches; if product weight is missing, estimates 0.5 lb per item
-  - **UI/UX**: Clean grid layout (2 columns) with labeled inputs, placeholder values, and full-width estimate button
-  - **Bilingual Support**: Full EN/ES translations for dimension labels, estimate button, and status messages
+  - **UI/UX**: Clean grid layout (2 columns) with labeled inputs and placeholder values; automatic estimation status shown below fields
+  - **Bilingual Support**: Full EN/ES translations for dimension labels and status messages
   
 - **Shipping Cost Flow & Profit Logic**:
-  - **Step 1 - Product Creation**: Seller enters dimensions → clicks "Estimate Shipping" → shipping_cost auto-filled with rounded estimate
+  - **Step 1 - Product Creation**: Seller enters dimensions → shipping cost automatically calculated and auto-filled with rounded estimate
   - **Step 2 - Customer Purchase**: Buyer pays product price + estimated shipping cost (total goes to seller's Stripe Connect account)
   - **Step 3 - Label Purchase**: Seller creates shipping label and pays actual shipping cost
   - **Profit Scenarios**:
