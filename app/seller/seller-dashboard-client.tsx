@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { SiteHeader } from "@/components/site-header"
 import type { User } from "@/lib/types/database"
 import Link from "next/link"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface SellerDashboardClientProps {
   user: User
@@ -23,6 +24,7 @@ interface SellerDashboardClientProps {
 }
 
 export default function SellerDashboardClient({ user, products }: SellerDashboardClientProps) {
+  const { t } = useLanguage()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -34,26 +36,26 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">My Product Listings</h1>
-              <p className="text-gray-600">Manage your products</p>
+              <h1 className="text-2xl font-bold">{t("myProductListings")}</h1>
+              <p className="text-gray-600">{t("manageYourProducts")}</p>
             </div>
             <div className="flex gap-2">
               <Link href="/seller/settings">
                 <Button variant="outline" data-testid="button-settings">
                   <Settings className="w-4 h-4 mr-2" />
-                  Configuración
+                  {t("settings")}
                 </Button>
               </Link>
               <Link href="/seller/pagos">
                 <Button variant="outline" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100" data-testid="button-earnings">
                   <DollarSign className="w-4 h-4 mr-2" />
-                  Mis Ganancias
+                  {t("myEarnings")}
                 </Button>
               </Link>
               <Link href="/seller/products/new">
                 <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-add-product">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add New Product
+                  {t("addProduct")}
                 </Button>
               </Link>
             </div>
@@ -65,9 +67,9 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
         <div className="flex justify-between items-center mb-6">
           <div className="flex gap-2">
             <select className="border rounded-md px-3 py-2 text-sm">
-              <option>All Status</option>
-              <option>Active</option>
-              <option>Inactive</option>
+              <option>{t("allStatus")}</option>
+              <option>{t("active")}</option>
+              <option>{t("inactive")}</option>
             </select>
           </div>
         </div>
@@ -96,13 +98,13 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
                         </Link>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                           <span>${product.price}</span>
-                          <span>Stock: {product.stock_quantity}</span>
+                          <span>{t("stock")}: {product.stock_quantity}</span>
                           <Badge
                             className={
                               product.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                             }
                           >
-                            {product.is_active ? "active" : "inactive"}
+                            {product.is_active ? t("active") : t("inactive")}
                           </Badge>
                           {product.product_categories && product.product_categories.length > 0 && (
                             <span className="text-xs text-blue-600">
@@ -112,15 +114,15 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-gray-600">Trust Score</div>
+                        <div className="text-sm text-gray-600">{t("trustScore")}</div>
                         <div className="font-bold">{trustScore}%</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-gray-600">Views</div>
+                        <div className="text-sm text-gray-600">{t("views")}</div>
                         <div className="font-bold">{views}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-gray-600">Sales</div>
+                        <div className="text-sm text-gray-600">{t("sales")}</div>
                         <div className="font-bold">{sales}</div>
                       </div>
                       <div className="flex gap-2">
@@ -146,12 +148,12 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
           <Card>
             <CardContent className="p-12 text-center">
               <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No products yet</h3>
-              <p className="text-gray-600 mb-4">Start selling by adding your first product</p>
+              <h3 className="text-lg font-medium mb-2">{t("noProductsYet")}</h3>
+              <p className="text-gray-600 mb-4">{t("startSellingMessage")}</p>
               <Link href="/seller/products/new">
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Your First Product
+                  {t("addFirstProduct")}
                 </Button>
               </Link>
             </CardContent>

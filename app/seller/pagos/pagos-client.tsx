@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SiteHeader } from "@/components/site-header"
 import Link from "next/link"
 import type { User } from "@/lib/types/database"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface PagosClientProps {
   user: User
@@ -29,6 +30,7 @@ interface PagosClientProps {
 
 export default function PagosClient({ user, statsResult, scheduleResult, setupComplete }: PagosClientProps) {
   const [connectingStripe, setConnectingStripe] = useState(false)
+  const { t } = useLanguage()
 
   const stats = statsResult?.data
   const needsOnboarding = statsResult?.needsOnboarding
@@ -38,7 +40,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
   const handleConnectStripe = async () => {
     setConnectingStripe(true)
     try {
-      // Llamar a la API route para crear/obtener cuenta y link de onboarding
+      // Call API route to create/get account and onboarding link
       const response = await fetch("/api/stripe-onboarding", {
         method: "POST",
         headers: {
@@ -49,15 +51,15 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
       const result = await response.json()
 
       if (!response.ok || !result.success) {
-        alert("Error al configurar Stripe: " + (result.error || "Error desconocido"))
+        alert(t("stripeSetupError") + ": " + (result.error || t("unknownError")))
         setConnectingStripe(false)
         return
       }
 
-      // Redirigir a Stripe para completar onboarding
+      // Redirect to Stripe to complete onboarding
       window.location.href = result.url
     } catch (error: any) {
-      alert("Error: " + error.message)
+      alert(t("error") + ": " + error.message)
       setConnectingStripe(false)
     }
   }
@@ -78,35 +80,35 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
   }
 
   const getPayoutStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; className: string }> = {
-      paid: { label: "Pagado", className: "bg-green-100 text-green-800" },
-      pending: { label: "Pendiente", className: "bg-yellow-100 text-yellow-800" },
-      in_transit: { label: "En tránsito", className: "bg-blue-100 text-blue-800" },
-      canceled: { label: "Cancelado", className: "bg-red-100 text-red-800" },
-      failed: { label: "Fallido", className: "bg-red-100 text-red-800" },
+    const statusMap: Record<string, { labelKey: string; className: string }> = {
+      paid: { labelKey: "paidOut", className: "bg-green-100 text-green-800" },
+      pending: { labelKey: "pending", className: "bg-yellow-100 text-yellow-800" },
+      in_transit: { labelKey: "inTransit", className: "bg-blue-100 text-blue-800" },
+      canceled: { labelKey: "cancelled", className: "bg-red-100 text-red-800" },
+      failed: { labelKey: "failed", className: "bg-red-100 text-red-800" },
     }
-    const config = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800" }
-    return <Badge className={config.className}>{config.label}</Badge>
+    const config = statusMap[status] || { labelKey: status, className: "bg-gray-100 text-gray-800" }
+    return <Badge className={config.className}>{t(config.labelKey)}</Badge>
   }
 
   const getScheduleDescription = () => {
-    if (!schedule) return "No configurado"
+    if (!schedule) return t("notConfigured")
 
     const { interval, delayDays, weeklyAnchor, monthlyAnchor } = schedule
 
     if (interval === "manual") {
-      return "Pagos manuales"
+      return t("manual")
     } else if (interval === "daily") {
-      return `Diario (con ${delayDays} días de retraso)`
+      return t("scheduleDaily").replace("{days}", String(delayDays))
     } else if (interval === "weekly") {
-      const day = weeklyAnchor || "lunes"
-      return `Semanal (cada ${day}, con ${delayDays} días de retraso)`
+      const day = weeklyAnchor || "Monday"
+      return t("scheduleWeekly").replace("{day}", day).replace("{days}", String(delayDays))
     } else if (interval === "monthly") {
       const day = monthlyAnchor || 1
-      return `Mensual (día ${day}, con ${delayDays} días de retraso)`
+      return t("scheduleMonthly").replace("{day}", String(day)).replace("{days}", String(delayDays))
     }
 
-    return "No configurado"
+    return t("notConfigured")
   }
 
   const calculateNextPayoutDays = () => {
@@ -126,13 +128,13 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Pagos y Ganancias
+                {t("paymentsAndEarnings")}
               </h1>
-              <p className="text-gray-600 mt-2">Administra tus pagos y visualiza tus ganancias de Stripe</p>
+              <p className="text-gray-600 mt-2">{t("managePaymentsDescription")}</p>
             </div>
             <Link href="/seller">
               <Button variant="outline" data-testid="button-back-seller">
-                Volver al Panel
+                {t("backToPanel")}
               </Button>
             </Link>
           </div>
@@ -143,7 +145,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
           <Alert className="mb-6 border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              ¡Configuración completada! Tu cuenta de Stripe está lista para recibir pagos.
+              {t("setupComplete")}
             </AlertDescription>
           </Alert>
         )}
@@ -153,8 +155,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
           <Alert className="mb-6 border-blue-200 bg-blue-50">
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
-              Para recibir pagos, necesitas completar la configuración de tu cuenta de Stripe. Haz clic en el botón
-              &quot;Configurar Cuenta de Stripe&quot; para comenzar.
+              {t("needsOnboardingMessage")}
             </AlertDescription>
           </Alert>
         )}
@@ -166,7 +167,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                Ganancias Totales
+                {t("totalEarnings")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -174,7 +175,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
                 {formatCurrency(stats?.totalEarnings || 0)}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                De {stats?.orderCount || 0} ventas completadas
+                {t("completedSales").replace("{count}", String(stats?.orderCount || 0))}
               </p>
             </CardContent>
           </Card>
@@ -184,14 +185,14 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
-                Saldo Disponible
+                {t("availableBalance")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600" data-testid="text-available-balance">
                 {formatCurrency(stats?.availableBalance || 0)}
               </div>
-              <p className="text-xs text-gray-500 mt-1">Listo para transferir</p>
+              <p className="text-xs text-gray-500 mt-1">{t("readyToTransfer")}</p>
             </CardContent>
           </Card>
 
@@ -200,7 +201,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                Saldo Pendiente
+                {t("pendingBalance")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -209,8 +210,8 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 {calculateNextPayoutDays() !== null
-                  ? `Próximo pago en ${calculateNextPayoutDays()} días`
-                  : "Esperando procesamiento"}
+                  ? t("nextPayoutIn").replace("{days}", String(calculateNextPayoutDays()))
+                  : t("awaitingProcessing")}
               </p>
             </CardContent>
           </Card>
@@ -220,7 +221,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                Calendario de Pagos
+                {t("payoutSchedule")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -239,12 +240,12 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
                   {connectingStripe ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Conectando...
+                      {t("connecting")}...
                     </>
                   ) : (
                     <>
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Configurar Cuenta de Stripe
+                      {t("setupStripeAccount")}
                     </>
                   )}
                 </Button>
@@ -259,7 +260,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-900">
                 <CreditCard className="w-5 h-5" />
-                Cómo Funcionan los Pagos con Stripe
+                {t("howPaymentsWork")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-blue-900">
@@ -268,9 +269,9 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
                   1
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">Los clientes pagan con Stripe</h4>
+                  <h4 className="font-semibold mb-1">{t("step1Title")}</h4>
                   <p className="text-sm text-blue-800">
-                    Cuando un cliente compra tus productos, el pago se procesa de forma segura a través de Stripe.
+                    {t("step1Description")}
                   </p>
                 </div>
               </div>
@@ -279,9 +280,9 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
                   2
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">Stripe retiene los fondos temporalmente</h4>
+                  <h4 className="font-semibold mb-1">{t("step2Title")}</h4>
                   <p className="text-sm text-blue-800">
-                    Los pagos se mantienen seguros mientras se procesa la transacción (típicamente {calculateNextPayoutDays() || 7} días).
+                    {t("step2Description").replace("{days}", String(calculateNextPayoutDays() || 7))}
                   </p>
                 </div>
               </div>
@@ -290,9 +291,9 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
                   3
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-1">Recibes tus pagos automáticamente</h4>
+                  <h4 className="font-semibold mb-1">{t("step3Title")}</h4>
                   <p className="text-sm text-blue-800">
-                    Stripe transfiere tus ganancias directamente a tu cuenta bancaria según el calendario configurado.
+                    {t("step3Description")}
                   </p>
                 </div>
               </div>
@@ -303,8 +304,8 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
         {/* Recent Payouts */}
         <Card>
           <CardHeader>
-            <CardTitle>Historial de Transferencias de Stripe</CardTitle>
-            <CardDescription>Transferencias de Stripe a tu cuenta bancaria</CardDescription>
+            <CardTitle>{t("transferHistory")}</CardTitle>
+            <CardDescription>{t("transferHistoryDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             {stats?.recentPayouts && stats.recentPayouts.length > 0 ? (
@@ -322,7 +323,7 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
                       <div>
                         <div className="font-semibold text-gray-900">{payout.description}</div>
                         <div className="text-sm text-gray-600">
-                          Creado: {formatDate(payout.createdDate)} • Llegará: {formatDate(payout.arrivalDate)}
+                          {t("created")}: {formatDate(payout.createdDate)} • {t("arrivalDate")}: {formatDate(payout.arrivalDate)}
                         </div>
                       </div>
                     </div>
@@ -337,12 +338,12 @@ export default function PagosClient({ user, statsResult, scheduleResult, setupCo
               <div className="text-center py-12">
                 <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {needsOnboarding ? "Configura tu cuenta de Stripe" : "No hay transferencias aún"}
+                  {needsOnboarding ? t("setupStripeAccountTitle") : t("noTransfers")}
                 </h3>
                 <p className="text-gray-600">
                   {needsOnboarding
-                    ? "Una vez configurada tu cuenta, tus transferencias aparecerán aquí"
-                    : "Tus transferencias de Stripe aparecerán aquí cuando se procesen"}
+                    ? t("setupStripeAccountDescription")
+                    : t("noTransfersInfo")}
                 </p>
               </div>
             )}
