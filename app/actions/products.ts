@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import type { Product } from "@/lib/types/database"
+import type { Product, ShippingPolicy } from "@/lib/types/database"
 
 export interface CreateProductInput {
   title: string
@@ -13,6 +13,8 @@ export interface CreateProductInput {
   images?: string[]
   category_ids?: string[]
   tag_ids?: string[]
+  shipping_policy?: ShippingPolicy | null
+  shipping_cost?: number | null
 }
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {
@@ -51,6 +53,8 @@ export async function createProduct(input: CreateProductInput) {
       image_url: input.image_url,
       images: input.images || [],
       is_active: true,
+      shipping_policy: input.shipping_policy || null,
+      shipping_cost: input.shipping_cost || null,
     })
     .select()
     .single()
@@ -111,6 +115,8 @@ export async function updateProduct(input: UpdateProductInput) {
   if (input.image_url !== undefined) updateData.image_url = input.image_url
   if (input.images !== undefined) updateData.images = input.images
   if (input.is_active !== undefined) updateData.is_active = input.is_active
+  if (input.shipping_policy !== undefined) updateData.shipping_policy = input.shipping_policy
+  if (input.shipping_cost !== undefined) updateData.shipping_cost = input.shipping_cost
 
   const { data: updatedProduct, error: updateError } = await supabase
     .from("products")
