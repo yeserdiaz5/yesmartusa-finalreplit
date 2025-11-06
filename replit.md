@@ -61,6 +61,7 @@ All pages below now support **dynamic language switching** via the language sele
 **Fully Translated Components**:
 - ✅ **Buyer Homepage** (/): Product cards, search bar, filters, buttons ("Add to Cart"/"Agregar al Carrito", "Buy Now"/"Comprar Ahora")
 - ✅ **Product Detail Pages** (/productdes/[id]): Product descriptions, quantity selector, stock status, cart actions
+- ✅ **Purchases Page** (/compras): Order cards, status labels (Paid/Pagado, Shipped/Enviado, etc.), tabs, empty states, shipping information, tracking details, cancellation messages, banner notifications with proper pluralization
 - ✅ **User Menu**: Sign In/Iniciar Sesión, My Purchases/Mis Compras, My Orders/Mis Pedidos, My Store/Mi Tienda, Admin Panel/Panel de Admin, Sign Out/Cerrar Sesión
 - ✅ **Seller Dashboard** (/seller): All headings, buttons, filters, product labels, empty states
 - ✅ **Payments Panel** (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages

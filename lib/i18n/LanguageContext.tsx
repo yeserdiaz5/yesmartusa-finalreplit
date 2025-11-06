@@ -144,6 +144,57 @@ const translationsEN: Record<string, string> = {
   "signUp": "Sign Up",
   "adminPanel": "Admin Panel",
   "signOut": "Sign Out",
+  
+  // Purchases Page (/compras)
+  "myPurchasesTitle": "My Purchases",
+  "myPurchasesSubtitle": "Here you can view all your purchases made on the marketplace",
+  "noPurchases": "You have no purchases",
+  "noPurchasesMessage": "When you make a purchase, it will appear here",
+  "purchaseNumber": "Purchase #",
+  "shippingAddress": "Shipping Address",
+  "shippingInformation": "Shipping Information",
+  "trackingNumber": "Tracking Number",
+  "carrier": "Carrier",
+  "estimatedDelivery": "Estimated delivery",
+  "orderCancelled": "Order Cancelled",
+  "orderItem": "Product",
+  
+  // Order Status
+  "statusPending": "Pending",
+  "statusPaid": "Paid",
+  "statusShipped": "Shipped",
+  "statusDelivered": "Delivered",
+  "statusCancelled": "Cancelled",
+  
+  // Tabs
+  "tabPaid": "Paid",
+  "tabShipped": "Shipped",
+  "tabCancelled": "Cancelled",
+  "tabOther": "Other",
+  
+  // Empty states
+  "noPaidOrders": "You have no paid orders",
+  "noPaidOrdersMessage": "Purchases that have been paid but not yet shipped will appear here",
+  "noShippedOrders": "You have no shipped orders",
+  "noShippedOrdersMessage": "Purchases that have been shipped will appear here",
+  "noCancelledOrders": "You have no cancelled orders",
+  "noCancelledOrdersMessage": "Your cancelled purchase history will appear here",
+  
+  // Banners
+  "paidOrdersBanner": "You have {count} {plural} waiting for shipment",
+  "paidOrderSingular": "paid order",
+  "paidOrderPlural": "paid orders",
+  "shippedOrdersBanner": "{count} {plural}",
+  "shippedOrderSingular": "order in transit or delivered",
+  "shippedOrderPlural": "orders in transit or delivered",
+  "cancelledOrdersBanner": "{count} {plural}",
+  "cancelledOrderSingular": "cancelled order",
+  "cancelledOrderPlural": "cancelled orders",
+  "otherOrdersBanner": "{count} {plural} with unrecognized status",
+  "otherOrderSingular": "order",
+  "otherOrderPlural": "orders",
+  "otherOrdersMessage": "These orders have a status that does not match the system's standard statuses.",
+  
   "checkout": "Checkout",
   "total": "Total",
   "subtotal": "Subtotal",
@@ -341,6 +392,57 @@ const translationsES: Record<string, string> = {
   "signUp": "Registrarse",
   "adminPanel": "Panel de Admin",
   "signOut": "Cerrar Sesión",
+  
+  // Purchases Page (/compras)
+  "myPurchasesTitle": "Mis Compras",
+  "myPurchasesSubtitle": "Aquí puedes ver todas tus compras realizadas en el marketplace",
+  "noPurchases": "No tienes compras",
+  "noPurchasesMessage": "Cuando realices una compra, aparecerá aquí",
+  "purchaseNumber": "Compra #",
+  "shippingAddress": "Dirección de Envío",
+  "shippingInformation": "Información de Envío",
+  "trackingNumber": "Número de Rastreo",
+  "carrier": "Transportista",
+  "estimatedDelivery": "Entrega estimada",
+  "orderCancelled": "Compra Cancelada",
+  "orderItem": "Producto",
+  
+  // Order Status
+  "statusPending": "Pendiente",
+  "statusPaid": "Pagado",
+  "statusShipped": "Enviado",
+  "statusDelivered": "Entregado",
+  "statusCancelled": "Cancelado",
+  
+  // Tabs
+  "tabPaid": "Pagados",
+  "tabShipped": "Enviados",
+  "tabCancelled": "Cancelados",
+  "tabOther": "Otros",
+  
+  // Empty states
+  "noPaidOrders": "No tienes compras pagadas",
+  "noPaidOrdersMessage": "Las compras que hayas pagado pero aún no enviadas aparecerán aquí",
+  "noShippedOrders": "No tienes compras enviadas",
+  "noShippedOrdersMessage": "Las compras que hayan sido enviadas aparecerán aquí",
+  "noCancelledOrders": "No tienes compras canceladas",
+  "noCancelledOrdersMessage": "El historial de compras canceladas aparecerá aquí",
+  
+  // Banners
+  "paidOrdersBanner": "Tienes {count} {plural} esperando envío",
+  "paidOrderSingular": "compra pagada",
+  "paidOrderPlural": "compras pagadas",
+  "shippedOrdersBanner": "{count} {plural}",
+  "shippedOrderSingular": "compra en tránsito o entregada",
+  "shippedOrderPlural": "compras en tránsito o entregadas",
+  "cancelledOrdersBanner": "{count} {plural}",
+  "cancelledOrderSingular": "compra cancelada",
+  "cancelledOrderPlural": "compras canceladas",
+  "otherOrdersBanner": "{count} {plural} con estado no reconocido",
+  "otherOrderSingular": "compra",
+  "otherOrderPlural": "compras",
+  "otherOrdersMessage": "Estas compras tienen un estado que no coincide con los estados estándar del sistema.",
+  
   "checkout": "Pagar",
   "total": "Total",
   "subtotal": "Subtotal",

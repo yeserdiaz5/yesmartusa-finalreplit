@@ -10,6 +10,7 @@ import { Package, Calendar, DollarSign, Truck, ExternalLink } from "lucide-react
 import Image from "next/image"
 import Link from "next/link"
 import { CancelOrderDialog } from "@/components/cancel-order-dialog"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface ComprasClientProps {
   user: User | null
@@ -17,6 +18,8 @@ interface ComprasClientProps {
 }
 
 export default function ComprasClient({ user, compras = [] }: ComprasClientProps) {
+  const { t, language } = useLanguage()
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -37,22 +40,22 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "pending":
-        return "Pendiente"
+        return t("statusPending")
       case "paid":
-        return "Pagado"
+        return t("statusPaid")
       case "shipped":
-        return "Enviado"
+        return t("statusShipped")
       case "delivered":
-        return "Entregado"
+        return t("statusDelivered")
       case "cancelled":
-        return "Cancelado"
+        return t("statusCancelled")
       default:
         return status
     }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    return new Date(dateString).toLocaleDateString(language === "es" ? "es-ES" : "en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -97,7 +100,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
       <CardHeader className="border-b">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-1">
-            <CardTitle className="text-lg">Compra #{compra.id.slice(0, 8)}</CardTitle>
+            <CardTitle className="text-lg">{t("purchaseNumber")}{compra.id.slice(0, 8)}</CardTitle>
             <div className="flex items-center text-sm text-gray-600">
               <Calendar className="w-4 h-4 mr-1" />
               {formatDate(compra.created_at)}
@@ -136,11 +139,11 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
               <div className="flex-1">
                 <Link href={`/productdes/${item.product?.id || item.product_id}`}>
                   <h4 className="font-semibold hover:text-blue-600 transition-colors cursor-pointer">
-                    {item.product?.title || "Producto"}
+                    {item.product?.title || t("orderItem")}
                   </h4>
                 </Link>
                 <p className="text-sm text-gray-600">
-                  Cantidad: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
+                  {t("quantity")} {item.quantity} × ${item.price_at_purchase.toFixed(2)}
                 </p>
               </div>
               <div className="font-semibold">
@@ -152,7 +155,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
         
         {compra.shipping_address && (
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold mb-2">Dirección de Envío</h4>
+            <h4 className="font-semibold mb-2">{t("shippingAddress")}</h4>
             <p className="text-sm text-gray-700">
               {(compra.shipping_address as any).full_name && (
                 <>
@@ -178,12 +181,12 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
           <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Truck className="w-5 h-5 text-green-700" />
-              <h4 className="font-semibold text-green-900">Información de Envío</h4>
+              <h4 className="font-semibold text-green-900">{t("shippingInformation")}</h4>
             </div>
             {(compra as any).shipments.map((shipment: any) => (
               <div key={shipment.id} className="mt-2">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <span className="text-sm font-medium text-green-800">Número de Rastreo:</span>
+                  <span className="text-sm font-medium text-green-800">{t("trackingNumber")}:</span>
                   <Link
                     href={getTrackingUrl(shipment.tracking_number, shipment.carrier || 'USPS')}
                     target="_blank"
@@ -197,12 +200,12 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 </div>
                 {shipment.carrier && (
                   <p className="text-sm text-green-700 mt-1">
-                    Transportista: {shipment.carrier}
+                    {t("carrier")}: {shipment.carrier}
                   </p>
                 )}
                 {shipment.estimated_delivery && (
                   <p className="text-sm text-green-700 mt-1">
-                    Entrega estimada: {formatDate(shipment.estimated_delivery)}
+                    {t("estimatedDelivery")}: {formatDate(shipment.estimated_delivery)}
                   </p>
                 )}
               </div>
@@ -222,7 +225,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
 
         {compra.status === "cancelled" && compra.cancellation_reason && (
           <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-red-900 mb-1">Compra Cancelada</p>
+            <p className="text-sm font-medium text-red-900 mb-1">{t("orderCancelled")}</p>
             <p className="text-sm text-red-800">{compra.cancellation_reason}</p>
           </div>
         )}
@@ -235,23 +238,23 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
       <SiteHeader user={user} />
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mis Compras</h1>
-          <p className="text-gray-600">Aquí puedes ver todas tus compras realizadas en el marketplace</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("myPurchasesTitle")}</h1>
+          <p className="text-gray-600">{t("myPurchasesSubtitle")}</p>
         </div>
 
         {!Array.isArray(compras) || compras.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold mb-2">No tienes compras</h3>
-              <p className="text-gray-600">Cuando realices una compra, aparecerá aquí</p>
+              <h3 className="text-xl font-semibold mb-2">{t("noPurchases")}</h3>
+              <p className="text-gray-600">{t("noPurchasesMessage")}</p>
             </CardContent>
           </Card>
         ) : (
           <Tabs defaultValue="paid" className="w-full">
             <TabsList className={`grid w-full mb-6 ${groupedOrders.other.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
               <TabsTrigger value="paid" className="relative" data-testid="tab-paid">
-                Pagados
+                {t("tabPaid")}
                 {groupedOrders.paid.length > 0 && (
                   <Badge className="ml-2 bg-green-600 text-white hover:bg-green-700">
                     {groupedOrders.paid.length}
@@ -259,7 +262,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 )}
               </TabsTrigger>
               <TabsTrigger value="shipped" className="relative" data-testid="tab-shipped">
-                Enviados
+                {t("tabShipped")}
                 {groupedOrders.shipped.length > 0 && (
                   <Badge className="ml-2 bg-blue-600 text-white hover:bg-blue-700">
                     {groupedOrders.shipped.length}
@@ -267,7 +270,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 )}
               </TabsTrigger>
               <TabsTrigger value="cancelled" className="relative" data-testid="tab-cancelled">
-                Cancelados
+                {t("tabCancelled")}
                 {groupedOrders.cancelled.length > 0 && (
                   <Badge className="ml-2 bg-red-600 text-white hover:bg-red-700">
                     {groupedOrders.cancelled.length}
@@ -276,7 +279,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
               </TabsTrigger>
               {groupedOrders.other.length > 0 && (
                 <TabsTrigger value="other" className="relative" data-testid="tab-other">
-                  Otros
+                  {t("tabOther")}
                   <Badge className="ml-2 bg-yellow-600 text-white hover:bg-yellow-700">
                     {groupedOrders.other.length}
                   </Badge>
@@ -290,15 +293,19 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 <Card>
                   <CardContent className="p-12 text-center">
                     <DollarSign className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-xl font-semibold mb-2">No tienes compras pagadas</h3>
-                    <p className="text-gray-600">Las compras que hayas pagado pero aún no enviadas aparecerán aquí</p>
+                    <h3 className="text-xl font-semibold mb-2">{t("noPaidOrders")}</h3>
+                    <p className="text-gray-600">{t("noPaidOrdersMessage")}</p>
                   </CardContent>
                 </Card>
               ) : (
                 <>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                     <p className="text-green-900 font-medium">
-                      Tienes {groupedOrders.paid.length} {groupedOrders.paid.length === 1 ? 'compra pagada' : 'compras pagadas'} esperando envío
+                      {(() => {
+                        const count = groupedOrders.paid.length
+                        const plural = count === 1 ? t("paidOrderSingular") : t("paidOrderPlural")
+                        return t("paidOrdersBanner").replace("{count}", count.toString()).replace("{plural}", plural)
+                      })()}
                     </p>
                   </div>
                   <div className="space-y-4">
@@ -314,15 +321,19 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Truck className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-xl font-semibold mb-2">No tienes compras enviadas</h3>
-                    <p className="text-gray-600">Las compras que hayan sido enviadas aparecerán aquí</p>
+                    <h3 className="text-xl font-semibold mb-2">{t("noShippedOrders")}</h3>
+                    <p className="text-gray-600">{t("noShippedOrdersMessage")}</p>
                   </CardContent>
                 </Card>
               ) : (
                 <>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                     <p className="text-blue-900 font-medium">
-                      {groupedOrders.shipped.length} {groupedOrders.shipped.length === 1 ? 'compra en tránsito o entregada' : 'compras en tránsito o entregadas'}
+                      {(() => {
+                        const count = groupedOrders.shipped.length
+                        const plural = count === 1 ? t("shippedOrderSingular") : t("shippedOrderPlural")
+                        return t("shippedOrdersBanner").replace("{count}", count.toString()).replace("{plural}", plural)
+                      })()}
                     </p>
                   </div>
                   <div className="space-y-4">
@@ -338,15 +349,19 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-xl font-semibold mb-2">No tienes compras canceladas</h3>
-                    <p className="text-gray-600">El historial de compras canceladas aparecerá aquí</p>
+                    <h3 className="text-xl font-semibold mb-2">{t("noCancelledOrders")}</h3>
+                    <p className="text-gray-600">{t("noCancelledOrdersMessage")}</p>
                   </CardContent>
                 </Card>
               ) : (
                 <>
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                     <p className="text-red-900 font-medium">
-                      {groupedOrders.cancelled.length} {groupedOrders.cancelled.length === 1 ? 'compra cancelada' : 'compras canceladas'}
+                      {(() => {
+                        const count = groupedOrders.cancelled.length
+                        const plural = count === 1 ? t("cancelledOrderSingular") : t("cancelledOrderPlural")
+                        return t("cancelledOrdersBanner").replace("{count}", count.toString()).replace("{plural}", plural)
+                      })()}
                     </p>
                   </div>
                   <div className="space-y-4">
@@ -361,10 +376,14 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
               <TabsContent value="other" className="space-y-4">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4" data-testid="banner-other-status">
                   <p className="text-yellow-900 font-medium">
-                    {groupedOrders.other.length} {groupedOrders.other.length === 1 ? 'compra' : 'compras'} con estado no reconocido
+                    {(() => {
+                      const count = groupedOrders.other.length
+                      const plural = count === 1 ? t("otherOrderSingular") : t("otherOrderPlural")
+                      return t("otherOrdersBanner").replace("{count}", count.toString()).replace("{plural}", plural)
+                    })()}
                   </p>
                   <p className="text-yellow-800 text-sm mt-1">
-                    Estas compras tienen un estado que no coincide con los estados estándar del sistema.
+                    {t("otherOrdersMessage")}
                   </p>
                 </div>
                 <div className="space-y-4">
