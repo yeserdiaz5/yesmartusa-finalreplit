@@ -49,6 +49,8 @@ export default function ProductForm({
     description: product?.description || "",
     price: product?.price?.toString() || "",
     stock_quantity: product?.stock_quantity?.toString() || "",
+    brand: product?.brand || "",
+    condition: product?.condition || "new",
     images:
       product?.images && product.images.length > 0 ? product.images : product?.image_url ? [product.image_url] : [],
     category_ids: productCategories,
@@ -325,6 +327,35 @@ export default function ProductForm({
                 placeholder="0"
                 data-testid="input-stock"
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="brand">{t("productBrand")}</Label>
+              <Input
+                id="brand"
+                value={formData.brand}
+                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                placeholder={t("productBrandPlaceholder")}
+                data-testid="input-brand"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="condition">{t("productCondition")}</Label>
+              <Select
+                value={formData.condition}
+                onValueChange={(value) => setFormData({ ...formData, condition: value as "new" | "used" })}
+              >
+                <SelectTrigger id="condition" data-testid="select-condition">
+                  <SelectValue placeholder={t("productConditionPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new" data-testid="option-condition-new">{t("productConditionNew")}</SelectItem>
+                  <SelectItem value="used" data-testid="option-condition-used">{t("productConditionUsed")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import type { Product, ShippingPolicy } from "@/lib/types/database"
+import type { Product, ShippingPolicy, ProductCondition } from "@/lib/types/database"
 
 export interface CreateProductInput {
   title: string
@@ -11,6 +11,8 @@ export interface CreateProductInput {
   stock_quantity: number
   image_url?: string
   images?: string[]
+  brand?: string | null
+  condition?: ProductCondition | null
   category_ids?: string[]
   tag_ids?: string[]
   shipping_policy?: ShippingPolicy | null
@@ -56,6 +58,8 @@ export async function createProduct(input: CreateProductInput) {
       stock_quantity: input.stock_quantity,
       image_url: input.image_url,
       images: input.images || [],
+      brand: input.brand || null,
+      condition: input.condition || null,
       is_active: true,
       shipping_policy: input.shipping_policy || null,
       shipping_cost: input.shipping_cost || null,
@@ -122,6 +126,8 @@ export async function updateProduct(input: UpdateProductInput) {
   if (input.stock_quantity !== undefined) updateData.stock_quantity = input.stock_quantity
   if (input.image_url !== undefined) updateData.image_url = input.image_url
   if (input.images !== undefined) updateData.images = input.images
+  if (input.brand !== undefined) updateData.brand = input.brand
+  if (input.condition !== undefined) updateData.condition = input.condition
   if (input.is_active !== undefined) updateData.is_active = input.is_active
   if (input.shipping_policy !== undefined) updateData.shipping_policy = input.shipping_policy
   if (input.shipping_cost !== undefined) updateData.shipping_cost = input.shipping_cost
