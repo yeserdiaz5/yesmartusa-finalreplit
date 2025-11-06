@@ -11,6 +11,18 @@ YesmartUSA es un marketplace completo de Next.js 14 donde los usuarios pueden co
 
 ## Recent Changes (November 2025)
 
+### Simplificación de la Página del Vendedor
+- **Eliminado**: Botón de "Etiqueta de Prueba" y funcionalidad de testing
+- **Eliminado**: Sistema de tabs (Overview, Analytics, Reviews)
+- **Mantenido**: Solo la pestaña "My Product Listings"
+- **Interfaz Simplificada**:
+  - Header con título "My Product Listings"
+  - Botones: Configuración y Add New Product
+  - Filtro por estado (All Status, Active, Inactive)
+  - Listado de productos con enlaces a páginas de descripción
+- **Ubicación**: `app/seller/seller-dashboard-client.tsx`
+- **Beneficio**: Interfaz más limpia y enfocada en la gestión de productos
+
 ### Banner de Usuario con Nombre de Tienda
 - **Header/User Menu**: El nombre mostrado en el banner sigue esta prioridad:
   1. Nombre de la tienda (`store_name`) - si existe
