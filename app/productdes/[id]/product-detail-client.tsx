@@ -203,6 +203,31 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                 <span className="text-4xl font-bold text-gray-900">${product.price}</span>
               </div>
 
+              {(product.brand || product.condition) && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="grid grid-cols-2 gap-4">
+                    {product.brand && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">{t("productBrand")}</p>
+                        <p className="text-base font-semibold text-gray-900" data-testid="text-product-brand">{product.brand}</p>
+                      </div>
+                    )}
+                    {product.condition && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">{t("productCondition")}</p>
+                        <p className="text-base font-semibold text-gray-900" data-testid="text-product-condition">
+                          {product.condition === "new" && t("productConditionNew")}
+                          {product.condition === "used" && t("productConditionUsed")}
+                          {product.condition === "refurbished" && t("productConditionRefurbished")}
+                          {product.condition === "open_box" && t("productConditionOpenBox")}
+                          {product.condition === "for_parts" && t("productConditionForParts")}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-100">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <span className="w-1 h-6 bg-blue-600 mr-3 rounded"></span>
