@@ -3,6 +3,7 @@ import { FilterSortBar } from "@/components/filter-sort-bar";
 import { ServiceCard } from "@/components/service-card";
 import { ComparisonTable } from "@/components/comparison-table";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { LayoutGrid, Table } from "lucide-react";
 import type { Service } from "@shared/schema";
 
@@ -11,6 +12,7 @@ interface ComparisonSectionProps {
 }
 
 export function ComparisonSection({ services }: ComparisonSectionProps) {
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("popular");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
@@ -60,11 +62,10 @@ export function ComparisonSection({ services }: ComparisonSectionProps) {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
           <div className="flex-1">
             <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-section-heading">
-              Compare Plans & Pricing
+              {t("comparison.heading")}
             </h2>
             <p className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl" data-testid="text-section-description">
-              Find the perfect plan for your needs. All plans include our core
-              features with varying levels of access and support.
+              {t("comparison.description")}
             </p>
           </div>
 
@@ -77,7 +78,7 @@ export function ComparisonSection({ services }: ComparisonSectionProps) {
               className="gap-2 flex-1 md:flex-initial"
             >
               <LayoutGrid className="h-4 w-4" />
-              <span className="hidden sm:inline">Cards</span>
+              <span className="hidden sm:inline">{t("comparison.viewCards")}</span>
             </Button>
             <Button
               variant={viewMode === "table" ? "secondary" : "ghost"}
@@ -87,7 +88,7 @@ export function ComparisonSection({ services }: ComparisonSectionProps) {
               className="gap-2 flex-1 md:flex-initial"
             >
               <Table className="h-4 w-4" />
-              <span className="hidden sm:inline">Table</span>
+              <span className="hidden sm:inline">{t("comparison.viewTable")}</span>
             </Button>
           </div>
         </div>
@@ -95,7 +96,7 @@ export function ComparisonSection({ services }: ComparisonSectionProps) {
         {filteredAndSortedServices.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-muted-foreground" data-testid="text-no-services">
-              No services found for this category.
+              {t("comparison.noServices")}
             </p>
           </div>
         ) : viewMode === "grid" ? (

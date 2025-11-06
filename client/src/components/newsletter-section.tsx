@@ -13,12 +13,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { insertSubscriberSchema, type InsertSubscriber } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 export function NewsletterSection() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   const form = useForm<InsertSubscriber>({
@@ -36,14 +38,14 @@ export function NewsletterSection() {
       setIsSubscribed(true);
       form.reset();
       toast({
-        title: "Successfully subscribed!",
-        description: "Check your inbox for a confirmation email.",
+        title: t("newsletter.toastSuccessTitle"),
+        description: t("newsletter.toastSuccessDescription"),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Subscription failed",
-        description: error.message || "Please try again later.",
+        title: t("newsletter.toastErrorTitle"),
+        description: error.message || t("newsletter.toastErrorDescription"),
         variant: "destructive",
       });
     },
@@ -61,12 +63,10 @@ export function NewsletterSection() {
             <Mail className="h-8 w-8 text-primary" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-newsletter-heading">
-            Stay Updated with Exclusive Insights
+            {t("newsletter.heading")}
           </h2>
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed" data-testid="text-newsletter-description">
-            Get the latest service comparisons, pricing updates, and exclusive
-            deals delivered straight to your inbox. Join over 10,000
-            subscribers.
+            {t("newsletter.description")}
           </p>
         </div>
 
@@ -74,10 +74,10 @@ export function NewsletterSection() {
           <div className="bg-card rounded-lg border p-8 text-center" data-testid="success-message">
             <CheckCircle2 className="h-12 w-12 text-primary mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2" data-testid="text-success-heading">
-              You're all set!
+              {t("newsletter.successHeading")}
             </h3>
             <p className="text-muted-foreground" data-testid="text-success-description">
-              Welcome to our community. Check your email for confirmation.
+              {t("newsletter.successDescription")}
             </p>
           </div>
         ) : (
@@ -89,11 +89,11 @@ export function NewsletterSection() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email Address</FormLabel>
+                      <FormLabel>{t("newsletter.emailLabel")}</FormLabel>
                       <FormControl>
                         <Input
                           type="email"
-                          placeholder="you@example.com"
+                          placeholder={t("newsletter.emailPlaceholder")}
                           data-testid="input-email"
                           {...field}
                         />
@@ -110,11 +110,11 @@ export function NewsletterSection() {
                   disabled={subscribeMutation.isPending}
                   data-testid="button-subscribe"
                 >
-                  {subscribeMutation.isPending ? "Subscribing..." : "Subscribe Now"}
+                  {subscribeMutation.isPending ? t("newsletter.ctaSubscribing") : t("newsletter.ctaSubscribe")}
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground" data-testid="text-privacy-notice">
-                  We respect your privacy. Unsubscribe at any time.
+                  {t("newsletter.privacy")}
                 </p>
               </form>
             </Form>
