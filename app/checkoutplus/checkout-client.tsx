@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Minus, Plus, Trash2, CreditCard, ShoppingBag, Mail } from "lucide-react"
+import { ArrowLeft, Minus, Plus, Trash2, CreditCard, ShoppingBag, Mail, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,12 +13,14 @@ import { getCart, updateCartItemQuantity, removeFromCart } from "@/app/actions/c
 import { SiteHeader } from "@/components/site-header"
 import { getGuestCart, updateGuestCartQuantity, removeFromGuestCart, clearGuestCart } from "@/lib/guest-cart"
 import { createStripeCheckoutSession } from "@/app/actions/stripe"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface CheckoutClientProps {
   initialUser: any
 }
 
 export function CheckoutClient({ initialUser }: CheckoutClientProps) {
+  const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
   const [cartItems, setCartItems] = useState<any[]>([])
@@ -99,12 +101,50 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
     }
   }
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
-      const price = isGuest ? item.product.price : item.product.price
+      const price = item.product.price
       const quantity = item.quantity
       return sum + price * quantity
     }, 0)
+  }
+
+  const calculateShipping = () => {
+    return cartItems.reduce((sum, item) => {
+      const product = item.product
+      const shippingPolicy = product.shipping_policy
+      const shippingCost = product.shipping_cost || 10
+      
+      if (shippingPolicy === 'seller_pays') {
+        return sum + 0
+      } else if (shippingPolicy === 'buyer_pays') {
+        return sum + shippingCost
+      } else if (shippingPolicy === 'shared') {
+        return sum + (shippingCost / 2)
+      }
+      return sum + shippingCost
+    }, 0)
+  }
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal()
+    const shipping = calculateShipping()
+    const tax = subtotal * 0.1
+    return subtotal + shipping + tax
+  }
+
+  const getShippingInfo = (product: any) => {
+    const policy = product.shipping_policy
+    const cost = product.shipping_cost || 10
+    
+    if (policy === 'seller_pays') {
+      return t("freeShipping")
+    } else if (policy === 'buyer_pays') {
+      return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}`
+    } else if (policy === 'shared') {
+      return `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}`
+    }
+    return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}`
   }
 
   const handleStripeCheckout = async () => {
@@ -275,6 +315,12 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
                     <div className="flex-1">
                       <h3 className="font-medium">{item.product.title}</h3>
                       <p className="text-lg font-semibold text-blue-600">${item.product.price.toFixed(2)}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Package className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {getShippingInfo(item.product)}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-2 mt-2">
                         <Button
                           variant="outline"
@@ -330,8 +376,25 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
 
                 <Separator />
 
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>{t("subtotal")}</span>
+                    <span>${calculateSubtotal().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>{t("shipping")}</span>
+                    <span>${calculateShipping().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>{t("tax")}</span>
+                    <span>${(calculateSubtotal() * 0.1).toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <Separator />
+
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>Total</span>
+                  <span>{t("total")}</span>
                   <span className="text-blue-600">${calculateTotal().toFixed(2)}</span>
                 </div>
 
