@@ -114,6 +114,7 @@ export default function ImageCropModal({ imageUrl, isOpen, onClose, onSave }: Im
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={onCropComplete}
+              restrictPosition={false}
             />
           </div>
 
