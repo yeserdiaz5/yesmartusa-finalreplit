@@ -97,7 +97,7 @@ export default function MisComprasClient({ user, orders = [] }: MisComprasClient
           <div className="space-y-3 mb-4">
             {order.order_items?.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
-                <Link href={`/productdes/${item.product_id}`} className="shrink-0">
+                <Link href={`/productdes/${item.product?.id || item.product_id}`} className="shrink-0">
                   <img
                     src={item.product?.image_url || "/placeholder.svg"}
                     alt={item.product?.title || "Product"}
@@ -105,7 +105,7 @@ export default function MisComprasClient({ user, orders = [] }: MisComprasClient
                   />
                 </Link>
                 <div className="flex-1">
-                  <Link href={`/productdes/${item.product_id}`}>
+                  <Link href={`/productdes/${item.product?.id || item.product_id}`}>
                     <p className="font-medium hover:text-blue-600 transition-colors cursor-pointer">
                       {item.product?.title}
                     </p>

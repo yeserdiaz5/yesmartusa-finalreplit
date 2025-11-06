@@ -118,7 +118,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
         <div className="space-y-4">
           {compra.order_items?.map((item: OrderItem & { product?: Product }) => (
             <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <Link href={`/productdes/${item.product_id}`} className="shrink-0">
+              <Link href={`/productdes/${item.product?.id || item.product_id}`} className="shrink-0">
                 {item.product?.image_url || (item.product?.images && item.product.images[0]) ? (
                   <Image
                     src={item.product.image_url || (item.product.images ? item.product.images[0] : '')}
@@ -134,7 +134,7 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
                 )}
               </Link>
               <div className="flex-1">
-                <Link href={`/productdes/${item.product_id}`}>
+                <Link href={`/productdes/${item.product?.id || item.product_id}`}>
                   <h4 className="font-semibold hover:text-blue-600 transition-colors cursor-pointer">
                     {item.product?.title || "Producto"}
                   </h4>

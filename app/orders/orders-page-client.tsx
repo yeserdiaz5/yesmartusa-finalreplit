@@ -328,7 +328,7 @@ export default function OrdersPageClient({ user, orders = [] }: OrdersPageClient
             <p className="text-sm font-medium">Productos:</p>
             {order.items.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 bg-white p-2 rounded">
-                <Link href={`/productdes/${item.product_id}`} className="shrink-0">
+                <Link href={`/productdes/${item.product?.id || item.product_id}`} className="shrink-0">
                   <img
                     src={item.product.image_url || "/placeholder.svg"}
                     alt={item.product.title}
@@ -336,7 +336,7 @@ export default function OrdersPageClient({ user, orders = [] }: OrdersPageClient
                   />
                 </Link>
                 <div className="flex-1">
-                  <Link href={`/productdes/${item.product_id}`}>
+                  <Link href={`/productdes/${item.product?.id || item.product_id}`}>
                     <p className="text-sm font-medium hover:text-blue-600 transition-colors cursor-pointer">
                       {item.product.title}
                     </p>
