@@ -122,7 +122,7 @@ export default function ImageCropModal({ imageUrl, isOpen, onClose, onSave }: Im
             <Slider
               value={[zoom]}
               onValueChange={(value) => setZoom(value[0])}
-              min={1}
+              min={0.5}
               max={3}
               step={0.1}
               data-testid="slider-zoom"
