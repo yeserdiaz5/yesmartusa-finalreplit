@@ -68,6 +68,13 @@ export default function ProductForm({
         return
       }
 
+      // Validate shipping cost is required for buyer_pays and shared policies
+      if ((formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared') && !formData.shipping_cost) {
+        setError(t("shippingCostRequired"))
+        setLoading(false)
+        return
+      }
+
       const input: CreateProductInput = {
         title: formData.title,
         description: formData.description,
@@ -232,7 +239,11 @@ export default function ProductForm({
           </div>
 
           <div>
-            <Label htmlFor="shipping_cost">{t("shippingCost")} (opcional)</Label>
+            <Label htmlFor="shipping_cost">
+              {t("shippingCost")} 
+              {formData.shipping_policy === 'seller_pays' && " (opcional)"}
+              {(formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared') && " *"}
+            </Label>
             <Input
               id="shipping_cost"
               type="number"
@@ -242,6 +253,7 @@ export default function ProductForm({
               onChange={(e) => setFormData({ ...formData, shipping_cost: e.target.value })}
               placeholder={t("shippingCostPlaceholder")}
               data-testid="input-shipping-cost"
+              required={formData.shipping_policy === 'buyer_pays' || formData.shipping_policy === 'shared'}
             />
             <p className="text-sm text-muted-foreground mt-1">
               {formData.shipping_policy === 'seller_pays' && t("freeShipping")}

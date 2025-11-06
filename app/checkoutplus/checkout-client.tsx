@@ -112,17 +112,18 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
   const calculateShipping = () => {
     return cartItems.reduce((sum, item) => {
       const product = item.product
-      const shippingPolicy = product.shipping_policy
+      const quantity = item.quantity
+      const shippingPolicy = product.shipping_policy || 'buyer_pays' // Default to buyer pays
       const shippingCost = product.shipping_cost || 10
       
       if (shippingPolicy === 'seller_pays') {
         return sum + 0
       } else if (shippingPolicy === 'buyer_pays') {
-        return sum + shippingCost
+        return sum + (shippingCost * quantity) // Multiply by quantity
       } else if (shippingPolicy === 'shared') {
-        return sum + (shippingCost / 2)
+        return sum + ((shippingCost / 2) * quantity) // Multiply by quantity
       }
-      return sum + shippingCost
+      return sum + (shippingCost * quantity) // Default: multiply by quantity
     }, 0)
   }
 
@@ -134,17 +135,17 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
   }
 
   const getShippingInfo = (product: any) => {
-    const policy = product.shipping_policy
+    const policy = product.shipping_policy || 'buyer_pays'
     const cost = product.shipping_cost || 10
     
     if (policy === 'seller_pays') {
       return t("freeShipping")
     } else if (policy === 'buyer_pays') {
-      return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}`
+      return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`
     } else if (policy === 'shared') {
-      return `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}`
+      return `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}/unit`
     }
-    return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}`
+    return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`
   }
 
   const handleStripeCheckout = async () => {

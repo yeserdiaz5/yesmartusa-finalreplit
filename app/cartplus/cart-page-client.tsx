@@ -115,35 +115,36 @@ export function CartPageClient({ user }: CartPageClientProps) {
   // Calculate shipping based on each product's shipping policy
   const shipping = items.reduce((sum, item) => {
     const product = user ? (item as CartItem).product : (item as GuestCartItem).product
-    const shippingPolicy = product.shipping_policy
+    const quantity = item.quantity
+    const shippingPolicy = product.shipping_policy || 'buyer_pays' // Default to buyer pays
     const shippingCost = product.shipping_cost || 10 // Default $10 if not set
     
     if (shippingPolicy === 'seller_pays') {
       return sum + 0 // Seller pays, buyer pays nothing
     } else if (shippingPolicy === 'buyer_pays') {
-      return sum + shippingCost // Buyer pays full cost
+      return sum + (shippingCost * quantity) // Buyer pays full cost per unit
     } else if (shippingPolicy === 'shared') {
-      return sum + (shippingCost / 2) // Split 50/50
+      return sum + ((shippingCost / 2) * quantity) // Split 50/50 per unit
     }
-    return sum + shippingCost // Default to buyer pays
+    return sum + (shippingCost * quantity) // Default to buyer pays per unit
   }, 0)
   
   const tax = subtotal * 0.1
   const total = subtotal + shipping + tax
   
-  // Helper function to get shipping info for display
+  // Helper function to get shipping info for display (per unit)
   const getShippingInfo = (product: CartItem['product'] | GuestCartItem['product']) => {
-    const policy = product.shipping_policy
+    const policy = product.shipping_policy || 'buyer_pays'
     const cost = product.shipping_cost || 10
     
     if (policy === 'seller_pays') {
       return { label: t("freeShipping"), badge: "seller_pays" }
     } else if (policy === 'buyer_pays') {
-      return { label: `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}`, badge: "buyer_pays" }
+      return { label: `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`, badge: "buyer_pays" }
     } else if (policy === 'shared') {
-      return { label: `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}`, badge: "shared" }
+      return { label: `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}/unit`, badge: "shared" }
     }
-    return { label: `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}`, badge: "buyer_pays" }
+    return { label: `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`, badge: "buyer_pays" }
   }
 
   if (loading) {

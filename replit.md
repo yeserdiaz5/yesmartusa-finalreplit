@@ -31,6 +31,15 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
 - **Order Management**: Advanced tabbed interfaces for both seller (`/my-orders`) and buyer (`/compras`) order views, categorizing orders by status (Paid, Shipped, Cancelled, Other). Includes clear banners, badges, and status messages.
 - **Order Cancellation**: Automated system with Stripe refund integration for sellers, authenticated buyers, and guest buyers via a public link. Strict validation based on user roles and order status.
 - **Order Tracking**: Detailed shipping information for "shipped" or "delivered" orders, with clickable tracking numbers and automatic carrier-specific links (USPS, UPS, FedEx, DHL, Google search for others).
+- **Shipping Policy System**: Per-product shipping policies allow sellers to choose who pays shipping costs. Three policy options:
+  - **Seller Pays**: Seller covers all shipping costs; buyer pays $0 for shipping
+  - **Buyer Pays**: Buyer pays full shipping cost as specified by seller
+  - **Shared (50/50)**: Shipping cost split equally between seller and buyer
+  - **Database Fields**: `shipping_policy` (enum: 'seller_pays' | 'buyer_pays' | 'shared') and `shipping_cost` (decimal) in `products` table
+  - **Implementation**: Product form (/seller/products/new), cart (cartplus), and checkout (checkoutplus) all display and calculate shipping based on policies
+  - **Calculation Logic**: Cart and checkout dynamically calculate shipping totals by summing each product's shipping contribution based on its policy
+  - **UI Display**: Package icon with shipping info shown in cart items and checkout items; complete cost breakdown (subtotal, shipping, tax, total) in order summary
+  - **Bilingual Support**: Full EN/ES translations for all shipping policy labels and UI elements
 
 ### Technical Implementations
 - **Stripe Connect Integration**: Onboarding flow, automatic account creation, and storage in `seller_stripe_accounts`.
