@@ -44,7 +44,7 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
 - **Supported Languages**: English (default), Spanish (es)
 - **Storage**: localStorage for language preference persistence
 - **Components**:
-  - `LanguageContext` (lib/i18n/LanguageContext.tsx): Provider and translation helper with 110+ translation keys
+  - `LanguageContext` (lib/i18n/LanguageContext.tsx): Provider and translation helper with 150+ translation keys
   - `LanguageSelector` (components/language-selector.tsx): Globe icon dropdown with EN/ES text labels (no emoji flags) in site header
 - **Translation Coverage**: Full bilingual support for buyer homepage, product pages, user menu, seller dashboard, and payments
 - **Usage Pattern**: `const { t } = useLanguage()` then `t("translationKey")`
@@ -62,6 +62,8 @@ All pages below now support **dynamic language switching** via the language sele
 - ✅ **Buyer Homepage** (/): Product cards, search bar, filters, buttons ("Add to Cart"/"Agregar al Carrito", "Buy Now"/"Comprar Ahora")
 - ✅ **Product Detail Pages** (/productdes/[id]): Product descriptions, quantity selector, stock status, cart actions
 - ✅ **Purchases Page** (/compras): Order cards, status labels (Paid/Pagado, Shipped/Enviado, etc.), tabs, empty states, shipping information, tracking details, cancellation messages, banner notifications with proper pluralization
+- ✅ **My Orders Page - Seller** (/my-orders): Order cards, status labels, tabs (Paid/Pagados, Shipped/Enviados, Cancelled/Cancelados), shipping information, tracking details, label printing buttons, empty states, banner notifications with proper pluralization
+- ✅ **Cancel Order Dialog**: Button labels, dialog title, descriptions (seller/buyer specific), form fields, warnings, confirmation messages, error notifications
 - ✅ **User Menu**: Sign In/Iniciar Sesión, My Purchases/Mis Compras, My Orders/Mis Pedidos, My Store/Mi Tienda, Admin Panel/Panel de Admin, Sign Out/Cerrar Sesión
 - ✅ **Seller Dashboard** (/seller): All headings, buttons, filters, product labels, empty states
 - ✅ **Payments Panel** (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages

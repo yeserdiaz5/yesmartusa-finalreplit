@@ -12,6 +12,7 @@ import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
 import { CancelOrderDialog } from "@/components/cancel-order-dialog"
 import Link from "next/link"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface MyOrdersClientProps {
   user: User | null
@@ -21,6 +22,7 @@ interface MyOrdersClientProps {
 export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProps) {
   const [orderShipments, setOrderShipments] = useState<Record<string, Shipment[]>>({})
   const router = useRouter()
+  const { t, language } = useLanguage()
 
   // Agrupar y ordenar órdenes: paid primero, luego shipped, luego cancelled
   const sortedOrders = [...orders].sort((a, b) => {
@@ -72,13 +74,13 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "pending":
-        return "Pendiente"
+        return t("pending")
       case "paid":
-        return "Pagado"
+        return t("paid")
       case "shipped":
-        return "Enviado"
+        return t("shipped")
       case "cancelled":
-        return "Cancelado"
+        return t("cancelled")
       default:
         return status
     }
@@ -97,9 +99,9 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
         <CardContent className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <p className="font-semibold text-lg">Pedido #{order.id.slice(0, 8)}</p>
+              <p className="font-semibold text-lg">{t("order")} #{order.id.slice(0, 8)}</p>
               <p className="text-sm text-gray-600">
-                {new Date(order.created_at).toLocaleDateString("es-ES", {
+                {new Date(order.created_at).toLocaleDateString(language === "es" ? "es-ES" : "en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -126,7 +128,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                     </p>
                   </Link>
                   <p className="text-sm text-gray-600">
-                    Cantidad: {item.quantity} × ${item.price_at_purchase}
+                    {t("quantity")}: {item.quantity} × ${item.price_at_purchase}
                   </p>
                 </div>
                 <p className="font-semibold">${(item.quantity * item.price_at_purchase).toFixed(2)}</p>
@@ -135,7 +137,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
           </div>
 
           <div className="pt-3 border-t flex justify-between items-center mb-4">
-            <span className="font-medium">Total:</span>
+            <span className="font-medium">{t("total")}:</span>
             <span className="text-xl font-bold text-green-600">${order.total_amount?.toFixed(2)}</span>
           </div>
 
@@ -143,18 +145,18 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Truck className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-blue-900">Tu pedido ha sido enviado 📦</h3>
+                <h3 className="font-semibold text-blue-900">{t("orderShipped")}</h3>
               </div>
 
               <div className="space-y-2 mb-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Número de seguimiento:</span>
+                  <span className="text-sm text-gray-600">{t("trackingNumber")}:</span>
                   <span className="font-mono text-sm font-medium">
                     {firstShipment?.tracking_number || order.tracking_number}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Transportista:</span>
+                  <span className="text-sm text-gray-600">{t("carrier")}:</span>
                   <span className="text-sm font-medium">
                     {(firstShipment?.carrier || order.shipping_carrier || "").toUpperCase()}
                   </span>
@@ -170,7 +172,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                       data-testid={`button-track-shipment-${order.id}`}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Rastrear envío
+                      {t("trackShipment")}
                     </Button>
                   )}
                   {hasLabelUrl && (
@@ -180,7 +182,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                       data-testid={`button-print-label-shippo-${order.id}`}
                     >
                       <Printer className="w-4 h-4 mr-2" />
-                      Imprimir desde Shippo
+                      {t("printFromShippo")}
                     </Button>
                   )}
                 </div>
@@ -192,7 +194,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                     data-testid={`button-print-label-backup-${order.id}`}
                   >
                     <Printer className="w-4 h-4 mr-2" />
-                    Imprimir copia de respaldo (Base de datos)
+                    {t("printBackupCopy")}
                   </Button>
                 )}
               </div>
@@ -207,7 +209,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                     data-testid={`button-print-label-shippo-${order.id}`}
                   >
                     <Printer className="w-4 h-4 mr-2" />
-                    Imprimir desde Shippo
+                    {t("printFromShippo")}
                   </Button>
                   <CancelOrderDialog
                     orderId={order.id}
@@ -223,7 +225,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                     data-testid={`button-print-label-backup-${order.id}`}
                   >
                     <Printer className="w-4 h-4 mr-2" />
-                    Imprimir copia de respaldo (Base de datos)
+                    {t("printBackupCopy")}
                   </Button>
                 )}
               </div>
@@ -235,7 +237,7 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                   data-testid={`button-create-shipping-${order.id}`}
                 >
                   <Truck className="w-4 h-4 mr-2" />
-                  Comprar Envío
+                  {t("buyShipping")}
                 </Button>
                 <CancelOrderDialog
                   orderId={order.id}
@@ -248,14 +250,14 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-yellow-600" />
-                <p className="text-yellow-900 font-medium">Esperando confirmación de pago</p>
+                <p className="text-yellow-900 font-medium">{t("waitingPaymentConfirmation")}</p>
               </div>
             </div>
           ) : null}
 
           {order.status === "cancelled" && order.cancellation_reason && (
             <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm font-medium text-red-900 mb-1">Pedido Cancelado</p>
+              <p className="text-sm font-medium text-red-900 mb-1">{t("orderCancelled")}</p>
               <p className="text-sm text-red-800">{order.cancellation_reason}</p>
             </div>
           )}
@@ -275,9 +277,9 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Mis Pedidos</h1>
+          <h1 className="text-3xl font-bold">{t("myOrders")}</h1>
           <div className="bg-blue-600 text-white px-6 py-3 rounded-lg">
-            <p className="text-sm font-medium">Total de Pedidos</p>
+            <p className="text-sm font-medium">{t("totalOrders")}</p>
             <p className="text-3xl font-bold">{orders.length}</p>
           </div>
         </div>
@@ -286,27 +288,27 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
           <Card>
             <CardContent className="p-12 text-center">
               <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h2 className="text-xl font-semibold mb-2">No tienes pedidos todavía</h2>
-              <p className="text-gray-600">Tus pedidos aparecerán aquí una vez que realices una venta</p>
+              <h2 className="text-xl font-semibold mb-2">{t("noOrdersYet")}</h2>
+              <p className="text-gray-600">{t("ordersWillAppear")}</p>
             </CardContent>
           </Card>
         ) : (
           <Tabs defaultValue="paid" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="paid" className="relative" data-testid="tab-paid">
-                <span className="font-semibold">Pagados</span>
+                <span className="font-semibold">{t("paid")}</span>
                 {paidOrders.length > 0 && (
                   <Badge className="ml-2 bg-green-600 text-white">{paidOrders.length}</Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="shipped" className="relative" data-testid="tab-shipped">
-                <span className="font-semibold">Enviados</span>
+                <span className="font-semibold">{t("shipped")}</span>
                 {shippedOrders.length > 0 && (
                   <Badge className="ml-2 bg-blue-600 text-white">{shippedOrders.length}</Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="cancelled" className="relative" data-testid="tab-cancelled">
-                <span className="font-semibold">Cancelados</span>
+                <span className="font-semibold">{t("cancelled")}</span>
                 {cancelledOrders.length > 0 && (
                   <Badge className="ml-2 bg-red-600 text-white">{cancelledOrders.length}</Badge>
                 )}
@@ -318,15 +320,19 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h2 className="text-xl font-semibold mb-2">No hay pedidos pagados</h2>
-                    <p className="text-gray-600">Los pedidos que necesitan etiqueta de envío aparecerán aquí</p>
+                    <h2 className="text-xl font-semibold mb-2">{t("noPaidOrders")}</h2>
+                    <p className="text-gray-600">{t("paidOrdersWillAppear")}</p>
                   </CardContent>
                 </Card>
               ) : (
                 <>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                     <p className="text-green-900 font-medium">
-                      📦 Tienes {paidOrders.length} {paidOrders.length === 1 ? 'pedido' : 'pedidos'} que {paidOrders.length === 1 ? 'necesita' : 'necesitan'} etiqueta de envío
+                      {t("needsShippingLabel")
+                        .replace("{count}", String(paidOrders.length))
+                        .replace("{plural}", paidOrders.length === 1 ? t("needsShippingLabelSingular") : t("needsShippingLabelPlural"))
+                        .replace("{verb}", paidOrders.length === 1 ? t("needsShippingVerbSingular") : t("needsShippingVerbPlural"))
+                      }
                     </p>
                   </div>
                   {paidOrders.map((order) => (
@@ -341,15 +347,18 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Truck className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h2 className="text-xl font-semibold mb-2">No hay pedidos enviados</h2>
-                    <p className="text-gray-600">Los pedidos que hayas enviado aparecerán aquí</p>
+                    <h2 className="text-xl font-semibold mb-2">{t("noShippedOrders")}</h2>
+                    <p className="text-gray-600">{t("shippedOrdersWillAppear")}</p>
                   </CardContent>
                 </Card>
               ) : (
                 <>
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                     <p className="text-blue-900 font-medium">
-                      🚚 {shippedOrders.length} {shippedOrders.length === 1 ? 'pedido enviado' : 'pedidos enviados'}
+                      {t("shippedOrdersBanner")
+                        .replace("{count}", String(shippedOrders.length))
+                        .replace("{plural}", shippedOrders.length === 1 ? t("shippedOrderSingular") : t("shippedOrderPlural"))
+                      }
                     </p>
                   </div>
                   {shippedOrders.map((order) => (
@@ -364,15 +373,18 @@ export default function MyOrdersClient({ user, orders = [] }: MyOrdersClientProp
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Package className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                    <h2 className="text-xl font-semibold mb-2">No hay pedidos cancelados</h2>
-                    <p className="text-gray-600">El historial de pedidos cancelados aparecerá aquí</p>
+                    <h2 className="text-xl font-semibold mb-2">{t("noCancelledOrders")}</h2>
+                    <p className="text-gray-600">{t("cancelledOrdersHistory")}</p>
                   </CardContent>
                 </Card>
               ) : (
                 <>
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                     <p className="text-red-900 font-medium">
-                      ❌ {cancelledOrders.length} {cancelledOrders.length === 1 ? 'pedido cancelado' : 'pedidos cancelados'}
+                      {t("cancelledOrdersBanner")
+                        .replace("{count}", String(cancelledOrders.length))
+                        .replace("{plural}", cancelledOrders.length === 1 ? t("cancelledOrderSingular") : t("cancelledOrderPlural"))
+                      }
                     </p>
                   </div>
                   {cancelledOrders.map((order) => (
