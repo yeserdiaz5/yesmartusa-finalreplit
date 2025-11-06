@@ -43,7 +43,7 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: Ima
         onChange(newImages)
       }
     } catch (err) {
-      setError("Error al subir la imagen")
+      setError(t("imageUploadError"))
     } finally {
       setUploading(null)
     }
@@ -81,11 +81,10 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: Ima
         newImages[editingImage.index] = result.url
         onChange(newImages)
       }
-      
-      URL.revokeObjectURL(croppedImageUrl)
     } catch (err) {
       setError(t("imageUploadError"))
     } finally {
+      URL.revokeObjectURL(croppedImageUrl)
       setUploading(null)
       setEditingImage(null)
     }
@@ -93,7 +92,14 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: Ima
 
   return (
     <div className="space-y-4">
-      {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">{error}</div>}
+      {error && (
+        <div 
+          className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm"
+          data-testid="alert-image-upload-error"
+        >
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-4">
         {Array.from({ length: maxImages }).map((_, index) => {
