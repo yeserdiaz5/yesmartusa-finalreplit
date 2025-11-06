@@ -3,10 +3,12 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Upload, X, Loader2 } from "lucide-react"
+import { Upload, X, Loader2, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { uploadImage } from "@/app/actions/upload"
 import Image from "next/image"
+import ImageCropModal from "@/components/image-crop-modal"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface ImageUploadGridProps {
   images: string[]
@@ -15,8 +17,10 @@ interface ImageUploadGridProps {
 }
 
 export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: ImageUploadGridProps) {
+  const { t } = useLanguage()
   const [uploading, setUploading] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [editingImage, setEditingImage] = useState<{ url: string; index: number } | null>(null)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const file = e.target.files?.[0]
@@ -51,6 +55,42 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: Ima
     onChange(newImages.filter((img) => img !== ""))
   }
 
+  const handleEditImage = (url: string, index: number) => {
+    setEditingImage({ url, index })
+  }
+
+  const handleSaveCroppedImage = async (croppedImageUrl: string) => {
+    if (!editingImage) return
+
+    try {
+      setUploading(editingImage.index)
+      
+      const response = await fetch(croppedImageUrl)
+      const blob = await response.blob()
+      const file = new File([blob], `cropped-${Date.now()}.jpg`, { type: "image/jpeg" })
+
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const result = await uploadImage(formData)
+
+      if (result.error) {
+        setError(result.error)
+      } else if (result.url) {
+        const newImages = [...images]
+        newImages[editingImage.index] = result.url
+        onChange(newImages)
+      }
+      
+      URL.revokeObjectURL(croppedImageUrl)
+    } catch (err) {
+      setError(t("imageUploadError"))
+    } finally {
+      setUploading(null)
+      setEditingImage(null)
+    }
+  }
+
   return (
     <div className="space-y-4">
       {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">{error}</div>}
@@ -73,15 +113,28 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: Ima
                     fill
                     className="object-cover"
                   />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8"
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleEditImage(imageUrl, index)}
+                      data-testid={`button-edit-image-${index}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleRemoveImage(index)}
+                      data-testid={`button-remove-image-${index}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -107,7 +160,16 @@ export default function ImageUploadGrid({ images, onChange, maxImages = 6 }: Ima
         })}
       </div>
 
-      <p className="text-sm text-gray-500">Puedes subir hasta {maxImages} imágenes. Tamaño máximo: 5MB por imagen.</p>
+      <p className="text-sm text-gray-500">{t("imageUploadHint", { maxImages })}</p>
+
+      {editingImage && (
+        <ImageCropModal
+          imageUrl={editingImage.url}
+          isOpen={true}
+          onClose={() => setEditingImage(null)}
+          onSave={handleSaveCroppedImage}
+        />
+      )}
     </div>
   )
 }

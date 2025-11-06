@@ -7,7 +7,7 @@ type Language = "en" | "es"
 interface LanguageContextType {
   language: Language
   setLanguage: (lang: Language) => void
-  t: (key: string) => string
+  t: (key: string, params?: Record<string, string | number>) => string
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
@@ -53,15 +53,32 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const t = (key: string) => {
+  const t = (key: string, params?: Record<string, string | number>) => {
     const translations = language === "en" ? translationsEN : translationsES
-    return translations[key] || key
+    let text = translations[key] || key
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        text = text.replace(`{${key}}`, String(value))
+      })
+    }
+    
+    return text
   }
 
   // Don't render until mounted on client to avoid hydration mismatch
   if (!mounted) {
+    const defaultT = (key: string, params?: Record<string, string | number>) => {
+      let text = translationsEN[key] || key
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          text = text.replace(`{${key}}`, String(value))
+        })
+      }
+      return text
+    }
     return (
-      <LanguageContext.Provider value={{ language: "en", setLanguage: () => {}, t: (key: string) => translationsEN[key] || key }}>
+      <LanguageContext.Provider value={{ language: "en", setLanguage: () => {}, t: defaultT }}>
         {children}
       </LanguageContext.Provider>
     )
@@ -81,7 +98,15 @@ export function useLanguage() {
     return {
       language: "en" as Language,
       setLanguage: () => {},
-      t: (key: string) => key,
+      t: (key: string, params?: Record<string, string | number>) => {
+        let text = key
+        if (params) {
+          Object.entries(params).forEach(([key, value]) => {
+            text = text.replace(`{${key}}`, String(value))
+          })
+        }
+        return text
+      },
     }
   }
   return context
@@ -493,7 +518,14 @@ const translationsEN: Record<string, string> = {
   "setupStripeAccountDescription": "Once your account is set up, your transfers will appear here",
   "stripeSetupError": "Error setting up Stripe",
   "unknownError": "Unknown error",
-  "error": "Error"
+  "error": "Error",
+  
+  // Image Editing
+  "editImage": "Edit Image",
+  "zoom": "Zoom",
+  "saving": "Saving...",
+  "imageUploadError": "Error uploading the image",
+  "imageUploadHint": "You can upload up to {maxImages} images. Maximum size: 5MB per image."
 }
 
 const translationsES: Record<string, string> = {
@@ -902,5 +934,12 @@ const translationsES: Record<string, string> = {
   "setupStripeAccountDescription": "Una vez configurada tu cuenta, tus transferencias aparecerán aquí",
   "stripeSetupError": "Error al configurar Stripe",
   "unknownError": "Error desconocido",
-  "error": "Error"
+  "error": "Error",
+  
+  // Edición de Imágenes
+  "editImage": "Editar Imagen",
+  "zoom": "Zoom",
+  "saving": "Guardando...",
+  "imageUploadError": "Error al subir la imagen",
+  "imageUploadHint": "Puedes subir hasta {maxImages} imágenes. Tamaño máximo: 5MB por imagen."
 }
