@@ -125,7 +125,8 @@ export default function ProductForm({
     setError(null)
 
     try {
-      if (!product && formData.images.length === 0) {
+      // Validate at least one image is required
+      if (formData.images.length === 0) {
         setError(t("mustUploadImage"))
         setLoading(false)
         return

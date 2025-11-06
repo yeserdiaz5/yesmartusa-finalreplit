@@ -15,6 +15,10 @@ export interface CreateProductInput {
   tag_ids?: string[]
   shipping_policy?: ShippingPolicy | null
   shipping_cost?: number | null
+  package_length?: number | null
+  package_width?: number | null
+  package_height?: number | null
+  package_weight?: number | null
 }
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {
@@ -55,6 +59,10 @@ export async function createProduct(input: CreateProductInput) {
       is_active: true,
       shipping_policy: input.shipping_policy || null,
       shipping_cost: input.shipping_cost || null,
+      package_length: input.package_length || null,
+      package_width: input.package_width || null,
+      package_height: input.package_height || null,
+      package_weight: input.package_weight || null,
     })
     .select()
     .single()
@@ -117,6 +125,10 @@ export async function updateProduct(input: UpdateProductInput) {
   if (input.is_active !== undefined) updateData.is_active = input.is_active
   if (input.shipping_policy !== undefined) updateData.shipping_policy = input.shipping_policy
   if (input.shipping_cost !== undefined) updateData.shipping_cost = input.shipping_cost
+  if (input.package_length !== undefined) updateData.package_length = input.package_length
+  if (input.package_width !== undefined) updateData.package_width = input.package_width
+  if (input.package_height !== undefined) updateData.package_height = input.package_height
+  if (input.package_weight !== undefined) updateData.package_weight = input.package_weight
 
   const { data: updatedProduct, error: updateError } = await supabase
     .from("products")
