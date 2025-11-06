@@ -6,6 +6,7 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
 ## User Preferences
 - Preferred communication language: Spanish (Español)
 - Preferred communication style: Simple, everyday language
+- UI Language: English for main components (product pages, cart, user menu)
 
 ## System Architecture
 
@@ -53,9 +54,18 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
 - **Future Enhancement**: Implement cookie-based language persistence to enable SSR with correct language from first paint.
 
 ### Translated Pages
+
+**Spanish (Español):**
 - Seller Dashboard (/seller): All headings, buttons, filters, product labels, empty states
 - Payments Panel (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages
-- Site Header: Navigation links, language selector
+- Site Header: Language selector
+
+**English:**
+- Buyer Homepage (/): Product listings, search bar, filters, "Add to Cart" and "Buy Now" buttons
+- Product Detail Pages (/productdes/[id]): Product descriptions, stock status, cart actions
+- User Menu: Sign In, Sign Up, My Purchases, My Orders, My Store, Admin Panel, Sign Out
+- Shopping Cart: All cart-related text and actions
+- Search functionality: "Search products...", "Search results for...", "Clear search"
 
 ## External Dependencies
 

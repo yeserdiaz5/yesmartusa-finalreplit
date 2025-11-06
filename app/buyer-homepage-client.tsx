@@ -128,8 +128,8 @@ function ProductCard({
         quantity,
       )
       toast({
-        title: "Producto agregado",
-        description: `${quantity} producto(s) agregado(s) al carrito`,
+        title: "Product added",
+        description: `${quantity} product(s) added to cart`,
       })
       setQuantity(1)
       return
@@ -142,8 +142,8 @@ function ProductCard({
 
     if (result && result.success) {
       toast({
-        title: "Producto agregado",
-        description: `${quantity} producto(s) agregado(s) al carrito`,
+        title: "Product added",
+        description: `${quantity} product(s) added to cart`,
       })
       setQuantity(1)
       // Dispatch event to update cart count
@@ -151,7 +151,7 @@ function ProductCard({
     } else {
       toast({
         title: "Error",
-        description: result?.error || "No se pudo agregar el producto al carrito",
+        description: result?.error || "Could not add product to cart",
         variant: "destructive",
       })
     }
@@ -190,7 +190,7 @@ function ProductCard({
     } else {
       toast({
         title: "Error",
-        description: result?.error || "No se pudo agregar el producto al carrito",
+        description: result?.error || "Could not add product to cart",
         variant: "destructive",
       })
     }
@@ -254,7 +254,7 @@ function ProductCard({
             className="text-blue-600 hover:underline font-medium"
             onClick={(e) => e.stopPropagation()}
           >
-            {product.seller?.store_name || product.seller?.full_name || "Tienda"}
+            {product.seller?.store_name || product.seller?.full_name || "Store"}
           </Link>
         </div>
 
@@ -291,14 +291,14 @@ function ProductCard({
             className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            {isAdding ? "Agregando..." : "Agregar al Carrito"}
+            {isAdding ? "Adding..." : "Add to Cart"}
           </Button>
           <Button
             onClick={handleBuyNow}
             disabled={isAdding}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium"
           >
-            {isAdding ? "Procesando..." : "Comprar Ahora"}
+            {isAdding ? "Processing..." : "Buy Now"}
           </Button>
         </div>
       </CardContent>
@@ -416,7 +416,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Buscar productos..."
+                    placeholder="Search products..."
                     className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -436,14 +436,14 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                 {searchQuery && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-600">
-                      Resultados de búsqueda para: <span className="font-semibold">"{searchQuery}"</span>
+                      Search results for: <span className="font-semibold">"{searchQuery}"</span>
                       <Button
                         variant="link"
                         size="sm"
                         className="ml-2 text-blue-600"
                         onClick={() => setSearchQuery("")}
                       >
-                        Limpiar búsqueda
+                        Clear search
                       </Button>
                     </p>
                   </div>

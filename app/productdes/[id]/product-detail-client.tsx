@@ -54,8 +54,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         quantity,
       )
       toast({
-        title: "Producto agregado",
-        description: `${quantity} producto(s) agregado(s) al carrito`,
+        title: "Product added",
+        description: `${quantity} product(s) added to cart`,
       })
       return
     }
@@ -66,15 +66,15 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
 
     if (result && result.success) {
       toast({
-        title: "Producto agregado",
-        description: `${quantity} producto(s) agregado(s) al carrito`,
+        title: "Product added",
+        description: `${quantity} product(s) added to cart`,
       })
       // Dispatch event to update cart count
       window.dispatchEvent(new Event("cartUpdated"))
     } else {
       toast({
         title: "Error",
-        description: result?.error || "No se pudo agregar el producto al carrito",
+        description: result?.error || "Could not add product to cart",
         variant: "destructive",
       })
     }
@@ -108,7 +108,7 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
     } else {
       toast({
         title: "Error",
-        description: result?.error || "No se pudo agregar el producto al carrito",
+        description: result?.error || "Could not add product to cart",
         variant: "destructive",
       })
     }
@@ -137,7 +137,7 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         <div className="flex items-center justify-between mb-6">
           <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a productos
+            Back to products
           </Link>
         </div>
 
@@ -200,13 +200,13 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
               <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-100">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <span className="w-1 h-6 bg-blue-600 mr-3 rounded"></span>
-                  Descripción del Producto
+                  Product Description
                 </h3>
-                <p className="text-gray-700 leading-relaxed text-base">{product.description || "Producto de alta calidad."}</p>
+                <p className="text-gray-700 leading-relaxed text-base">{product.description || "High quality product."}</p>
               </div>
 
               <div className="mb-6">
-                <p className="text-sm font-medium mb-2">Cantidad:</p>
+                <p className="text-sm font-medium mb-2">Quantity:</p>
                 <div className="flex items-center gap-3">
                   <Button variant="outline" size="icon" onClick={decreaseQuantity} disabled={quantity <= 1}>
                     <Minus className="h-4 w-4" />
@@ -225,21 +225,21 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                   className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-6 text-lg"
                 >
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  {isAdding ? "Agregando..." : "Agregar al Carrito"}
+                  {isAdding ? "Adding..." : "Add to Cart"}
                 </Button>
                 <Button
                   onClick={handleBuyNow}
                   disabled={isAdding}
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-6 text-lg"
                 >
-                  {isAdding ? "Procesando..." : "Comprar Ahora"}
+                  {isAdding ? "Processing..." : "Buy Now"}
                 </Button>
               </div>
 
               {product.stock_quantity > 0 ? (
-                <p className="text-sm text-green-600 mt-4">En stock ({product.stock_quantity} disponibles)</p>
+                <p className="text-sm text-green-600 mt-4">In stock ({product.stock_quantity} available)</p>
               ) : (
-                <p className="text-sm text-red-600 mt-4">Agotado</p>
+                <p className="text-sm text-red-600 mt-4">Out of stock</p>
               )}
             </div>
           </div>

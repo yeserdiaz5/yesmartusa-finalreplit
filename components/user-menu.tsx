@@ -23,10 +23,10 @@ export function UserMenu({ user }: UserMenuProps) {
     return (
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" className="text-white" asChild>
-          <Link href="/auth/login">Iniciar Sesión</Link>
+          <Link href="/auth/login">Sign In</Link>
         </Button>
         <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-black" asChild>
-          <Link href="/auth/sign-up">Registrarse</Link>
+          <Link href="/auth/sign-up">Sign Up</Link>
         </Button>
       </div>
     )
@@ -51,26 +51,26 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuItem asChild>
           <Link href="/compras" className="cursor-pointer">
             <ShoppingBag className="w-4 h-4 mr-2" />
-            Mis Compras
+            My Purchases
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/my-orders" className="cursor-pointer">
             <Package className="w-4 h-4 mr-2" />
-            Mis Pedidos
+            My Orders
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/seller" className="cursor-pointer">
             <Store className="w-4 h-4 mr-2" />
-            Mi Tienda
+            My Store
           </Link>
         </DropdownMenuItem>
         {user.role === "admin" && (
           <DropdownMenuItem asChild>
             <Link href="/admin" className="cursor-pointer">
               <Settings className="w-4 h-4 mr-2" />
-              Panel de Admin
+              Admin Panel
             </Link>
           </DropdownMenuItem>
         )}
@@ -82,7 +82,7 @@ export function UserMenu({ user }: UserMenuProps) {
           }}
         >
           <LogOut className="w-4 h-4 mr-2" />
-          Cerrar Sesión
+          Sign Out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
