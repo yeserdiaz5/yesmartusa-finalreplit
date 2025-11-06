@@ -29,8 +29,10 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Package Dimensions System**: Sellers input package dimensions (`package_length`, `package_width`, `package_height`, `package_weight`) for each product. The system automatically estimates shipping costs using Shippo API, pre-fills the `shipping_cost` field, and auto-populates dimensions for shipping label creation.
 - **Shipping Cost Flow & Profit**: Buyer pays product price + estimated shipping. Seller pays actual shipping cost. Profit/loss on shipping is managed by the difference between estimated and actual costs, with Stripe Connect handling transfers. Estimated costs are rounded up to mitigate seller losses.
 - **AI Product Description Generation**: Integration with OpenAI GPT-4o via Replit AI Integrations to generate product descriptions in Spanish based on the product name, with user editing capabilities.
-- **Image Editing & Cropping**: `react-easy-crop` integration for client-side image cropping (1:1 aspect ratio, zoom, repositioning) before uploading to Supabase Storage.
-- **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas.
+- **Image Editing & Cropping**: `react-easy-crop` integration for client-side image cropping (1:1 aspect ratio, zoom 0.5x-3x, free repositioning) before uploading to Supabase Storage.
+- **Product Details System**: Products include optional `brand` (text) and `condition` fields (new/used). Fully integrated with i18n translations for both English and Spanish.
+- **Product Gallery**: Amazon-style product image gallery with large main image (500px), always-visible thumbnails in 5-column grid, hover effects, and clickable image switching. Uses object-contain to show full images.
+- **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, and seller tools.
 
 ### Technical Implementations
 - **Stripe Connect**: Onboarding, account creation, and functions for balance, payout history, and account management.
