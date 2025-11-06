@@ -202,17 +202,27 @@ export default function CreateShippoLabelPage() {
         // Pre-fill package dimensions from first product (if available)
         if (processedOrder.order_items && processedOrder.order_items.length > 0) {
           const firstProduct = processedOrder.order_items[0].products
+          const totalItems = processedOrder.order_items.reduce((sum: number, item: any) => sum + item.quantity, 0)
           
           if (firstProduct) {
-            const totalItems = processedOrder.order_items.reduce((sum: number, item: any) => sum + item.quantity, 0)
-            const calculatedWeight = firstProduct.package_weight || Math.max(1, totalItems * 0.5)
+            // If product has package weight, multiply by total quantity
+            // Otherwise, estimate 0.5 lb per item (minimum 1 lb total)
+            const perItemWeight = firstProduct.package_weight || 0.5
+            const calculatedWeight = Math.max(1, totalItems * perItemWeight)
             
             setPackageDimensions({
               length: firstProduct.package_length?.toString() || "12",
               width: firstProduct.package_width?.toString() || "10",
               height: firstProduct.package_height?.toString() || "8",
-              weight: calculatedWeight.toString(),
+              weight: calculatedWeight.toFixed(1),
             })
+          } else {
+            // No product info, fallback to quantity-based calculation
+            const calculatedWeight = Math.max(1, totalItems * 0.5)
+            setPackageDimensions((prev) => ({
+              ...prev,
+              weight: calculatedWeight.toFixed(1),
+            }))
           }
         }
       } catch (err) {

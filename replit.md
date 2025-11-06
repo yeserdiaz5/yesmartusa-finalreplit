@@ -41,10 +41,11 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
   - **UI Display**: Package icon with shipping info shown in cart items and checkout items; complete cost breakdown (subtotal, shipping, tax, total) in order summary
   - **Bilingual Support**: Full EN/ES translations for all shipping policy labels and UI elements
 - **Package Dimensions System**: Sellers can input package dimensions for each product to streamline shipping label creation:
-  - **Database Fields**: `package_length`, `package_width`, `package_height` (in inches), and `package_weight` (in pounds) in `products` table
+  - **Database Fields**: `package_length`, `package_width`, `package_height` (in inches), and `package_weight` (in pounds per unit) in `products` table
   - **Product Form**: Dedicated "Package Dimensions" card with optional input fields for all dimensions
   - **Auto-Population**: When creating shipping labels (/create-shippo-label), package dimensions automatically pre-fill from the first product's saved dimensions
-  - **Fallback Logic**: If product dimensions are not available, defaults to standard values (12x10x8 inches, weight calculated by quantity)
+  - **Weight Calculation**: Total weight = (product.package_weight || 0.5) × order quantity, with 1 lb minimum
+  - **Fallback Logic**: If product dimensions are missing, defaults to 12×10×8 inches; if product weight is missing, estimates 0.5 lb per item
   - **UI/UX**: Clean grid layout (2 columns) with labeled inputs and placeholder values
   - **Bilingual Support**: Full EN/ES translations for dimension labels (Length/Longitud, Width/Ancho, Height/Altura, Weight/Peso)
 
