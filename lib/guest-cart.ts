@@ -10,6 +10,8 @@ export interface GuestCartItem {
     image_url: string
     stock_quantity: number
     seller_id: string
+    shipping_policy: string | null
+    shipping_cost: number | null
   }
 }
 
