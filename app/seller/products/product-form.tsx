@@ -39,6 +39,7 @@ export default function ProductForm({
   const [estimating, setEstimating] = useState(false)
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
   const [generatingDescription, setGeneratingDescription] = useState(false)
+  const [isNoBrand, setIsNoBrand] = useState(product?.brand === "Generic" || false)
 
   console.log("[v0] Product data:", product)
   console.log("[v0] Product images:", product?.images)
@@ -333,13 +334,35 @@ export default function ProductForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="brand">{t("productBrand")}</Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Checkbox
+                  id="no-brand"
+                  checked={isNoBrand}
+                  onCheckedChange={(checked) => {
+                    setIsNoBrand(!!checked)
+                    if (checked) {
+                      setFormData({ ...formData, brand: "Generic" })
+                    } else {
+                      setFormData({ ...formData, brand: "" })
+                    }
+                  }}
+                  data-testid="checkbox-no-brand"
+                />
+                <label
+                  htmlFor="no-brand"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {t("noBrand")}
+                </label>
+              </div>
               <Input
                 id="brand"
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                 placeholder={t("productBrandPlaceholder")}
+                disabled={isNoBrand}
                 data-testid="input-brand"
               />
             </div>
@@ -348,7 +371,7 @@ export default function ProductForm({
               <Label htmlFor="condition">{t("productCondition")}</Label>
               <Select
                 value={formData.condition}
-                onValueChange={(value) => setFormData({ ...formData, condition: value as "new" | "used" })}
+                onValueChange={(value) => setFormData({ ...formData, condition: value as "new" | "used" | "refurbished" | "open_box" | "for_parts" })}
               >
                 <SelectTrigger id="condition" data-testid="select-condition">
                   <SelectValue placeholder={t("productConditionPlaceholder")} />
@@ -356,6 +379,9 @@ export default function ProductForm({
                 <SelectContent>
                   <SelectItem value="new" data-testid="option-condition-new">{t("productConditionNew")}</SelectItem>
                   <SelectItem value="used" data-testid="option-condition-used">{t("productConditionUsed")}</SelectItem>
+                  <SelectItem value="refurbished" data-testid="option-condition-refurbished">{t("productConditionRefurbished")}</SelectItem>
+                  <SelectItem value="open_box" data-testid="option-condition-open-box">{t("productConditionOpenBox")}</SelectItem>
+                  <SelectItem value="for_parts" data-testid="option-condition-for-parts">{t("productConditionForParts")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
