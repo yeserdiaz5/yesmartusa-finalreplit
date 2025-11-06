@@ -325,6 +325,20 @@ const translationsEN: Record<string, string> = {
   "mustUploadImage": "You must upload at least one product image",
   "unexpectedError": "An unexpected error occurred",
   
+  // Shipping Policy
+  "shippingPolicy": "Shipping Policy",
+  "shippingCost": "Shipping Cost",
+  "sellerPaysShipping": "Seller pays shipping",
+  "buyerPaysShipping": "Buyer pays shipping",
+  "sharedShipping": "Shared (50/50)",
+  "shippingPolicyDescription": "Who pays for shipping?",
+  "shippingCostPlaceholder": "Enter shipping cost",
+  "freeShipping": "Free Shipping",
+  "shippingPaidBy": "Shipping paid by",
+  "seller": "Seller",
+  "buyer": "Buyer",
+  "sharedCost": "Shared cost",
+  
   "checkout": "Checkout",
   "total": "Total",
   "subtotal": "Subtotal",
@@ -702,6 +716,20 @@ const translationsES: Record<string, string> = {
   "cancel": "Cancelar",
   "mustUploadImage": "Debes subir al menos una imagen del producto",
   "unexpectedError": "Ocurrió un error inesperado",
+  
+  // Shipping Policy
+  "shippingPolicy": "Política de Envío",
+  "shippingCost": "Costo de Envío",
+  "sellerPaysShipping": "El vendedor paga envío",
+  "buyerPaysShipping": "El comprador paga envío",
+  "sharedShipping": "Compartido (50/50)",
+  "shippingPolicyDescription": "¿Quién paga el envío?",
+  "shippingCostPlaceholder": "Ingresa el costo de envío",
+  "freeShipping": "Envío Gratis",
+  "shippingPaidBy": "Envío pagado por",
+  "seller": "Vendedor",
+  "buyer": "Comprador",
+  "sharedCost": "Costo compartido",
   
   "checkout": "Pagar",
   "total": "Total",
