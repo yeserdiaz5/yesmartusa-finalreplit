@@ -173,7 +173,7 @@ export default function CreateShippoLabelPage() {
             }
 
             setSellerAddress({
-              name: seller.full_name || seller.store_name || "Seller",
+              name: seller.store_name || seller.full_name || seller.email,
               email: seller.email,
               phone: seller.phone,
               street1: sellerAddressData?.street1 || sellerAddressData?.address_line1 || "",
