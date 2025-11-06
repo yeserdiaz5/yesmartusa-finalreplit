@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 import { addToGuestCart } from "@/lib/guest-cart"
 import { useBuyerLocation } from "@/hooks/use-buyer-location"
 import { calculateDistance, getDeliveryTimeMessage, geocodeAddress } from "@/lib/geolocation"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface BuyerHomepageClientProps {
   user: User | null
@@ -98,6 +99,7 @@ function ProductCard({
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
   const [quantity, setQuantity] = useState(1)
+  const { t } = useLanguage()
   
   // Generate consistent rating and reviews based on product id
   const rating = useMemo(() => {
@@ -128,8 +130,8 @@ function ProductCard({
         quantity,
       )
       toast({
-        title: "Product added",
-        description: `${quantity} product(s) added to cart`,
+        title: t("productAdded"),
+        description: `${quantity} ${t("productsAddedToCart")}`,
       })
       setQuantity(1)
       return
@@ -142,8 +144,8 @@ function ProductCard({
 
     if (result && result.success) {
       toast({
-        title: "Product added",
-        description: `${quantity} product(s) added to cart`,
+        title: t("productAdded"),
+        description: `${quantity} ${t("productsAddedToCart")}`,
       })
       setQuantity(1)
       // Dispatch event to update cart count
@@ -151,7 +153,7 @@ function ProductCard({
     } else {
       toast({
         title: "Error",
-        description: result?.error || "Could not add product to cart",
+        description: result?.error || t("couldNotAddToCart"),
         variant: "destructive",
       })
     }
@@ -190,7 +192,7 @@ function ProductCard({
     } else {
       toast({
         title: "Error",
-        description: result?.error || "Could not add product to cart",
+        description: result?.error || t("couldNotAddToCart"),
         variant: "destructive",
       })
     }
@@ -254,7 +256,7 @@ function ProductCard({
             className="text-blue-600 hover:underline font-medium"
             onClick={(e) => e.stopPropagation()}
           >
-            {product.seller?.store_name || product.seller?.full_name || "Store"}
+            {product.seller?.store_name || product.seller?.full_name || t("store")}
           </Link>
         </div>
 
@@ -291,14 +293,14 @@ function ProductCard({
             className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            {isAdding ? "Adding..." : "Add to Cart"}
+            {isAdding ? t("adding") : t("addToCart")}
           </Button>
           <Button
             onClick={handleBuyNow}
             disabled={isAdding}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium"
           >
-            {isAdding ? "Processing..." : "Buy Now"}
+            {isAdding ? t("processing") : t("buyNow")}
           </Button>
         </div>
       </CardContent>
@@ -313,6 +315,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
   const [searchQuery, setSearchQuery] = useState("")
   const { toast } = useToast()
   const { location: buyerLocation } = useBuyerLocation()
+  const { t } = useLanguage()
 
   const handleCategoryChange = (categorySlug: string, checked: boolean) => {
     if (checked) {
@@ -416,7 +419,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search products..."
+                    placeholder={t("searchProducts")}
                     className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -436,14 +439,14 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                 {searchQuery && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-600">
-                      Search results for: <span className="font-semibold">"{searchQuery}"</span>
+                      {t("searchResultsFor")} <span className="font-semibold">"{searchQuery}"</span>
                       <Button
                         variant="link"
                         size="sm"
                         className="ml-2 text-blue-600"
                         onClick={() => setSearchQuery("")}
                       >
-                        Clear search
+                        {t("clearSearch")}
                       </Button>
                     </p>
                   </div>

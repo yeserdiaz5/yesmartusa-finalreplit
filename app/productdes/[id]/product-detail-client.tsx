@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import type { User } from "@/lib/types/database"
 import Link from "next/link"
 import { addToGuestCart } from "@/lib/guest-cart"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface ProductDetailClientProps {
   product: any
@@ -18,6 +19,7 @@ interface ProductDetailClientProps {
 }
 
 export default function ProductDetailClient({ product, user }: ProductDetailClientProps) {
+  const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
   const [quantity, setQuantity] = useState(1)
@@ -54,8 +56,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         quantity,
       )
       toast({
-        title: "Product added",
-        description: `${quantity} product(s) added to cart`,
+        title: t("productAdded"),
+        description: `${quantity} ${t("productsAddedToCart")}`,
       })
       return
     }
@@ -66,15 +68,15 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
 
     if (result && result.success) {
       toast({
-        title: "Product added",
-        description: `${quantity} product(s) added to cart`,
+        title: t("productAdded"),
+        description: `${quantity} ${t("productsAddedToCart")}`,
       })
       // Dispatch event to update cart count
       window.dispatchEvent(new Event("cartUpdated"))
     } else {
       toast({
         title: "Error",
-        description: result?.error || "Could not add product to cart",
+        description: result?.error || t("couldNotAddToCart"),
         variant: "destructive",
       })
     }
@@ -108,7 +110,7 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
     } else {
       toast({
         title: "Error",
-        description: result?.error || "Could not add product to cart",
+        description: result?.error || t("couldNotAddToCart"),
         variant: "destructive",
       })
     }
@@ -137,7 +139,7 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         <div className="flex items-center justify-between mb-6">
           <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to products
+            {t("backToProducts")}
           </Link>
         </div>
 
@@ -200,13 +202,13 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
               <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg border border-blue-100">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <span className="w-1 h-6 bg-blue-600 mr-3 rounded"></span>
-                  Product Description
+                  {t("productDescription")}
                 </h3>
-                <p className="text-gray-700 leading-relaxed text-base">{product.description || "High quality product."}</p>
+                <p className="text-gray-700 leading-relaxed text-base">{product.description || t("highQualityProduct")}</p>
               </div>
 
               <div className="mb-6">
-                <p className="text-sm font-medium mb-2">Quantity:</p>
+                <p className="text-sm font-medium mb-2">{t("quantity")}</p>
                 <div className="flex items-center gap-3">
                   <Button variant="outline" size="icon" onClick={decreaseQuantity} disabled={quantity <= 1}>
                     <Minus className="h-4 w-4" />
@@ -225,21 +227,21 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                   className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-6 text-lg"
                 >
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  {isAdding ? "Adding..." : "Add to Cart"}
+                  {isAdding ? t("adding") : t("addToCart")}
                 </Button>
                 <Button
                   onClick={handleBuyNow}
                   disabled={isAdding}
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-6 text-lg"
                 >
-                  {isAdding ? "Processing..." : "Buy Now"}
+                  {isAdding ? t("processing") : t("buyNow")}
                 </Button>
               </div>
 
               {product.stock_quantity > 0 ? (
-                <p className="text-sm text-green-600 mt-4">In stock ({product.stock_quantity} available)</p>
+                <p className="text-sm text-green-600 mt-4">{t("inStock")} ({product.stock_quantity} {t("available")})</p>
               ) : (
-                <p className="text-sm text-red-600 mt-4">Out of stock</p>
+                <p className="text-sm text-red-600 mt-4">{t("outOfStock")}</p>
               )}
             </div>
           </div>

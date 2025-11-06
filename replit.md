@@ -44,28 +44,28 @@ YesmartUSA is a comprehensive Next.js 14 marketplace where users can buy and sel
 - **Supported Languages**: English (default), Spanish (es)
 - **Storage**: localStorage for language preference persistence
 - **Components**:
-  - `LanguageContext` (lib/i18n/LanguageContext.tsx): Provider and translation helper
-  - `LanguageSelector` (components/language-selector.tsx): Globe icon dropdown with EN/ES text labels (no emoji flags)
-- **Translation Coverage**: 95+ keys covering seller dashboard, payments, navigation, and core UI
+  - `LanguageContext` (lib/i18n/LanguageContext.tsx): Provider and translation helper with 110+ translation keys
+  - `LanguageSelector` (components/language-selector.tsx): Globe icon dropdown with EN/ES text labels (no emoji flags) in site header
+- **Translation Coverage**: Full bilingual support for buyer homepage, product pages, user menu, seller dashboard, and payments
 - **Usage Pattern**: `const { t } = useLanguage()` then `t("translationKey")`
+- **Functionality**: ✅ **Language selector fully functional** - Click globe icon to switch between English/Spanish; changes apply instantly
 
 ### Known Limitation
 - **SSR Flash**: Server-side rendering cannot access localStorage, so pages initially render in English before client-side hydration applies the correct language. This causes a brief "flash" of English content on first load or after authentication redirects.
 - **Future Enhancement**: Implement cookie-based language persistence to enable SSR with correct language from first paint.
 
-### Translated Pages
+### Bilingual Pages (EN/ES)
 
-**Spanish (Español):**
-- Seller Dashboard (/seller): All headings, buttons, filters, product labels, empty states
-- Payments Panel (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages
-- Site Header: Language selector
+All pages below now support **dynamic language switching** via the language selector:
 
-**English:**
-- Buyer Homepage (/): Product listings, search bar, filters, "Add to Cart" and "Buy Now" buttons
-- Product Detail Pages (/productdes/[id]): Product descriptions, stock status, cart actions
-- User Menu: Sign In, Sign Up, My Purchases, My Orders, My Store, Admin Panel, Sign Out
-- Shopping Cart: All cart-related text and actions
-- Search functionality: "Search products...", "Search results for...", "Clear search"
+**Fully Translated Components**:
+- ✅ **Buyer Homepage** (/): Product cards, search bar, filters, buttons ("Add to Cart"/"Agregar al Carrito", "Buy Now"/"Comprar Ahora")
+- ✅ **Product Detail Pages** (/productdes/[id]): Product descriptions, quantity selector, stock status, cart actions
+- ✅ **User Menu**: Sign In/Iniciar Sesión, My Purchases/Mis Compras, My Orders/Mis Pedidos, My Store/Mi Tienda, Admin Panel/Panel de Admin, Sign Out/Cerrar Sesión
+- ✅ **Seller Dashboard** (/seller): All headings, buttons, filters, product labels, empty states
+- ✅ **Payments Panel** (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages
+- ✅ **Search & Filters**: "Search products..."/"Buscar productos...", "Search results for..."/"Resultados de búsqueda para:", "Clear search"/"Limpiar búsqueda"
+- ✅ **Toast Notifications**: "Product added"/"Producto agregado", error messages, success confirmations
 
 ## External Dependencies
 
