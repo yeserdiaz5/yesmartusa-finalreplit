@@ -54,7 +54,7 @@ export function HeroSection() {
           <div className="relative">
             <div className="relative rounded-lg overflow-hidden">
               <img
-                src={heroImage}
+                src={heroImage.src || heroImage}
                 alt="Data visualization and comparison charts"
                 className="w-full h-auto rounded-lg"
               />

@@ -48,7 +48,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
       </CardHeader>
 
       <CardContent className="flex-1 space-y-3">
-        {service.features.map((feature, index) => (
+        {service.features.map((feature: any, index: number) => (
           <div
             key={index}
             className="flex items-start gap-3"

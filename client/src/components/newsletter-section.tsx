@@ -87,7 +87,7 @@ export function NewsletterSection() {
                 <FormField
                   control={form.control}
                   name="email"
-                  render={({ field }) => (
+                  render={({ field }: any) => (
                     <FormItem>
                       <FormLabel>Email Address</FormLabel>
                       <FormControl>

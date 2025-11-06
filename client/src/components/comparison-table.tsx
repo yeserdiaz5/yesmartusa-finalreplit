@@ -9,7 +9,7 @@ interface ComparisonTableProps {
 
 export function ComparisonTable({ services }: ComparisonTableProps) {
   const allFeatureNames = Array.from(
-    new Set(services.flatMap((s) => s.features.map((f) => f.name)))
+    new Set(services.flatMap((s) => s.features.map((f: any) => f.name)))
   );
 
   return (
@@ -65,7 +65,7 @@ export function ComparisonTable({ services }: ComparisonTableProps) {
               </td>
               {services.map((service) => {
                 const feature = service.features.find(
-                  (f) => f.name === featureName
+                  (f: any) => f.name === featureName
                 );
                 return (
                   <td
