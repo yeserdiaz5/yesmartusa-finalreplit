@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Package, ExternalLink, CheckCircle2, MapPin, User, Box, Printer, Truck } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { SiteHeader } from "@/components/site-header"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface OrderItem {
   id: string
@@ -58,6 +59,7 @@ interface ShippingRate {
 }
 
 export default function CreateShippoLabelPage() {
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderId = searchParams.get("order_id")
@@ -91,7 +93,7 @@ export default function CreateShippoLabelPage() {
     loadUser()
 
     if (!orderId) {
-      setError("No order ID provided")
+      setError(t("noOrderIdProvided"))
       setLoadingOrder(false)
       return
     }
@@ -116,7 +118,7 @@ export default function CreateShippoLabelPage() {
           .single()
 
         if (orderError) throw orderError
-        if (!orderData) throw new Error("Order not found")
+        if (!orderData) throw new Error(t("orderNotFound"))
 
         console.log("[v0] Order data loaded:", orderData)
 
@@ -247,14 +249,14 @@ export default function CreateShippoLabelPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Error obteniendo tarifas de envío")
+        throw new Error(data.error || t("errorGettingRates"))
       }
 
       console.log("[v0] Shipping rates received:", data.rates)
       setShippingRates(data.rates || [])
     } catch (err) {
       console.error("[v0] Error fetching rates:", err)
-      setError(err instanceof Error ? err.message : "Error obteniendo tarifas de envío")
+      setError(err instanceof Error ? err.message : t("errorGettingRates"))
     } finally {
       setLoadingRates(false)
     }
@@ -309,7 +311,7 @@ export default function CreateShippoLabelPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "Error creando la etiqueta")
+        throw new Error(data.error || t("errorCreatingLabel"))
       }
 
       console.log("[v0] Label created successfully:", data)
@@ -345,14 +347,14 @@ export default function CreateShippoLabelPage() {
         setExistingShipment(shipmentData as Shipment)
       }
 
-      setSuccessMessage("Etiqueta creada y guardada correctamente en el pedido")
+      setSuccessMessage(t("labelCreatedSuccess"))
 
       if (data.data.label_url) {
         window.open(data.data.label_url, "_blank")
       }
     } catch (err) {
       console.error("[v0] Error creating label:", err)
-      setError(err instanceof Error ? err.message : "Error creando la etiqueta")
+      setError(err instanceof Error ? err.message : t("errorCreatingLabel"))
     } finally {
       setLoading(false)
     }
@@ -365,7 +367,7 @@ export default function CreateShippoLabelPage() {
         <div className="container mx-auto max-w-4xl py-8 px-4">
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-3 text-lg">Cargando datos del pedido...</span>
+            <span className="ml-3 text-lg">{t("loadingOrderData")}</span>
           </div>
         </div>
       </>
@@ -381,7 +383,7 @@ export default function CreateShippoLabelPage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
           <Button onClick={() => router.back()} className="mt-4">
-            Volver
+            {t("back")}
           </Button>
         </div>
       </>
@@ -394,7 +396,7 @@ export default function CreateShippoLabelPage() {
         <SiteHeader user={user} />
         <div className="container mx-auto max-w-4xl py-8 px-4">
           <Alert variant="destructive">
-            <AlertDescription>No se encontró el pedido</AlertDescription>
+            <AlertDescription>{t("orderNotFound")}</AlertDescription>
           </Alert>
         </div>
       </>
@@ -408,9 +410,9 @@ export default function CreateShippoLabelPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Package className="h-8 w-8" />
-            Crear Etiqueta de Envío
+            {t("createShippingLabel")}
           </h1>
-          <p className="text-muted-foreground mt-2">Pedido #{order.id.slice(0, 8)}</p>
+          <p className="text-muted-foreground mt-2">{t("order")} #{order.id.slice(0, 8)}</p>
         </div>
 
         {existingShipment && (
@@ -418,16 +420,16 @@ export default function CreateShippoLabelPage() {
             <CardHeader>
               <CardTitle className="text-green-700 dark:text-green-300 flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5" />
-                Etiqueta Ya Creada
+                {t("labelAlreadyCreated")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Número de Seguimiento:</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("trackingNumberLabel")}:</p>
                 <p className="text-lg font-mono">{existingShipment.tracking_number}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Transportista:</p>
+                <p className="text-sm font-medium text-muted-foreground">{t("carrier")}:</p>
                 <p className="text-lg">{existingShipment.carrier}</p>
               </div>
               <div className="flex gap-2 pt-2">
@@ -437,14 +439,14 @@ export default function CreateShippoLabelPage() {
                   className="flex items-center gap-2"
                 >
                   <ExternalLink className="h-4 w-4" />
-                  Rastrear Envío
+                  {t("trackShipment")}
                 </Button>
                 <Button
                   onClick={() => window.open(existingShipment.label_url, "_blank")}
                   className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
                 >
                   <Printer className="h-4 w-4" />
-                  Reimprimir Etiqueta
+                  {t("reprintLabel")}
                 </Button>
               </div>
             </CardContent>
@@ -455,7 +457,7 @@ export default function CreateShippoLabelPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Box className="h-5 w-5" />
-              Artículos del Pedido
+              {t("orderItems")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -472,14 +474,14 @@ export default function CreateShippoLabelPage() {
                   <div className="flex-1">
                     <p className="font-medium">{item.products.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      Cantidad: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
+                      {t("quantity")}: {item.quantity} × ${item.price_at_purchase.toFixed(2)}
                     </p>
                   </div>
                   <p className="font-semibold">${(item.quantity * item.price_at_purchase).toFixed(2)}</p>
                 </div>
               ))}
               <div className="flex justify-between items-center pt-2 text-lg font-bold">
-                <span>Total:</span>
+                <span>{t("total")}:</span>
                 <span>${order.total_amount.toFixed(2)}</span>
               </div>
             </div>
@@ -491,18 +493,18 @@ export default function CreateShippoLabelPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="h-5 w-5" />
-                Remitente (Vendedor)
+                {t("sender")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {sellerAddress ? (
                 <>
                   <div>
-                    <p className="text-sm text-muted-foreground">Nombre:</p>
+                    <p className="text-sm text-muted-foreground">{t("name")}:</p>
                     <p className="font-medium">{sellerAddress.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Dirección:</p>
+                    <p className="text-sm text-muted-foreground">{t("address")}:</p>
                     <p className="font-medium">{sellerAddress.street1}</p>
                     <p className="font-medium">
                       {sellerAddress.city}, {sellerAddress.state} {sellerAddress.zip}
@@ -510,13 +512,13 @@ export default function CreateShippoLabelPage() {
                     <p className="font-medium">{sellerAddress.country || "US"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Contacto:</p>
+                    <p className="text-sm text-muted-foreground">{t("contact")}:</p>
                     <p className="text-sm">{sellerAddress.email}</p>
-                    <p className="text-sm">{sellerAddress.phone || "No disponible"}</p>
+                    <p className="text-sm">{sellerAddress.phone || t("notAvailable")}</p>
                   </div>
                 </>
               ) : (
-                <p className="text-muted-foreground">No se encontró dirección del vendedor</p>
+                <p className="text-muted-foreground">{t("sellerAddressNotFound")}</p>
               )}
             </CardContent>
           </Card>
@@ -525,16 +527,16 @@ export default function CreateShippoLabelPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <MapPin className="h-5 w-5" />
-                Destinatario (Comprador)
+                {t("recipient")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div>
-                <p className="text-sm text-muted-foreground">Nombre:</p>
+                <p className="text-sm text-muted-foreground">{t("name")}:</p>
                 <p className="font-medium">{order.customer_name}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Dirección:</p>
+                <p className="text-sm text-muted-foreground">{t("address")}:</p>
                 <p className="font-medium">{order.shipping_street}</p>
                 <p className="font-medium">
                   {order.shipping_city}, {order.shipping_state} {order.shipping_zip}
@@ -542,12 +544,12 @@ export default function CreateShippoLabelPage() {
                 <p className="font-medium">{order.shipping_country || "US"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Email:</p>
+                <p className="text-sm text-muted-foreground">{t("email")}:</p>
                 <p className="text-sm">{order.customer_email}</p>
               </div>
               {order.shipping_phone && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Teléfono:</p>
+                  <p className="text-sm text-muted-foreground">{t("phone")}:</p>
                   <p className="text-sm">{order.shipping_phone}</p>
                 </div>
               )}
@@ -559,13 +561,13 @@ export default function CreateShippoLabelPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Package className="h-5 w-5" />
-              Información del Paquete
+              {t("packageInformation")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div>
-                <Label htmlFor="length">Largo (in)</Label>
+                <Label htmlFor="length">{t("length")} (in)</Label>
                 <Input
                   id="length"
                   type="number"
@@ -576,7 +578,7 @@ export default function CreateShippoLabelPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="width">Ancho (in)</Label>
+                <Label htmlFor="width">{t("width")} (in)</Label>
                 <Input
                   id="width"
                   type="number"
@@ -587,7 +589,7 @@ export default function CreateShippoLabelPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="height">Alto (in)</Label>
+                <Label htmlFor="height">{t("height")} (in)</Label>
                 <Input
                   id="height"
                   type="number"
@@ -598,7 +600,7 @@ export default function CreateShippoLabelPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="weight">Peso (lb)</Label>
+                <Label htmlFor="weight">{t("weight")} (lb)</Label>
                 <Input
                   id="weight"
                   type="number"
@@ -610,7 +612,7 @@ export default function CreateShippoLabelPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              * Dimensiones calculadas automáticamente. Puedes editarlas según el paquete real.
+              {t("dimensionsNote")}
             </p>
 
             {!existingShipment && shippingRates.length === 0 && (
@@ -622,12 +624,12 @@ export default function CreateShippoLabelPage() {
                 {loadingRates ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Obteniendo Tarifas...
+                    {t("gettingRates")}
                   </>
                 ) : (
                   <>
                     <Truck className="mr-2 h-4 w-4" />
-                    Ver Opciones de Envío
+                    {t("viewShippingOptions")}
                   </>
                 )}
               </Button>
@@ -640,7 +642,7 @@ export default function CreateShippoLabelPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Truck className="h-5 w-5" />
-                Selecciona un Transportista
+                {t("selectCarrier")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -660,7 +662,7 @@ export default function CreateShippoLabelPage() {
                         <p className="font-semibold text-lg">{rate.provider}</p>
                         <p className="text-sm text-muted-foreground">{rate.servicelevel.name}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Entrega estimada: {rate.estimated_days} {rate.estimated_days === 1 ? "día" : "días"}
+                          {t("estimatedDelivery")}: {rate.estimated_days} {rate.estimated_days === 1 ? t("day") : t("days")}
                         </p>
                       </div>
                       <div className="text-right">
@@ -692,7 +694,7 @@ export default function CreateShippoLabelPage() {
 
         <div className="flex gap-4">
           <Button onClick={() => router.back()} variant="outline" className="flex-1">
-            Volver
+            {t("back")}
           </Button>
           {!existingShipment && selectedRate && (
             <Button
@@ -703,12 +705,12 @@ export default function CreateShippoLabelPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Creando Etiqueta...
+                  {t("creatingLabel")}
                 </>
               ) : (
                 <>
                   <Package className="mr-2 h-5 w-5" />
-                  Crear Etiqueta de Envío
+                  {t("createShippingLabel")}
                 </>
               )}
             </Button>
