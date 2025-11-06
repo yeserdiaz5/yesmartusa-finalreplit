@@ -68,6 +68,7 @@ All pages below now support **dynamic language switching** via the language sele
 - ✅ **User Menu**: Sign In/Iniciar Sesión, My Purchases/Mis Compras, My Orders/Mis Pedidos, My Store/Mi Tienda, Admin Panel/Panel de Admin, Sign Out/Cerrar Sesión
 - ✅ **Seller Dashboard** (/seller): All headings, buttons, filters, product labels, empty states
 - ✅ **Payments Panel** (/seller/pagos): Statistics cards, alerts, Stripe onboarding flow, payout history, error messages
+- ✅ **New Product Page** (/seller/products/new): Page title, form labels (product name, description, price, stock, images, categories, tags), buttons (create/update product, cancel, back), placeholders, error messages
 - ✅ **Create Shippo Label Page** (/create-shippo-label): Page title, order items display, sender/recipient sections, package information form fields (length/width/height/weight), shipping rate selection, carrier selection, action buttons, status messages, error messages, success confirmations with proper day/days pluralization
 - ✅ **Search & Filters**: "Search products..."/"Buscar productos...", "Search results for..."/"Resultados de búsqueda para:", "Clear search"/"Limpiar búsqueda"
 - ✅ **Toast Notifications**: "Product added"/"Producto agregado", error messages, success confirmations
