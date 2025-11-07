@@ -56,7 +56,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuItem asChild>
           <Link href="/compras" className="cursor-pointer">
             <ShoppingBag className="w-4 h-4 mr-2" />
-            {t("myPurchases")}
+            {t("buyerProfile")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

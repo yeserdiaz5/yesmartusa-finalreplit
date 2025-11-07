@@ -214,6 +214,7 @@ const translationsEN: Record<string, string> = {
   "signUp": "Sign Up",
   "adminPanel": "Admin Panel",
   "signOut": "Sign Out",
+  "buyerProfile": "Buyer Profile",
   
   // Login Page
   "signInTitle": "Sign In",
@@ -701,6 +702,7 @@ const translationsES: Record<string, string> = {
   "signUp": "Registrarse",
   "adminPanel": "Panel de Admin",
   "signOut": "Cerrar Sesión",
+  "buyerProfile": "Perfil de Comprador",
   
   // Login Page
   "signInTitle": "Iniciar Sesión",
