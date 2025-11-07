@@ -11,16 +11,16 @@ export async function getOrCreateStripeAccount(userId: string, email: string) {
 
   // Verificar si ya tiene una cuenta de Stripe Connect
   const { data: existingAccount } = await supabase
-    .from("seller_stripe_accounts")
+    .from("users")
     .select("*")
-    .eq("seller_id", userId)
+    .eq("id", userId)
     .single()
 
   if (existingAccount && existingAccount.stripe_connect_account_id) {
     return {
       success: true,
       accountId: existingAccount.stripe_connect_account_id,
-      onboardingCompleted: existingAccount.account_onboarding_completed,
+      onboardingCompleted: existingAccount.stripe_account_verified,
     }
   }
 
@@ -36,15 +36,18 @@ export async function getOrCreateStripeAccount(userId: string, email: string) {
     })
 
     // Guardar en la base de datos
-    const { error: insertError } = await supabase.from("seller_stripe_accounts").insert({
-      seller_id: userId,
-      stripe_connect_account_id: account.id,
-      account_onboarding_completed: false,
-    })
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        stripe_connect_account_id: account.id,
+        stripe_account_verified: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId)
 
-    if (insertError) {
-      console.error("[v0] Error saving Stripe account:", insertError)
-      return { success: false, error: insertError.message }
+    if (updateError) {
+      console.error("[v0] Error saving Stripe account:", updateError)
+      return { success: false, error: updateError.message }
     }
 
     return {
@@ -84,12 +87,13 @@ export async function markAccountOnboardingComplete(userId: string) {
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from("seller_stripe_accounts")
+    .from("users")
     .update({
-      account_onboarding_completed: true,
+      stripe_account_verified: true,
+      stripe_account_verified_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq("seller_id", userId)
+    .eq("id", userId)
 
   if (error) {
     console.error("[v0] Error marking onboarding complete:", error)
@@ -115,13 +119,13 @@ export async function getStripeBalance() {
 
   try {
     // Obtener cuenta de Stripe del vendedor
-    const { data: stripeAccount } = await supabase
-      .from("seller_stripe_accounts")
+    const { data: userData } = await supabase
+      .from("users")
       .select("*")
-      .eq("seller_id", user.id)
+      .eq("id", user.id)
       .single()
 
-    if (!stripeAccount || !stripeAccount.account_onboarding_completed) {
+    if (!userData || !userData.stripe_account_verified || !userData.stripe_connect_account_id) {
       return {
         success: false,
         error: "Necesitas completar la configuración de tu cuenta de Stripe",
@@ -131,7 +135,7 @@ export async function getStripeBalance() {
 
     // Obtener balance de Stripe
     const balance = await stripe.balance.retrieve({
-      stripeAccount: stripeAccount.stripe_connect_account_id,
+      stripeAccount: userData.stripe_connect_account_id,
     })
 
     const availableBalance = balance.available[0]?.amount || 0
@@ -168,13 +172,13 @@ export async function getPayoutHistory(limit = 10) {
 
   try {
     // Obtener cuenta de Stripe del vendedor
-    const { data: stripeAccount } = await supabase
-      .from("seller_stripe_accounts")
+    const { data: userData } = await supabase
+      .from("users")
       .select("*")
-      .eq("seller_id", user.id)
+      .eq("id", user.id)
       .single()
 
-    if (!stripeAccount || !stripeAccount.account_onboarding_completed) {
+    if (!userData || !userData.stripe_account_verified || !userData.stripe_connect_account_id) {
       return {
         success: false,
         error: "Necesitas completar la configuración de tu cuenta de Stripe",
@@ -188,7 +192,7 @@ export async function getPayoutHistory(limit = 10) {
         limit,
       },
       {
-        stripeAccount: stripeAccount.stripe_connect_account_id,
+        stripeAccount: userData.stripe_connect_account_id,
       }
     )
 
@@ -228,14 +232,14 @@ export async function getSellerPayoutStats() {
 
   try {
     // Verificar si tiene cuenta de Stripe Connect
-    const { data: stripeAccount } = await supabase
-      .from("seller_stripe_accounts")
+    const { data: userData } = await supabase
+      .from("users")
       .select("*")
-      .eq("seller_id", user.id)
+      .eq("id", user.id)
       .single()
 
     // Si no tiene cuenta, devolver solo estadísticas locales
-    if (!stripeAccount) {
+    if (!userData || !userData.stripe_connect_account_id) {
       const accountResult = await getOrCreateStripeAccount(user.id, user.email!)
       if (!accountResult.success) {
         return {
@@ -260,11 +264,11 @@ export async function getSellerPayoutStats() {
     }
 
     // Si tiene cuenta pero no completó onboarding
-    if (!stripeAccount.account_onboarding_completed) {
+    if (!userData.stripe_account_verified) {
       return {
         success: true,
         needsOnboarding: true,
-        accountId: stripeAccount.stripe_connect_account_id,
+        accountId: userData.stripe_connect_account_id,
         data: {
           totalEarnings: 0,
           availableBalance: 0,
@@ -341,13 +345,13 @@ export async function getPayoutSchedule() {
   }
 
   try {
-    const { data: stripeAccount } = await supabase
-      .from("seller_stripe_accounts")
+    const { data: userData } = await supabase
+      .from("users")
       .select("*")
-      .eq("seller_id", user.id)
+      .eq("id", user.id)
       .single()
 
-    if (!stripeAccount || !stripeAccount.account_onboarding_completed) {
+    if (!userData || !userData.stripe_account_verified || !userData.stripe_connect_account_id) {
       return {
         success: false,
         error: "Necesitas completar la configuración de tu cuenta de Stripe",
@@ -356,7 +360,7 @@ export async function getPayoutSchedule() {
     }
 
     // Obtener información de la cuenta de Stripe
-    const account = await stripe.accounts.retrieve(stripeAccount.stripe_connect_account_id)
+    const account = await stripe.accounts.retrieve(userData.stripe_connect_account_id)
 
     const schedule = account.settings?.payouts?.schedule
 
