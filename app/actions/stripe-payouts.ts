@@ -70,6 +70,9 @@ export async function createStripeAccountLink(accountId: string) {
     const baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || 
                     (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000")
     
+    console.log("[v0] Creating account link with baseUrl:", baseUrl)
+    console.log("[v0] Account ID:", accountId)
+    
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: `${baseUrl}/seller/pagos`,
@@ -77,6 +80,7 @@ export async function createStripeAccountLink(accountId: string) {
       type: "account_onboarding",
     })
 
+    console.log("[v0] Account link created successfully:", accountLink.url)
     return { success: true, url: accountLink.url }
   } catch (error: any) {
     console.error("[v0] Error creating account link:", error)
