@@ -26,7 +26,7 @@ export interface User {
 
 export type ShippingPolicy = "seller_pays" | "buyer_pays" | "shared"
 
-export type ProductCondition = "new" | "used" | "refurbished" | "open_box" | "for_parts"
+export type ProductCondition = "new" | "like_new" | "used" | "refurbished" | "open_box" | "for_parts"
 
 export interface Product {
   id: string

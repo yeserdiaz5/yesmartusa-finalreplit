@@ -217,6 +217,7 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                         <p className="text-sm text-gray-600 mb-1">{t("productCondition")}</p>
                         <p className="text-base font-semibold text-gray-900" data-testid="text-product-condition">
                           {product.condition === "new" && t("productConditionNew")}
+                          {product.condition === "like_new" && t("productConditionLikeNew")}
                           {product.condition === "used" && t("productConditionUsed")}
                           {product.condition === "refurbished" && t("productConditionRefurbished")}
                           {product.condition === "open_box" && t("productConditionOpenBox")}

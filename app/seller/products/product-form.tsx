@@ -371,13 +371,14 @@ export default function ProductForm({
               <Label htmlFor="condition">{t("productCondition")}</Label>
               <Select
                 value={formData.condition}
-                onValueChange={(value) => setFormData({ ...formData, condition: value as "new" | "used" | "refurbished" | "open_box" | "for_parts" })}
+                onValueChange={(value) => setFormData({ ...formData, condition: value as "new" | "like_new" | "used" | "refurbished" | "open_box" | "for_parts" })}
               >
                 <SelectTrigger id="condition" data-testid="select-condition">
                   <SelectValue placeholder={t("productConditionPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="new" data-testid="option-condition-new">{t("productConditionNew")}</SelectItem>
+                  <SelectItem value="like_new" data-testid="option-condition-like-new">{t("productConditionLikeNew")}</SelectItem>
                   <SelectItem value="used" data-testid="option-condition-used">{t("productConditionUsed")}</SelectItem>
                   <SelectItem value="refurbished" data-testid="option-condition-refurbished">{t("productConditionRefurbished")}</SelectItem>
                   <SelectItem value="open_box" data-testid="option-condition-open-box">{t("productConditionOpenBox")}</SelectItem>
