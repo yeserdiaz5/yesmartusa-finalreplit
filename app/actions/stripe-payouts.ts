@@ -66,10 +66,14 @@ export async function getOrCreateStripeAccount(userId: string, email: string) {
  */
 export async function createStripeAccountLink(accountId: string) {
   try {
+    // Use Replit public URL or configured redirect URL
+    const baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || 
+                    (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000")
+    
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:5000"}/seller/pagos`,
-      return_url: `${process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || "http://localhost:5000"}/seller/pagos?setup=complete`,
+      refresh_url: `${baseUrl}/seller/pagos`,
+      return_url: `${baseUrl}/seller/pagos?setup=complete`,
       type: "account_onboarding",
     })
 
