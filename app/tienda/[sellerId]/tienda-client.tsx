@@ -11,6 +11,7 @@ import type { User, Product } from "@/lib/types/database"
 import { Store, ShoppingCart, Star, MapPin, Package } from "lucide-react"
 import { addToCart } from "@/app/actions/cart"
 import { toast } from "sonner"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface TiendaClientProps {
   seller: {
@@ -25,11 +26,12 @@ interface TiendaClientProps {
 }
 
 export default function TiendaClient({ seller, products, currentUser }: TiendaClientProps) {
+  const { t } = useLanguage()
   const [addingToCart, setAddingToCart] = useState<string | null>(null)
 
   const handleAddToCart = async (productId: string) => {
     if (!currentUser) {
-      toast.error("Debes iniciar sesión para agregar al carrito")
+      toast.error(t("mustLoginToAddCart"))
       return
     }
 
@@ -37,18 +39,18 @@ export default function TiendaClient({ seller, products, currentUser }: TiendaCl
     try {
       const result = await addToCart(productId, 1)
       if (result.success) {
-        toast.success("Producto agregado al carrito")
+        toast.success(t("addedToCart"))
       } else {
-        toast.error(result.error || "Error al agregar al carrito")
+        toast.error(result.error || t("errorAddingToCart"))
       }
     } catch (error) {
-      toast.error("Error al agregar al carrito")
+      toast.error(t("errorAddingToCart"))
     } finally {
       setAddingToCart(null)
     }
   }
 
-  const storeName = seller.store_name || seller.full_name || "Tienda"
+  const storeName = seller.store_name || seller.full_name || t("store")
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -76,7 +78,7 @@ export default function TiendaClient({ seller, products, currentUser }: TiendaCl
               <div className="flex items-center justify-center md:justify-start gap-4 text-white/90">
                 <div className="flex items-center gap-1">
                   <Package className="w-4 h-4" />
-                  <span>{products.length} productos</span>
+                  <span>{products.length} {t("productsCount")}</span>
                 </div>
               </div>
             </div>
@@ -90,15 +92,15 @@ export default function TiendaClient({ seller, products, currentUser }: TiendaCl
           <Card>
             <CardContent className="p-12 text-center">
               <Store className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <h3 className="text-xl font-semibold mb-2">No hay productos disponibles</h3>
-              <p className="text-gray-600">Esta tienda aún no tiene productos publicados</p>
+              <h3 className="text-xl font-semibold mb-2">{t("noProductsAvailable")}</h3>
+              <p className="text-gray-600">{t("storeHasNoProducts")}</p>
             </CardContent>
           </Card>
         ) : (
           <>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Productos Disponibles</h2>
-              <p className="text-gray-600">Explora la colección de {storeName}</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t("availableProducts")}</h2>
+              <p className="text-gray-600">{t("exploreCollection", { storeName })}</p>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -138,11 +140,11 @@ export default function TiendaClient({ seller, products, currentUser }: TiendaCl
                       </div>
                       {product.stock_quantity > 0 ? (
                         <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                          En stock
+                          {t("inStock")}
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                          Agotado
+                          {t("outOfStock")}
                         </Badge>
                       )}
                     </div>
@@ -154,11 +156,11 @@ export default function TiendaClient({ seller, products, currentUser }: TiendaCl
                       disabled={product.stock_quantity === 0 || addingToCart === product.id}
                     >
                       {addingToCart === product.id ? (
-                        <>Agregando...</>
+                        <>{t("addingToCart")}</>
                       ) : (
                         <>
                           <ShoppingCart className="w-4 h-4 mr-2" />
-                          Agregar al Carrito
+                          {t("addToCart")}
                         </>
                       )}
                     </Button>

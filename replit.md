@@ -33,7 +33,7 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Product Details System**: Products include optional `brand` (text) and `condition` fields with 6 eBay-style options (new, like_new, used, refurbished, open_box, for_parts). Brand field features "No brand (Generic)" checkbox for auto-fill. Fully integrated with i18n translations for both English and Spanish.
 - **Product Gallery**: Amazon-style product image gallery with large main image (500px), always-visible thumbnails in 5-column grid, hover effects, and clickable image switching. Uses object-contain to show full images.
 - **Image Search**: Visual product search functionality using GPT-4o Vision API. Users can upload product images to find similar items in the marketplace. Features drag-and-drop modal interface, real-time image analysis, and keyword-based product matching.
-- **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, and image search.
+- **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, image search, store pages, authentication pages, buyer/seller profiles, and navigation menus.
 
 ### Technical Implementations
 - **Stripe Connect**: Onboarding, account creation, and functions for balance, payout history, and account management.
