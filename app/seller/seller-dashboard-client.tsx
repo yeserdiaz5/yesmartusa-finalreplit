@@ -37,41 +37,39 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
       {/* Header */}
       <SiteHeader user={user} />
 
-      {/* Secondary header for dashboard title */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">{t("myProductListings")}</h1>
-              <p className="text-gray-600">{t("manageYourProducts")}</p>
-            </div>
-            <div className="flex gap-2">
-              {isVerified && (
-                <>
-                  <Link href="/seller/my-orders">
-                    <Button variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100" data-testid="button-my-orders">
-                      <ShoppingBag className="w-4 h-4 mr-2" />
-                      {t("myOrdersButton")}
-                    </Button>
-                  </Link>
-                  <Link href="/seller/products/new">
-                    <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-add-product">
-                      <Plus className="w-4 h-4 mr-2" />
-                      {t("addProduct")}
-                    </Button>
-                  </Link>
-                </>
-              )}
-              <Link href="/seller/pagos">
-                <Button variant="outline" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100" data-testid="button-earnings">
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  {t("myEarnings")}
-                </Button>
-              </Link>
+      {/* Secondary header for dashboard title - ONLY FOR VERIFIED SELLERS */}
+      {isVerified && (
+        <div className="bg-white border-b">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">{t("myProductListings")}</h1>
+                <p className="text-gray-600">{t("manageYourProducts")}</p>
+              </div>
+              <div className="flex gap-2">
+                <Link href="/seller/my-orders">
+                  <Button variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100" data-testid="button-my-orders">
+                    <ShoppingBag className="w-4 h-4 mr-2" />
+                    {t("myOrdersButton")}
+                  </Button>
+                </Link>
+                <Link href="/seller/products/new">
+                  <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-add-product">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {t("addProduct")}
+                  </Button>
+                </Link>
+                <Link href="/seller/pagos">
+                  <Button variant="outline" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100" data-testid="button-earnings">
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    {t("myEarnings")}
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="container mx-auto px-4 py-6">
         {/* Welcome Message for Unverified Sellers - BLOCKS ENTIRE DASHBOARD */}
