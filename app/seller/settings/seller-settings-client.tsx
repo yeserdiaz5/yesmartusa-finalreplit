@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft, Loader2, Store, MapPin } from "lucide-react"
 import { updateSellerSettings, type UpdateSellerSettingsInput } from "@/app/actions/seller"
 import { useToast } from "@/hooks/use-toast"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface SellerSettingsClientProps {
   user: {
@@ -26,6 +27,7 @@ interface SellerSettingsClientProps {
 export default function SellerSettingsClient({ user }: SellerSettingsClientProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -63,22 +65,22 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
 
       if (result.error) {
         toast({
-          title: "Error",
+          title: t("error"),
           description: result.error,
           variant: "destructive",
         })
       } else {
         toast({
-          title: "Configuración actualizada",
-          description: "Tu información de vendedor ha sido actualizada correctamente",
+          title: t("settingsUpdated"),
+          description: t("sellerInfoUpdated"),
         })
         router.push("/seller")
         router.refresh()
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Ocurrió un error inesperado",
+        title: t("error"),
+        description: t("unexpectedError"),
         variant: "destructive",
       })
     } finally {
@@ -89,9 +91,9 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
   return (
     <form onSubmit={handleSubmit}>
       <div className="mb-6">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
+        <Button type="button" variant="ghost" onClick={() => router.back()} data-testid="button-back">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver
+          {t("back")}
         </Button>
       </div>
 
@@ -99,21 +101,22 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
         <CardHeader>
           <div className="flex items-center gap-2">
             <Store className="w-5 h-5 text-blue-600" />
-            <CardTitle>Información de la Tienda</CardTitle>
+            <CardTitle>{t("storeInformation")}</CardTitle>
           </div>
-          <CardDescription>Configura el nombre de tu tienda</CardDescription>
+          <CardDescription>{t("configureStoreName")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="store_name">Nombre de la Tienda *</Label>
+            <Label htmlFor="store_name">{t("storeName")} *</Label>
             <Input
               id="store_name"
               value={formData.store_name}
               onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
               required
-              placeholder="Ej: TechGear Pro, Fashion Boutique"
+              placeholder={t("storeNamePlaceholder")}
+              data-testid="input-store-name"
             />
-            <p className="text-sm text-gray-500 mt-1">Este nombre aparecerá en tus productos y etiquetas de envío</p>
+            <p className="text-sm text-gray-500 mt-1">{t("storeNameHelper")}</p>
           </div>
         </CardContent>
       </Card>
@@ -122,24 +125,25 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
         <CardHeader>
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-blue-600" />
-            <CardTitle>Dirección de Envío</CardTitle>
+            <CardTitle>{t("shippingAddress")}</CardTitle>
           </div>
-          <CardDescription>Esta dirección se usará como remitente en las etiquetas de envío</CardDescription>
+          <CardDescription>{t("shippingAddressHelper")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="full_name">Nombre Completo *</Label>
+            <Label htmlFor="full_name">{t("fullName")} *</Label>
             <Input
               id="full_name"
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               required
-              placeholder="Tu nombre completo"
+              placeholder={t("fullNamePlaceholder")}
+              data-testid="input-full-name"
             />
           </div>
 
           <div>
-            <Label htmlFor="phone">Teléfono *</Label>
+            <Label htmlFor="phone">{t("phone")} *</Label>
             <Input
               id="phone"
               value={formData.phone}
@@ -147,45 +151,49 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
               required
               placeholder="17867511111"
               type="tel"
+              data-testid="input-phone"
             />
-            <p className="text-sm text-gray-500 mt-1">Formato: 10 dígitos sin espacios ni guiones</p>
+            <p className="text-sm text-gray-500 mt-1">{t("phoneFormat")}</p>
           </div>
 
           <div>
-            <Label htmlFor="address_line1">Dirección Línea 1 *</Label>
+            <Label htmlFor="address_line1">{t("addressLine1")} *</Label>
             <Input
               id="address_line1"
               value={formData.address_line1}
               onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
               required
-              placeholder="Calle y número"
+              placeholder={t("addressLine1Placeholder")}
+              data-testid="input-address-line1"
             />
           </div>
 
           <div>
-            <Label htmlFor="address_line2">Dirección Línea 2 (Opcional)</Label>
+            <Label htmlFor="address_line2">{t("addressLine2")}</Label>
             <Input
               id="address_line2"
               value={formData.address_line2}
               onChange={(e) => setFormData({ ...formData, address_line2: e.target.value })}
-              placeholder="Apartamento, suite, etc."
+              placeholder={t("addressLine2Placeholder")}
+              data-testid="input-address-line2"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="city">Ciudad *</Label>
+              <Label htmlFor="city">{t("city")} *</Label>
               <Input
                 id="city"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                 required
-                placeholder="Ciudad"
+                placeholder={t("cityPlaceholder")}
+                data-testid="input-city"
               />
             </div>
 
             <div>
-              <Label htmlFor="state">Estado *</Label>
+              <Label htmlFor="state">{t("state")} *</Label>
               <Input
                 id="state"
                 value={formData.state}
@@ -193,24 +201,26 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
                 required
                 placeholder="FL"
                 maxLength={2}
+                data-testid="input-state"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="postal_code">Código Postal *</Label>
+              <Label htmlFor="postal_code">{t("postalCode")} *</Label>
               <Input
                 id="postal_code"
                 value={formData.postal_code}
                 onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
                 required
                 placeholder="33101"
+                data-testid="input-postal-code"
               />
             </div>
 
             <div>
-              <Label htmlFor="country">País *</Label>
+              <Label htmlFor="country">{t("country")} *</Label>
               <Input
                 id="country"
                 value={formData.country}
@@ -218,6 +228,7 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
                 required
                 placeholder="US"
                 maxLength={2}
+                data-testid="input-country"
               />
             </div>
           </div>
@@ -225,12 +236,12 @@ export default function SellerSettingsClient({ user }: SellerSettingsClientProps
       </Card>
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={loading} className="flex-1">
+        <Button type="submit" disabled={loading} className="flex-1" data-testid="button-save-settings">
           {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-          Guardar Configuración
+          {t("saveSettings")}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancelar
+        <Button type="button" variant="outline" onClick={() => router.back()} data-testid="button-cancel">
+          {t("cancel")}
         </Button>
       </div>
     </form>
