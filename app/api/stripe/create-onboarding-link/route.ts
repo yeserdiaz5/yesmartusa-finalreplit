@@ -37,10 +37,10 @@ export async function POST(req: NextRequest) {
     let baseUrl: string
     
     if (process.env.REPLIT_DEPLOYMENT === "1") {
-      // Production environment
+      // Production - use APP_URL environment variable
       baseUrl = process.env.APP_URL || "https://yesmartusa.com"
     } else {
-      // Development environment
+      // Development - use Replit dev URL or localhost
       baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || 
                 (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000")
     }

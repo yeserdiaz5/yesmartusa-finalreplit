@@ -43,8 +43,9 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
   - `/api/stripe/create-onboarding-link` - Generates onboarding links for account setup
   - `/api/stripe/login-link` - Creates login links to Stripe Express dashboard
   - `/api/stripe/webhook` - Webhook handler for Stripe Connect events (account.updated, account.application.deauthorized, capability.updated)
-  - Environment-aware URL configuration automatically uses `https://yesmartusa.com` in production (`REPLIT_DEPLOYMENT=1`) and Replit dev URLs in development
+  - Environment-aware URL configuration uses `APP_URL` environment variable (https://yesmartusa.com) in production and Replit dev URLs in development
   - Onboarding pages: `/onboarding/complete` (success), `/onboarding/refresh` (expired links)
+  - All redirect URLs point to: https://yesmartusa.com/onboarding/complete and https://yesmartusa.com/onboarding/refresh
 - **Stripe Webhooks**: Two webhook endpoints - `/api/webhooks/stripe` for checkout completion and `/api/stripe/webhook` for Connect account verification. The Connect webhook listens for `account.updated` events to automatically verify/unverify sellers based on `charges_enabled` and `payouts_enabled` status.
 - **Email Notifications**: Resend integration for automated two-stage seller emails (English):
   - **Stage 1 - Review Email**: Sent immediately after completing Stripe onboarding, informing seller their account is under review.

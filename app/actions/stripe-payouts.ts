@@ -73,7 +73,7 @@ export async function createStripeAccountLink(accountId: string) {
     
     if (process.env.REPLIT_DEPLOYMENT === "1") {
       // Production environment - use production domain
-      baseUrl = "https://yesmartusa.com"
+      baseUrl = process.env.APP_URL || "https://yesmartusa.com"
     } else {
       // Development environment - use Replit dev URL or localhost
       baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || 
