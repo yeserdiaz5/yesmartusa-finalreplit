@@ -622,7 +622,7 @@ const translationsEN: Record<string, string> = {
   "sellerStep2Description": "Connect your Stripe account to receive payments from your sales. Verification typically takes 5 minutes to 24 hours.",
   "sellerStep3Title": "Start Selling!",
   "sellerStep3Description": "Once verified, you can list products and start earning right away.",
-  "setupPaymentMethod": "Set Up Payment Method",
+  "setupPaymentMethod": "Verify with Stripe to Sell",
   "verificationTimeTitle": "Quick Verification",
   "verificationTimeDescription": "Most sellers are verified within 5-15 minutes. You'll receive an email once your account is ready to start selling."
 }
@@ -1137,7 +1137,7 @@ const translationsES: Record<string, string> = {
   "sellerStep2Description": "Conecta tu cuenta de Stripe para recibir pagos de tus ventas. La verificación típicamente toma de 5 minutos a 24 horas.",
   "sellerStep3Title": "¡Comienza a Vender!",
   "sellerStep3Description": "Una vez verificado, puedes publicar productos y comenzar a ganar de inmediato.",
-  "setupPaymentMethod": "Configurar Método de Pago",
+  "setupPaymentMethod": "Verificar con Stripe para Vender",
   "verificationTimeTitle": "Verificación Rápida",
   "verificationTimeDescription": "La mayoría de los vendedores son verificados en 5-15 minutos. Recibirás un correo electrónico una vez que tu cuenta esté lista para comenzar a vender."
 }
