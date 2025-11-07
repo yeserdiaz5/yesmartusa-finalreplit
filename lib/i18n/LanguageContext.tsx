@@ -127,6 +127,7 @@ const translationsEN: Record<string, string> = {
   "addProduct": "Add New Product",
   "myProductListings": "My Product Listings",
   "manageYourProducts": "Manage your products",
+  "myOrdersButton": "My Orders",
   
   // Seller Settings Page
   "back": "Back",
@@ -613,6 +614,7 @@ const translationsES: Record<string, string> = {
   "addProduct": "Agregar Producto",
   "myProductListings": "Mis Productos Publicados",
   "manageYourProducts": "Administra tus productos",
+  "myOrdersButton": "Mis Pedidos",
   
   // Seller Settings Page
   "back": "Volver",

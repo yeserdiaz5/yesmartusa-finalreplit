@@ -60,7 +60,7 @@ export function UserMenu({ user }: UserMenuProps) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/my-orders" className="cursor-pointer">
+          <Link href="/seller/my-orders" className="cursor-pointer">
             <Package className="w-4 h-4 mr-2" />
             {t("myOrders")}
           </Link>

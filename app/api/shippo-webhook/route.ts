@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
               title: notificationTitle,
               message: notificationMessage,
               order_id: order.id,
-              link: "/my-orders",
+              link: "/seller/my-orders",
             })
 
             if (notifError) {
@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
                 title: "Tu etiqueta de envío está lista 📦",
                 message: `Se ha creado la etiqueta de envío para tu pedido. Número de seguimiento: ${trackingNumber}`,
                 order_id: orderId,
-                link: "/my-orders",
+                link: "/seller/my-orders",
               })
 
               if (notifError) {
@@ -312,7 +312,7 @@ export async function POST(req: NextRequest) {
               title: "Problema con el envío ⚠️",
               message: "Hubo un problema al crear la etiqueta de envío. Por favor contacta soporte.",
               order_id: orderId,
-              link: "/my-orders",
+              link: "/seller/my-orders",
             })
 
             if (notifError) {
