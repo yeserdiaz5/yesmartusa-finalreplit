@@ -214,6 +214,21 @@ const translationsEN: Record<string, string> = {
   "adminPanel": "Admin Panel",
   "signOut": "Sign Out",
   
+  // Login Page
+  "signInTitle": "Sign In",
+  "enterEmailToAccess": "Enter your email to access your account",
+  "continueWithGoogle": "Continue with Google",
+  "orContinueWith": "Or continue with",
+  "email": "Email",
+  "emailPlaceholder": "you@email.com",
+  "password": "Password",
+  "forgotPassword": "Forgot your password?",
+  "signingIn": "Signing in...",
+  "dontHaveAccount": "Don't have an account?",
+  "signUpLink": "Sign up",
+  "invalidCredentials": "Invalid credentials. If you signed up with Google, use the 'Continue with Google' button or reset your password.",
+  "emailNotConfirmed": "Please verify your email and click the confirmation link.",
+  
   // Purchases Page (/compras)
   "myPurchasesTitle": "My Purchases",
   "myPurchasesSubtitle": "Here you can view all your purchases made on the marketplace",
@@ -684,6 +699,21 @@ const translationsES: Record<string, string> = {
   "signUp": "Registrarse",
   "adminPanel": "Panel de Admin",
   "signOut": "Cerrar Sesión",
+  
+  // Login Page
+  "signInTitle": "Iniciar Sesión",
+  "enterEmailToAccess": "Ingresa tu email para acceder a tu cuenta",
+  "continueWithGoogle": "Continuar con Google",
+  "orContinueWith": "O continúa con",
+  "email": "Email",
+  "emailPlaceholder": "tu@email.com",
+  "password": "Contraseña",
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "signingIn": "Iniciando sesión...",
+  "dontHaveAccount": "¿No tienes cuenta?",
+  "signUpLink": "Regístrate",
+  "invalidCredentials": "Credenciales inválidas. Si te registraste con Google, usa el botón 'Continuar con Google' o restablece tu contraseña.",
+  "emailNotConfirmed": "Por favor verifica tu email y haz clic en el enlace de confirmación.",
   
   // Purchases Page (/compras)
   "myPurchasesTitle": "Mis Compras",

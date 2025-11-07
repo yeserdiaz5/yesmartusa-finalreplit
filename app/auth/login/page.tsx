@@ -11,8 +11,10 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { loginWithPassword } from "@/app/actions/auth"
+import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 export default function LoginPage() {
+  const { t } = useLanguage()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -34,9 +36,7 @@ export default function LoginPage() {
       if (!result.success) {
         console.error("[v0] ❌ Login error:", result.error)
         if (result.error === "Invalid login credentials") {
-          throw new Error(
-            "Credenciales inválidas. Si te registraste con Google, usa el botón 'Continuar con Google' o restablece tu contraseña.",
-          )
+          throw new Error(t("invalidCredentials"))
         }
         throw new Error(result.error)
       }
@@ -74,8 +74,8 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>Ingresa tu email para acceder a tu cuenta</CardDescription>
+            <CardTitle className="text-2xl">{t("signInTitle")}</CardTitle>
+            <CardDescription>{t("enterEmailToAccess")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin}>
@@ -99,7 +99,7 @@ export default function LoginPage() {
                       fill="#EA4335"
                     />
                   </svg>
-                  Continuar con Google
+                  {t("continueWithGoogle")}
                 </Button>
 
                 <div className="relative">
@@ -107,16 +107,16 @@ export default function LoginPage() {
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">O continúa con</span>
+                    <span className="bg-background px-2 text-muted-foreground">{t("orContinueWith")}</span>
                   </div>
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("email")}</Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="tu@email.com"
+                    placeholder={t("emailPlaceholder")}
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -124,9 +124,9 @@ export default function LoginPage() {
                 </div>
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Contraseña</Label>
+                    <Label htmlFor="password">{t("password")}</Label>
                     <Link href="/auth/reset-password" className="text-sm text-blue-600 hover:underline">
-                      ¿Olvidaste tu contraseña?
+                      {t("forgotPassword")}
                     </Link>
                   </div>
                   <Input
@@ -142,19 +142,19 @@ export default function LoginPage() {
                     <p className="text-sm text-red-800">{error}</p>
                     {error.includes("Email not confirmed") && (
                       <p className="mt-2 text-xs text-red-600">
-                        Por favor verifica tu email y haz clic en el enlace de confirmación.
+                        {t("emailNotConfirmed")}
                       </p>
                     )}
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                  {isLoading ? t("signingIn") : t("signInTitle")}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-                ¿No tienes cuenta?{" "}
+                {t("dontHaveAccount")}{" "}
                 <Link href="/auth/sign-up" className="underline underline-offset-4">
-                  Regístrate
+                  {t("signUpLink")}
                 </Link>
               </div>
             </form>
