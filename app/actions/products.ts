@@ -403,7 +403,7 @@ export async function getProductsBySellerId(sellerId: string) {
   // Get seller info
   const { data: seller, error: sellerError } = await supabase
     .from("users")
-    .select("id, full_name, store_name, avatar_url, email")
+    .select("id, full_name, store_name, avatar_url, email, seller_address")
     .eq("id", sellerId)
     .single()
 

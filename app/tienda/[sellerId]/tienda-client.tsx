@@ -22,6 +22,15 @@ interface TiendaClientProps {
     store_name: string | null
     avatar_url: string | null
     email: string
+    seller_address?: {
+      full_name: string
+      address_line1: string
+      address_line2?: string
+      city: string
+      state: string
+      postal_code: string
+      country: string
+    } | null
   }
   products: Product[]
   currentUser: User | null
@@ -251,11 +260,20 @@ export default function TiendaClient({ seller, products, currentUser }: TiendaCl
             )}
             <div className="text-center md:text-left">
               <h1 className="text-4xl font-bold mb-2">{storeName}</h1>
-              <div className="flex items-center justify-center md:justify-start gap-4 text-white/90">
+              <div className="flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-3 text-white/90">
                 <div className="flex items-center gap-1">
                   <Package className="w-4 h-4" />
                   <span>{products.length} {t("productsCount")}</span>
                 </div>
+                {seller.seller_address?.city && seller.seller_address?.state && (
+                  <>
+                    <span className="hidden md:inline">•</span>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{seller.seller_address.city}, {seller.seller_address.state}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
