@@ -38,8 +38,14 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, image search, store pages, authentication pages, buyer/seller profiles, and navigation menus.
 
 ### Technical Implementations
-- **Stripe Connect**: Onboarding, account creation, and functions for balance, payout history, and account management. Environment-aware URL configuration automatically uses `https://yesmartusa.com` in production (`REPLIT_DEPLOYMENT=1`) and Replit dev URLs in development for proper redirect handling after onboarding.
-- **Stripe Webhooks**: Two webhook endpoints - `/api/webhooks/stripe` for checkout completion and `/api/stripe-webhook` for account verification. The account webhook listens for `account.updated` events to automatically verify/unverify sellers based on `charges_enabled` and `payouts_enabled` status.
+- **Stripe Connect**: Complete Express account system with dedicated API endpoints:
+  - `/api/stripe/create-connect-account` - Creates Stripe Express accounts for sellers
+  - `/api/stripe/create-onboarding-link` - Generates onboarding links for account setup
+  - `/api/stripe/login-link` - Creates login links to Stripe Express dashboard
+  - `/api/stripe/webhook` - Webhook handler for Stripe Connect events (account.updated, account.application.deauthorized, capability.updated)
+  - Environment-aware URL configuration automatically uses `https://yesmartusa.com` in production (`REPLIT_DEPLOYMENT=1`) and Replit dev URLs in development
+  - Onboarding pages: `/onboarding/complete` (success), `/onboarding/refresh` (expired links)
+- **Stripe Webhooks**: Two webhook endpoints - `/api/webhooks/stripe` for checkout completion and `/api/stripe/webhook` for Connect account verification. The Connect webhook listens for `account.updated` events to automatically verify/unverify sellers based on `charges_enabled` and `payouts_enabled` status.
 - **Email Notifications**: Resend integration for automated two-stage seller emails (English):
   - **Stage 1 - Review Email**: Sent immediately after completing Stripe onboarding, informing seller their account is under review.
   - **Stage 2 - Welcome Email**: Sent via webhook when Stripe approves the account, confirming seller can now list products.
