@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Plus,
   Package,
@@ -10,6 +11,7 @@ import {
   ShoppingBag,
   AlertCircle,
   CheckCircle2,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -28,9 +30,37 @@ interface SellerDashboardClientProps {
 
 export default function SellerDashboardClient({ user, products }: SellerDashboardClientProps) {
   const { t } = useLanguage()
+  const [connectingStripe, setConnectingStripe] = useState(false)
 
   // Check if seller is verified
   const isVerified = user.stripe_account_verified
+
+  const handleConnectStripe = async () => {
+    setConnectingStripe(true)
+    try {
+      // Call API route to create/get account and onboarding link
+      const response = await fetch("/api/stripe-onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        alert(t("stripeSetupError") + ": " + (result.error || t("unknownError")))
+        setConnectingStripe(false)
+        return
+      }
+
+      // Redirect to Stripe to complete onboarding
+      window.location.href = result.url
+    } catch (error: any) {
+      alert(t("error") + ": " + error.message)
+      setConnectingStripe(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,12 +165,24 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
 
                 {/* CTA Button */}
                 <div className="pt-4">
-                  <Link href="/seller/pagos" className="block">
-                    <Button className="w-full h-12 text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700" data-testid="button-setup-payments">
-                      <DollarSign className="w-5 h-5 mr-2" />
-                      {t("setupPaymentMethod")}
-                    </Button>
-                  </Link>
+                  <Button 
+                    onClick={handleConnectStripe}
+                    disabled={connectingStripe}
+                    className="w-full h-12 text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700" 
+                    data-testid="button-setup-payments"
+                  >
+                    {connectingStripe ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        {t("connecting")}
+                      </>
+                    ) : (
+                      <>
+                        <DollarSign className="w-5 h-5 mr-2" />
+                        {t("setupPaymentMethod")}
+                      </>
+                    )}
+                  </Button>
                 </div>
 
                 {/* Additional Info */}
