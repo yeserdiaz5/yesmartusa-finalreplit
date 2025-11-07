@@ -22,6 +22,7 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Database Schema**: PostgreSQL with `subscribers` table and Zod schemas.
 
 ### UI/UX Decisions
+- **Seller Verification System**: Automatic seller verification via Stripe Connect webhooks. Unverified sellers see a welcome screen with setup instructions and can only access payment configuration. Once Stripe approves their account (typically 5-15 minutes), the system automatically updates the database and sends an English welcome email via Resend. The full seller dashboard unlocks after verification. The system also handles account deactivation - if Stripe disables charges or payouts, sellers are automatically unverified and restricted again.
 - **Seller Tools**: Dedicated earnings panel (Stripe stats, onboarding, payout history) and a simplified dashboard for product listings. Settings button moved to buyer profile page (`/compras`).
 - **User Interface Elements**: Dynamic user banners, universal clickable product links, optimized cart with real-time updates. Consistent product card design across homepage and store pages with Amazon-style presentation (ratings, reviews, quantity controls, dual action buttons).
 - **Order Management**: Tabbed interfaces for both sellers (`/seller/my-orders`) and buyers (`/compras`), categorizing orders by status (Paid, Shipped, Cancelled). Includes automated order cancellation with Stripe refunds and detailed order tracking with carrier-specific links. User menu redesigned to separate "Buyer Profile" and "Seller Profile" options.
@@ -37,6 +38,8 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 
 ### Technical Implementations
 - **Stripe Connect**: Onboarding, account creation, and functions for balance, payout history, and account management.
+- **Stripe Webhooks**: Two webhook endpoints - `/api/webhooks/stripe` for checkout completion and `/api/stripe-webhook` for account verification. The account webhook listens for `account.updated` events to automatically verify/unverify sellers based on `charges_enabled` and `payouts_enabled` status.
+- **Email Notifications**: Resend integration for automated seller welcome emails (English). Emails are sanitized to prevent HTML injection and follow no-emoji guidelines.
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage for backup, with a secure API for retrieval.
 
 ## External Dependencies
@@ -49,3 +52,4 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **State/Forms**: TanStack Query, React Hook Form with Zod
 - **AI Integration**: OpenAI (via Replit AI Integrations)
 - **Image Processing**: `react-easy-crop`
+- **Email Service**: Resend for transactional emails
