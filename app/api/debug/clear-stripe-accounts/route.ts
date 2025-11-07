@@ -11,6 +11,7 @@ export async function POST() {
       .update({
         stripe_connect_account_id: null,
         stripe_account_verified: false,
+        stripe_account_verified_at: null,
       })
       .not("stripe_connect_account_id", "is", null)
       .select("id")
