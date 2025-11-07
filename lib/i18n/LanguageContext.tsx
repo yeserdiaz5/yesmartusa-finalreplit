@@ -609,7 +609,22 @@ const translationsEN: Record<string, string> = {
   "zoom": "Zoom",
   "saving": "Saving...",
   "imageUploadError": "Error uploading the image",
-  "imageUploadHint": "You can upload up to {maxImages} images. Maximum size: 5MB per image."
+  "imageUploadHint": "You can upload up to {maxImages} images. Maximum size: 5MB per image.",
+  
+  // Seller Verification Welcome
+  "welcomeToSelling": "Welcome to Selling on YesmartUSA!",
+  "welcomeSellerSubtitle": "Start your journey as a seller and reach thousands of buyers",
+  "verificationRequired": "Before you can start selling, you need to complete your payment setup and verify your account.",
+  "stepsToStart": "Steps to Get Started:",
+  "sellerStep1Title": "Complete Your Store Settings",
+  "sellerStep1Description": "Set up your store name and shipping address so buyers know who you are.",
+  "sellerStep2Title": "Configure Payment Method",
+  "sellerStep2Description": "Connect your Stripe account to receive payments from your sales. Verification typically takes 5 minutes to 24 hours.",
+  "sellerStep3Title": "Start Selling!",
+  "sellerStep3Description": "Once verified, you can list products and start earning right away.",
+  "setupPaymentMethod": "Set Up Payment Method",
+  "verificationTimeTitle": "Quick Verification",
+  "verificationTimeDescription": "Most sellers are verified within 5-15 minutes. You'll receive an email once your account is ready to start selling."
 }
 
 const translationsES: Record<string, string> = {
@@ -1109,5 +1124,20 @@ const translationsES: Record<string, string> = {
   "zoom": "Zoom",
   "saving": "Guardando...",
   "imageUploadError": "Error al subir la imagen",
-  "imageUploadHint": "Puedes subir hasta {maxImages} imágenes. Tamaño máximo: 5MB por imagen."
+  "imageUploadHint": "Puedes subir hasta {maxImages} imágenes. Tamaño máximo: 5MB por imagen.",
+  
+  // Bienvenida de Verificación del Vendedor
+  "welcomeToSelling": "¡Bienvenido a Vender en YesmartUSA!",
+  "welcomeSellerSubtitle": "Comienza tu viaje como vendedor y llega a miles de compradores",
+  "verificationRequired": "Antes de poder comenzar a vender, necesitas completar la configuración de pagos y verificar tu cuenta.",
+  "stepsToStart": "Pasos para Comenzar:",
+  "sellerStep1Title": "Completa la Configuración de tu Tienda",
+  "sellerStep1Description": "Configura el nombre de tu tienda y dirección de envío para que los compradores sepan quién eres.",
+  "sellerStep2Title": "Configura el Método de Pago",
+  "sellerStep2Description": "Conecta tu cuenta de Stripe para recibir pagos de tus ventas. La verificación típicamente toma de 5 minutos a 24 horas.",
+  "sellerStep3Title": "¡Comienza a Vender!",
+  "sellerStep3Description": "Una vez verificado, puedes publicar productos y comenzar a ganar de inmediato.",
+  "setupPaymentMethod": "Configurar Método de Pago",
+  "verificationTimeTitle": "Verificación Rápida",
+  "verificationTimeDescription": "La mayoría de los vendedores son verificados en 5-15 minutos. Recibirás un correo electrónico una vez que tu cuenta esté lista para comenzar a vender."
 }

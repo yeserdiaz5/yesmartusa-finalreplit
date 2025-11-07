@@ -20,6 +20,8 @@ export interface User {
     country: string
   } | null
   stripe_connect_account_id: string | null
+  stripe_account_verified: boolean
+  stripe_account_verified_at: string | null
   created_at: string
   updated_at: string
 }
