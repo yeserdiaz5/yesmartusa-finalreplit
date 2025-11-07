@@ -334,17 +334,18 @@ export default function ProductForm({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brand">{t("productBrand")}</Label>
+            <div>
+              <Label htmlFor="brand">{t("productBrand")} *</Label>
               <Input
                 id="brand"
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                 placeholder={t("productBrandPlaceholder")}
                 disabled={isNoBrand}
+                required
                 data-testid="input-brand"
               />
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2">
                 <Checkbox
                   id="no-brand"
                   checked={isNoBrand}
@@ -368,10 +369,11 @@ export default function ProductForm({
             </div>
 
             <div>
-              <Label htmlFor="condition">{t("productCondition")}</Label>
+              <Label htmlFor="condition">{t("productCondition")} *</Label>
               <Select
                 value={formData.condition}
                 onValueChange={(value) => setFormData({ ...formData, condition: value as "new" | "like_new" | "used" | "refurbished" | "open_box" | "for_parts" })}
+                required
               >
                 <SelectTrigger id="condition" data-testid="select-condition">
                   <SelectValue placeholder={t("productConditionPlaceholder")} />
@@ -540,7 +542,7 @@ export default function ProductForm({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>{t("categories")}</CardTitle>
+          <CardTitle>{t("categories")} *</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
