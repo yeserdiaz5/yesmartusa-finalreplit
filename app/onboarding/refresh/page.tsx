@@ -23,13 +23,11 @@ export default function OnboardingRefreshPage() {
           throw new Error("Failed to get Stripe account")
         }
 
-        const { accountId } = await accountResponse.json()
+        await accountResponse.json()
 
-        // Create new onboarding link
+        // Create new onboarding link (accountId is fetched from database)
         const linkResponse = await fetch("/api/stripe/create-onboarding-link", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accountId }),
         })
 
         if (!linkResponse.ok) {

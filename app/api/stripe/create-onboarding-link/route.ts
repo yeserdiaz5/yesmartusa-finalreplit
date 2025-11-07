@@ -17,14 +17,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { accountId } = await req.json()
+    // Get user data - NEVER trust client-supplied account IDs for security
+    const { data: userData } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .single()
 
-    if (!accountId) {
+    if (!userData || !userData.stripe_connect_account_id) {
       return NextResponse.json(
-        { error: "accountId requerido" },
-        { status: 400 }
+        { error: "No tienes una cuenta de Stripe Connect. Por favor crea una primero." },
+        { status: 404 }
       )
     }
+
+    const accountId = userData.stripe_connect_account_id
 
     // Determine base URL based on environment
     let baseUrl: string
