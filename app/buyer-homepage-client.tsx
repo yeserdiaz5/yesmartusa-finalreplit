@@ -2,12 +2,13 @@
 
 import type React from "react"
 import { useState, useMemo, useEffect } from "react"
-import { Star, Search, ShoppingCart, Plus, Minus, MapPin, Clock } from "lucide-react"
+import { Star, Search, ShoppingCart, Plus, Minus, MapPin, Clock, Image as ImageIcon, X, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import SiteHeader from "@/components/site-header"
 import type { User } from "@/lib/types/database"
 import Link from "next/link"
@@ -313,6 +314,11 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
   const [priceRange, setPriceRange] = useState([0, 200])
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [imageSearchOpen, setImageSearchOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [imageSearching, setImageSearching] = useState(false)
+  const [imageSearchResults, setImageSearchResults] = useState<any[]>([])
+  const [isImageSearch, setIsImageSearch] = useState(false)
   const { toast } = useToast()
   const { location: buyerLocation } = useBuyerLocation()
   const { t } = useLanguage()
@@ -329,7 +335,95 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
     setSearchQuery(query)
   }
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleImageSearch = async () => {
+    if (!selectedImage) {
+      toast({
+        title: "Error",
+        description: t("noImageSelected"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    setImageSearching(true)
+    
+    try {
+      const response = await fetch("/api/search-by-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image: selectedImage }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        const productCount = data.products?.length || 0
+        
+        setImageSearchResults(data.products || [])
+        setIsImageSearch(true)
+        setSearchQuery("") // Clear text search
+        setImageSearchOpen(false)
+        
+        if (productCount === 0) {
+          toast({
+            title: t("imageSearchResults"),
+            description: t("noSimilarProducts"),
+          })
+        } else {
+          toast({
+            title: t("imageSearchResults"),
+            description: t("foundSimilarProducts", { 
+              count: productCount, 
+              plural: productCount > 1 ? 's' : '' 
+            }),
+          })
+        }
+      } else {
+        // Keep modal open on error
+        toast({
+          title: "Error",
+          description: data.error || t("imageSearchFailed"),
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Image search error:", error)
+      // Keep modal open on error
+      toast({
+        title: "Error",
+        description: t("imageSearchFailedRetry"),
+        variant: "destructive",
+      })
+    } finally {
+      setImageSearching(false)
+    }
+  }
+
+  const clearImageSearch = () => {
+    setIsImageSearch(false)
+    setImageSearchResults([])
+    setSelectedImage(null)
+  }
+
   const filteredProducts = useMemo(() => {
+    // If image search is active, use image search results
+    if (isImageSearch) {
+      return imageSearchResults
+    }
+    
     return products.filter((product) => {
       if (searchQuery.trim() !== "") {
         const query = searchQuery.toLowerCase()
@@ -353,7 +447,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
 
       return true
     })
-  }, [products, searchQuery, selectedCategories, priceRange])
+  }, [products, searchQuery, selectedCategories, priceRange, isImageSearch, imageSearchResults])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -416,27 +510,42 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
           <main className="flex-1">
             <div className="mb-6">
               <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={t("searchProducts")}
-                    className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        setSearchQuery(e.currentTarget.value)
-                      }
-                    }}
-                  />
-                  <button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md transition-colors"
-                    onClick={() => setSearchQuery(searchQuery)}
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      placeholder={t("searchProducts")}
+                      className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          setSearchQuery(e.currentTarget.value)
+                        }
+                      }}
+                      disabled={isImageSearch}
+                      data-testid="input-search-products"
+                    />
+                    <button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md transition-colors disabled:opacity-50"
+                      onClick={() => setSearchQuery(searchQuery)}
+                      disabled={isImageSearch}
+                      data-testid="button-search"
+                    >
+                      <Search className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="default"
+                    className="px-4 py-3 h-auto"
+                    onClick={() => setImageSearchOpen(true)}
+                    data-testid="button-image-search"
                   >
-                    <Search className="w-5 h-5" />
-                  </button>
+                    <ImageIcon className="w-5 h-5" />
+                  </Button>
                 </div>
-                {searchQuery && (
+                {searchQuery && !isImageSearch && (
                   <div className="mt-3">
                     <p className="text-sm text-gray-600">
                       {t("searchResultsFor")} <span className="font-semibold">"{searchQuery}"</span>
@@ -445,6 +554,23 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                         size="sm"
                         className="ml-2 text-blue-600"
                         onClick={() => setSearchQuery("")}
+                        data-testid="button-clear-search"
+                      >
+                        {t("clearSearch")}
+                      </Button>
+                    </p>
+                  </div>
+                )}
+                {isImageSearch && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600">
+                      {t("imageSearchActive")} <span className="font-semibold">({imageSearchResults.length} results)</span>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="ml-2 text-blue-600"
+                        onClick={clearImageSearch}
+                        data-testid="button-clear-image-search"
                       >
                         {t("clearSearch")}
                       </Button>
@@ -483,6 +609,74 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
           </main>
         </div>
       </div>
+
+      {/* Image Search Modal */}
+      <Dialog open={imageSearchOpen} onOpenChange={setImageSearchOpen}>
+        <DialogContent className="sm:max-w-md" data-testid="dialog-image-search">
+          <DialogHeader>
+            <DialogTitle>{t("searchByImage")}</DialogTitle>
+            <DialogDescription>{t("uploadImageToSearch")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+              {selectedImage ? (
+                <div className="relative">
+                  <img
+                    src={selectedImage}
+                    alt="Selected"
+                    className="max-h-64 mx-auto rounded-lg"
+                    data-testid="img-selected-preview"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                    onClick={() => setSelectedImage(null)}
+                    data-testid="button-remove-image"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <label htmlFor="image-upload" className="cursor-pointer block">
+                  <Upload className="w-12 h-12 mx-auto text-gray-400 mb-3" />
+                  <p className="text-sm text-gray-600 mb-2">{t("dragAndDropOrClick")}</p>
+                  <p className="text-xs text-gray-400">{t("supportedFormats")}</p>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                    data-testid="input-image-upload"
+                  />
+                </label>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setImageSearchOpen(false)
+                  setSelectedImage(null)
+                }}
+                data-testid="button-cancel-image-search"
+              >
+                {t("cancel")}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleImageSearch}
+                disabled={!selectedImage || imageSearching}
+                data-testid="button-search-by-image"
+              >
+                {imageSearching ? t("searching") : t("search")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
