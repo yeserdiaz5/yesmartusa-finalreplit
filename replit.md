@@ -38,7 +38,7 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, image search, store pages, authentication pages, buyer/seller profiles, and navigation menus.
 
 ### Technical Implementations
-- **Stripe Connect**: Onboarding, account creation, and functions for balance, payout history, and account management.
+- **Stripe Connect**: Onboarding, account creation, and functions for balance, payout history, and account management. Environment-aware URL configuration automatically uses `https://yesmartusa.com` in production (`REPLIT_DEPLOYMENT=1`) and Replit dev URLs in development for proper redirect handling after onboarding.
 - **Stripe Webhooks**: Two webhook endpoints - `/api/webhooks/stripe` for checkout completion and `/api/stripe-webhook` for account verification. The account webhook listens for `account.updated` events to automatically verify/unverify sellers based on `charges_enabled` and `payouts_enabled` status.
 - **Email Notifications**: Resend integration for automated seller welcome emails (English). Emails are sanitized to prevent HTML injection and follow no-emoji guidelines.
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage for backup, with a secure API for retrieval.

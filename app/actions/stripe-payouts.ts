@@ -66,12 +66,23 @@ export async function getOrCreateStripeAccount(userId: string, email: string) {
  */
 export async function createStripeAccountLink(accountId: string) {
   try {
-    // Use Replit public URL or configured redirect URL
-    const baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || 
-                    (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000")
+    // Determine base URL based on environment
+    // In production (REPLIT_DEPLOYMENT=1), use the production domain
+    // In development, use the Replit dev URL or localhost
+    let baseUrl: string
+    
+    if (process.env.REPLIT_DEPLOYMENT === "1") {
+      // Production environment - use production domain
+      baseUrl = "https://yesmartusa.com"
+    } else {
+      // Development environment - use Replit dev URL or localhost
+      baseUrl = process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || 
+                (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : "http://localhost:5000")
+    }
     
     console.log("[v0] Creating account link with baseUrl:", baseUrl)
     console.log("[v0] Account ID:", accountId)
+    console.log("[v0] Environment:", process.env.REPLIT_DEPLOYMENT === "1" ? "PRODUCTION" : "DEVELOPMENT")
     
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
