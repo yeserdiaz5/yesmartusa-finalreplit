@@ -22,9 +22,9 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Database Schema**: PostgreSQL with `subscribers` table and Zod schemas.
 
 ### UI/UX Decisions
-- **Seller Tools**: Dedicated earnings panel (Stripe stats, onboarding, payout history) and a simplified dashboard for product listings.
-- **User Interface Elements**: Dynamic user banners, universal clickable product links, optimized cart with real-time updates.
-- **Order Management**: Tabbed interfaces for both sellers (`/my-orders`) and buyers (`/compras`), categorizing orders by status (Paid, Shipped, Cancelled). Includes automated order cancellation with Stripe refunds and detailed order tracking with carrier-specific links.
+- **Seller Tools**: Dedicated earnings panel (Stripe stats, onboarding, payout history) and a simplified dashboard for product listings. Settings button moved to buyer profile page (`/compras`).
+- **User Interface Elements**: Dynamic user banners, universal clickable product links, optimized cart with real-time updates. Consistent product card design across homepage and store pages with Amazon-style presentation (ratings, reviews, quantity controls, dual action buttons).
+- **Order Management**: Tabbed interfaces for both sellers (`/seller/my-orders`) and buyers (`/compras`), categorizing orders by status (Paid, Shipped, Cancelled). Includes automated order cancellation with Stripe refunds and detailed order tracking with carrier-specific links. User menu redesigned to separate "Buyer Profile" and "Seller Profile" options.
 - **Shipping Policy System**: Per-product shipping policies (Seller Pays, Buyer Pays, Shared 50/50) defined in `products` table, with dynamic calculation and display in cart and checkout.
 - **Package Dimensions System**: Sellers input package dimensions (`package_length`, `package_width`, `package_height`, `package_weight`) for each product. The system automatically estimates shipping costs using Shippo API, pre-fills the `shipping_cost` field, and auto-populates dimensions for shipping label creation.
 - **Shipping Cost Flow & Profit**: Buyer pays product price + estimated shipping. Seller pays actual shipping cost. Profit/loss on shipping is managed by the difference between estimated and actual costs, with Stripe Connect handling transfers. Estimated costs are rounded up to mitigate seller losses.
