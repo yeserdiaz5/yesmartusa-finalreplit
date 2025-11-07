@@ -13,15 +13,23 @@ export function CartIcon() {
     let isAuthenticated = false
     
     const fetchCount = async () => {
-      // Try to get authenticated user cart count first
-      const result = await getCartCount()
-      
-      if (result.success && result.count !== undefined) {
-        // User is authenticated - use server count
-        isAuthenticated = true
-        setCount(result.count)
-      } else {
-        // User is not authenticated - use guest cart count
+      try {
+        // Try to get authenticated user cart count first
+        const result = await getCartCount()
+        
+        if (result && result.success && result.count !== undefined) {
+          // User is authenticated - use server count
+          isAuthenticated = true
+          setCount(result.count)
+        } else {
+          // User is not authenticated - use guest cart count
+          isAuthenticated = false
+          const guestCart = getGuestCart()
+          const guestCount = guestCart.reduce((sum, item) => sum + item.quantity, 0)
+          setCount(guestCount)
+        }
+      } catch (error) {
+        // On error, fallback to guest cart
         isAuthenticated = false
         const guestCart = getGuestCart()
         const guestCount = guestCart.reduce((sum, item) => sum + item.quantity, 0)
