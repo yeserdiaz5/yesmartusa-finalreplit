@@ -22,10 +22,10 @@ export default async function PagosPage({
     redirect("/auth/login")
   }
 
-  // Check if user is a seller
+  // Get user data - ANY authenticated user can be a seller
   const { data: userData } = await supabase.from("users").select("*").eq("id", user.id).single()
 
-  if (!userData || (userData.role !== "seller" && userData.role !== "admin")) {
+  if (!userData) {
     redirect("/")
   }
 

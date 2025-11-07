@@ -22,6 +22,7 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Database Schema**: PostgreSQL with `subscribers` table and Zod schemas.
 
 ### UI/UX Decisions
+- **Open Marketplace**: Any authenticated user can sell products. No role restrictions - the platform is designed as an open marketplace where everyone can be both a buyer and seller.
 - **Seller Verification System**: Automatic seller verification via Stripe Connect webhooks. Unverified sellers see a welcome screen with setup instructions and can only access payment configuration. Once Stripe approves their account (typically 5-15 minutes), the system automatically updates the database and sends an English welcome email via Resend. The full seller dashboard unlocks after verification. The system also handles account deactivation - if Stripe disables charges or payouts, sellers are automatically unverified and restricted again.
 - **Seller Tools**: Dedicated earnings panel (Stripe stats, onboarding, payout history) and a simplified dashboard for product listings. Settings button moved to buyer profile page (`/compras`).
 - **User Interface Elements**: Dynamic user banners, universal clickable product links, optimized cart with real-time updates. Consistent product card design across homepage and store pages with Amazon-style presentation (ratings, reviews, quantity controls, dual action buttons).
