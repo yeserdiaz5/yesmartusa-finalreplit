@@ -6,7 +6,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  Settings,
   DollarSign,
   ShoppingBag,
 } from "lucide-react"
@@ -45,12 +44,6 @@ export default function SellerDashboardClient({ user, products }: SellerDashboar
                 <Button variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100" data-testid="button-my-orders">
                   <ShoppingBag className="w-4 h-4 mr-2" />
                   {t("myOrdersButton")}
-                </Button>
-              </Link>
-              <Link href="/seller/settings">
-                <Button variant="outline" data-testid="button-settings">
-                  <Settings className="w-4 h-4 mr-2" />
-                  {t("settings")}
                 </Button>
               </Link>
               <Link href="/seller/pagos">

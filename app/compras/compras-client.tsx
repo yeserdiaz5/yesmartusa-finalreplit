@@ -3,10 +3,11 @@
 import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SiteHeader from "@/components/site-header"
 import type { User, CompraWithItems, OrderItem, Product } from "@/lib/types/database"
-import { Package, Calendar, DollarSign, Truck, ExternalLink } from "lucide-react"
+import { Package, Calendar, DollarSign, Truck, ExternalLink, Settings } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { CancelOrderDialog } from "@/components/cancel-order-dialog"
@@ -236,11 +237,26 @@ export default function ComprasClient({ user, compras = [] }: ComprasClientProps
   return (
     <div className="min-h-screen bg-gray-50">
       <SiteHeader user={user} />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("myPurchasesTitle")}</h1>
-          <p className="text-gray-600">{t("myPurchasesSubtitle")}</p>
+      
+      {/* Secondary header with settings button */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">{t("myPurchasesTitle")}</h1>
+              <p className="text-gray-600">{t("myPurchasesSubtitle")}</p>
+            </div>
+            <Link href="/seller/settings">
+              <Button variant="outline" data-testid="button-settings">
+                <Settings className="w-4 h-4 mr-2" />
+                {t("settings")}
+              </Button>
+            </Link>
+          </div>
         </div>
+      </div>
+      
+      <main className="container mx-auto px-4 py-8">
 
         {!Array.isArray(compras) || compras.length === 0 ? (
           <Card>
