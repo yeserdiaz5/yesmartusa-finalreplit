@@ -6,6 +6,7 @@ import {
   getPayoutSchedule,
   markAccountOnboardingComplete,
 } from "@/app/actions/stripe-payouts"
+import { sendSellerReviewEmail } from "@/lib/email/welcome-seller"
 
 export default async function PagosPage({
   searchParams,
@@ -29,9 +30,21 @@ export default async function PagosPage({
     redirect("/")
   }
 
-  // Si viene de completar el onboarding de Stripe, marcar como completado
+  // Si viene de completar el onboarding de Stripe, marcar como completado y enviar email
   if (searchParams.setup === "complete") {
     await markAccountOnboardingComplete(user.id)
+    
+    // Send review email to seller
+    try {
+      await sendSellerReviewEmail({
+        to: user.email || "",
+        sellerName: userData.full_name || user.email || "Seller",
+      })
+      console.log("[v0] Review email sent to seller:", user.email)
+    } catch (error) {
+      console.error("[v0] Failed to send review email:", error)
+      // Don't block the user flow if email fails
+    }
   }
 
   // Get payout stats
