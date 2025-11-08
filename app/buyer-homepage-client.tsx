@@ -380,7 +380,8 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
     setImageSearching(true)
     
     try {
-      const response = await fetch("/api/search-by-image", {
+      // Use vector-based image search for more accurate results
+      const response = await fetch("/api/search-by-image-vector", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -461,7 +462,8 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
         const base64Image = reader.result as string
         
         try {
-          const searchResponse = await fetch("/api/search-by-image", {
+          // Use vector-based image search for more accurate results
+          const searchResponse = await fetch("/api/search-by-image-vector", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

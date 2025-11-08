@@ -1,8 +1,10 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import type { Product, ShippingPolicy, ProductCondition } from "@/lib/types/database"
+import { updateProductEmbedding } from "@/lib/embeddings"
 
 export interface CreateProductInput {
   title: string
@@ -95,6 +97,15 @@ export async function createProduct(input: CreateProductInput) {
     await supabase.from("product_tags").insert(tagInserts)
   }
 
+  // Generate embedding asynchronously (don't wait for completion)
+  const imageUrl = input.image_url || input.images?.[0]
+  if (imageUrl && process.env.OPENAI_API_KEY) {
+    const adminClient = createAdminClient()
+    updateProductEmbedding(adminClient, product.id, imageUrl).catch((error) => {
+      console.error(`[Create Product] Failed to generate embedding for product ${product.id}:`, error)
+    })
+  }
+
   revalidatePath("/seller")
   return { data: product }
 }
@@ -175,6 +186,15 @@ export async function updateProduct(input: UpdateProductInput) {
       }))
       await supabase.from("product_tags").insert(tagInserts)
     }
+  }
+
+  // Regenerate embedding if image was updated
+  const imageUrl = input.image_url || input.images?.[0]
+  if ((input.image_url !== undefined || input.images !== undefined) && imageUrl && process.env.OPENAI_API_KEY) {
+    const adminClient = createAdminClient()
+    updateProductEmbedding(adminClient, input.id, imageUrl).catch((error) => {
+      console.error(`[Update Product] Failed to generate embedding for product ${input.id}:`, error)
+    })
   }
 
   revalidatePath("/seller")
