@@ -36,6 +36,14 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Product Gallery**: Amazon-style product image gallery with large main image (500px), always-visible thumbnails in 5-column grid, hover effects, and clickable image switching. Uses object-contain to show full images.
 - **Enhanced Search System**: 
   - **Amazon-Style Search Bar**: Redesigned main search bar with prominent yellow gradient styling, dedicated search icon, and integrated "Search by Image" button with blue gradient for high visibility
+  - **Real-Time Camera Capture**: Google Lens-style camera interface for scanning products in real-time:
+    - Full-screen camera view with live preview
+    - Visual scanning frame (corner markers)
+    - Front/rear camera switching with flip button
+    - Instant photo capture with search integration
+    - Robust permission handling and error recovery
+    - Auto-cleanup of camera streams on close
+  - **Dual Image Input Options**: Modal offers both camera capture (primary, dark UI) and file upload (secondary) with clear visual separation
   - **Drag-and-Drop Image Search**: Professional modal interface with real-time drag-and-drop support, large image preview (up to 384px), visual feedback for drag states, and "How it works" educational section
   - **Find Similar Products Feature**: Amazon-style "More Like This" functionality - each product card includes a blue-themed button that automatically converts the product image to base64 and searches for visually similar products
   - **Advanced Vector Image Search (pgvector)**: Semantic similarity search using hybrid AI approach:
