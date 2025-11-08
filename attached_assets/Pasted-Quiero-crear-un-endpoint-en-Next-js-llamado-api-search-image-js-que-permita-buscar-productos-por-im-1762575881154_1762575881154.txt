@@ -1,0 +1,95 @@
+Quiero crear un endpoint en Next.js llamado /api/search-image.js que permita buscar productos por imagen usando la API de OpenAI.
+
+Instrucciones paso a paso:
+
+1. Instala estas dependencias:
+   npm install openai formidable @supabase/supabase-js
+
+2. Configura las variables de entorno en .env.local:
+   OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxx
+   SUPABASE_URL=https://xxxxx.supabase.co
+   SUPABASE_SERVICE_KEY=xxxxxxxxxxxxxxxxxx
+
+3. Crea el archivo /pages/api/search-image.js con este código:
+
+import formidable from "formidable";
+import fs from "fs";
+import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
+
+export const config = {
+  api: { bodyParser: false },
+};
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
+export default async function handler(req, res) {
+  try {
+    const form = new formidable.IncomingForm();
+    form.parse(req, async (err, fields, files) => {
+      if (err) throw err;
+
+      const filePath = files.image.filepath;
+      const imageBuffer = fs.readFileSync(filePath);
+
+      // Generar embedding visual de la imagen con OpenAI
+      const embeddingResponse = await openai.embeddings.create({
+        model: "text-embedding-3-large",
+        input: imageBuffer.toString("base64"),
+      });
+
+      const imageVector = embeddingResponse.data[0].embedding;
+
+      // Buscar productos similares en Supabase
+      const { data: results, error } = await supabase.rpc("match_products", {
+        query_embedding: imageVector,
+        match_threshold: 0.75,
+        match_count: 10,
+      });
+
+      if (error) throw error;
+      res.status(200).json({ results });
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+}
+
+4. En Supabase, crea la columna de embeddings en la tabla products:
+   ALTER TABLE products ADD COLUMN embedding vector(1536);
+
+5. Crea esta función RPC en Supabase para buscar coincidencias:
+
+create function match_products(
+  query_embedding vector(1536),
+  match_threshold float,
+  match_count int
+)
+returns table(id uuid, name text, image_url text, similarity float)
+language sql stable as $$
+  select
+    id,
+    name,
+    image_url,
+    1 - (products.embedding <=> query_embedding) as similarity
+  from products
+  where 1 - (products.embedding <=> query_embedding) > match_threshold
+  order by similarity desc
+  limit match_count;
+$$;
+
+6. Luego, crea un componente frontend con un input tipo file para subir una imagen y enviarla al endpoint /api/search-image usando fetch y FormData.
+
+Objetivo final:
+- El usuario sube una imagen.
+- OpenAI genera su embedding.
+- Supabase devuelve los productos más parecidos visualmente.
+- Mostrar los resultados (nombre, imagen, similitud) en el frontend.
