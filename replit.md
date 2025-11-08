@@ -34,7 +34,12 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Image Editing & Cropping**: `react-easy-crop` integration for client-side image cropping (1:1 aspect ratio, zoom 0.5x-3x, free repositioning) before uploading to Supabase Storage.
 - **Product Details System**: Products include optional `brand` (text) and `condition` fields with 6 eBay-style options (new, like_new, used, refurbished, open_box, for_parts). Brand field features "No brand (Generic)" checkbox for auto-fill. Fully integrated with i18n translations for both English and Spanish.
 - **Product Gallery**: Amazon-style product image gallery with large main image (500px), always-visible thumbnails in 5-column grid, hover effects, and clickable image switching. Uses object-contain to show full images.
-- **Image Search**: Visual product search functionality using GPT-4o Vision API. Users can upload product images to find similar items in the marketplace. Features drag-and-drop modal interface, real-time image analysis, and keyword-based product matching.
+- **Enhanced Search System**: 
+  - **Amazon-Style Search Bar**: Redesigned main search bar with prominent yellow gradient styling, dedicated search icon, and integrated "Search by Image" button with blue gradient for high visibility
+  - **Drag-and-Drop Image Search**: Professional modal interface with real-time drag-and-drop support, large image preview (up to 384px), visual feedback for drag states, and "How it works" educational section
+  - **Find Similar Products Feature**: Amazon-style "More Like This" functionality - each product card includes a blue-themed button that automatically converts the product image to base64 and searches for visually similar products using GPT-4o Vision API
+  - **Visual Search Results**: Dedicated results banner with product count, clear visual distinction (blue theme) for image search mode, and one-click "Clear Search" to return to regular browsing
+  - **Seamless Integration**: Image search results use the same grid layout and filtering as text search, with automatic scroll-to-top and toast notifications for user feedback
 - **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, image search, store pages, authentication pages, buyer/seller profiles, and navigation menus.
 
 ### Technical Implementations
