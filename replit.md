@@ -37,7 +37,15 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Enhanced Search System**: 
   - **Amazon-Style Search Bar**: Redesigned main search bar with prominent yellow gradient styling, dedicated search icon, and integrated "Search by Image" button with blue gradient for high visibility
   - **Drag-and-Drop Image Search**: Professional modal interface with real-time drag-and-drop support, large image preview (up to 384px), visual feedback for drag states, and "How it works" educational section
-  - **Find Similar Products Feature**: Amazon-style "More Like This" functionality - each product card includes a blue-themed button that automatically converts the product image to base64 and searches for visually similar products using GPT-4o Vision API
+  - **Find Similar Products Feature**: Amazon-style "More Like This" functionality - each product card includes a blue-themed button that automatically converts the product image to base64 and searches for visually similar products
+  - **Advanced Vector Image Search (pgvector)**: Semantic similarity search using hybrid AI approach:
+    - **Step 1**: GPT-4o Vision analyzes uploaded image and generates detailed description (color, material, texture, design, brand, features, style)
+    - **Step 2**: text-embedding-3-small creates 1536-dimensional vector embedding from description
+    - **Step 3**: PostgreSQL pgvector performs cosine similarity search (≥70% threshold) using HNSW index
+    - Automatic embedding generation on product creation/update via background jobs
+    - Batch processing tools for existing products (`scripts/generate-product-embeddings.ts`, `/api/generate-embeddings`)
+    - More accurate than keyword search - finds visually similar products based on semantic meaning
+    - Requires SQL setup: `scripts/019_enable_pgvector_for_image_search.sql` and `scripts/020_create_vector_search_function.sql`
   - **Visual Search Results**: Dedicated results banner with product count, clear visual distinction (blue theme) for image search mode, and one-click "Clear Search" to return to regular browsing
   - **Seamless Integration**: Image search results use the same grid layout and filtering as text search, with automatic scroll-to-top and toast notifications for user feedback
 - **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, image search, store pages, authentication pages, buyer/seller profiles, and navigation menus.
@@ -63,9 +71,12 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Authentication**: Supabase
 - **Payments**: Stripe
 - **Shipping Labels**: Shippo
-- **Database**: Neon Serverless PostgreSQL, Drizzle ORM
+- **Database**: Neon Serverless PostgreSQL with pgvector extension, Drizzle ORM
 - **UI/Styling**: Google Fonts (Inter, JetBrains Mono), Radix UI, class-variance-authority, Tailwind CSS
 - **State/Forms**: TanStack Query, React Hook Form with Zod
-- **AI Integration**: OpenAI (via Replit AI Integrations)
+- **AI Integration**: 
+  - OpenAI GPT-4o for product description generation
+  - OpenAI GPT-4o Vision for image analysis (vector search)
+  - OpenAI text-embedding-3-small for semantic embeddings (1536 dims)
 - **Image Processing**: `react-easy-crop`
 - **Email Service**: Resend for transactional emails
