@@ -556,20 +556,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader 
-        user={user} 
-        categories={categories}
-        searchQuery={searchQuery}
-        onSearch={setSearchQuery}
-        onImageSearch={() => setImageSearchOpen(true)}
-        onCategoryChange={(categorySlug) => {
-          if (categorySlug === "") {
-            setSelectedCategories([])
-          } else {
-            setSelectedCategories([categorySlug])
-          }
-        }}
-      />
+      <SiteHeader user={user} />
 
       <div className="container mx-auto px-4 py-6">
         <div className="flex gap-6">
@@ -626,49 +613,97 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
           </aside>
 
           <main className="flex-1">
-            {/* Search Results Info Banner */}
-            {searchQuery && !isImageSearch && (
-              <div className="mb-4 bg-white rounded-lg p-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">{filteredProducts.length}</span> {t("results")} {t("for")} <span className="font-semibold text-gray-900">"{searchQuery}"</span>
-                  </p>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="text-blue-600 hover:text-blue-700"
-                    onClick={() => setSearchQuery("")}
-                    data-testid="button-clear-search"
-                  >
-                    {t("clearSearch")}
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {/* Image Search Results Info */}
-            {isImageSearch && (
-              <div className="mb-4 bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="w-5 h-5 text-blue-600" />
-                    <p className="text-sm text-blue-900 font-medium">
-                      {t("imageSearchActive")} - <span className="font-bold">{imageSearchResults.length}</span> {t("similarProducts")}
-                    </p>
+            {/* Amazon-style Search Bar */}
+            <div className="mb-6">
+              <div className="bg-white rounded-xl shadow-md p-2 mb-4">
+                <div className="flex items-center gap-2">
+                  {/* Search Input */}
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder={t("searchProducts")}
+                      className="w-full pl-12 pr-4 py-4 text-base rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:outline-none text-gray-900 transition-colors"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          setSearchQuery(e.currentTarget.value)
+                        }
+                      }}
+                      disabled={isImageSearch}
+                      data-testid="input-search-products"
+                    />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
-                    onClick={clearImageSearch}
-                    data-testid="button-clear-image-search"
+
+                  {/* Search Button */}
+                  <button
+                    className="bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 px-6 py-4 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                    onClick={() => setSearchQuery(searchQuery)}
+                    disabled={isImageSearch}
+                    data-testid="button-search"
                   >
-                    <X className="w-4 h-4 mr-1" />
-                    {t("clearSearch")}
-                  </Button>
+                    <Search className="w-5 h-5" />
+                  </button>
+
+                  {/* Image Search Button */}
+                  <button
+                    className="bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                    onClick={() => setImageSearchOpen(true)}
+                    data-testid="button-image-search"
+                  >
+                    <ImageIcon className="w-5 h-5" />
+                    <span className="hidden sm:inline">{t("searchByImage") || "Search by Image"}</span>
+                  </button>
                 </div>
+
+                {/* Search Results Info */}
+                {searchQuery && !isImageSearch && (
+                  <div className="mt-3 px-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-700">
+                        {filteredProducts.length} {t("results")} {t("for")} <span className="font-semibold text-gray-900">"{searchQuery}"</span>
+                      </p>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="text-blue-600 hover:text-blue-700"
+                        onClick={() => setSearchQuery("")}
+                        data-testid="button-clear-search"
+                      >
+                        {t("clearSearch")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Image Search Results Info */}
+                {isImageSearch && (
+                  <div className="mt-3 px-2">
+                    <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5 text-blue-600" />
+                        <p className="text-sm text-blue-900 font-medium">
+                          {t("imageSearchActive")} - <span className="font-bold">{imageSearchResults.length}</span> {t("similarProducts")}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+                        onClick={clearImageSearch}
+                        data-testid="button-clear-image-search"
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        {t("clearSearch")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* results header removed (count + sort selector) */}
 
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
