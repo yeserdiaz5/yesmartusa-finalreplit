@@ -73,6 +73,34 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
   - **Stage 2 - Welcome Email**: Sent via webhook when Stripe approves the account, confirming seller can now list products.
   - All emails are sanitized to prevent HTML injection and follow no-emoji guidelines.
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage for backup, with a secure API for retrieval.
+- **Automated Shipping Payment System**: Dual-flow shipping payment automation using Stripe Connect Transfers and Shippo:
+  - **Flow 1 - Buyer Pays Shipping** (`buyer_pays`):
+    - Checkout: Comprador paga producto + 100% shipping → plataforma recibe todo
+    - Label generation: Plataforma paga etiqueta a Shippo
+    - Payout: Vendedor recibe precio completo del producto via Stripe Transfer
+    - Result: Plataforma recupera el costo de shipping del dinero del comprador
+  - **Flow 2 - Seller Pays Shipping** (`seller_pays`):
+    - Checkout: Comprador paga solo el producto → plataforma recibe producto price
+    - Label generation: Plataforma paga etiqueta a Shippo
+    - Payout: Vendedor recibe (producto price - shipping cost) via Stripe Transfer
+    - Result: Vendedor efectivamente pagó el shipping, plataforma neutral
+  - **Flow 3 - Shared Shipping** (`shared`):
+    - Checkout: Comprador paga producto + 50% shipping → plataforma recibe ambos
+    - Label generation: Plataforma paga etiqueta completa a Shippo
+    - Payout: Vendedor recibe (producto price - 50% shipping) via Stripe Transfer
+    - Result: Costo de shipping dividido 50/50 entre comprador y vendedor
+  - **Deficit Handling**: Cuando shipping excede producto price (e.g., producto $10, shipping $15):
+    - Transfer al vendedor: $0 (no se transfiere nada)
+    - Registro en `shipping_charges`: Solo el deficit real ($5) con status "pending"
+    - Plataforma queda out-of-pocket por el deficit
+    - Sistema registra auditable debt del vendedor para futura reconciliación
+  - **Pre-Flight Verification**: Verifica que vendedor tenga Stripe Connect account verificada ANTES de generar etiqueta, previniendo desperdicio de labels si el payout fallaría
+  - **Tracking Table**: `shipping_charges` tabla PostgreSQL rastrea todos los cargos de shipping:
+    - `amount`: Monto que el vendedor debe (o deficit pendiente)
+    - `status`: "deducted" (exitosamente deducido del transfer) o "pending" (deficit no pagado)
+    - `deducted_at`: Timestamp de cuando se dedujo (null si pending)
+    - Solo inserta registros cuando vendedor es responsable (seller_pays o shared)
+  - **Implementation**: `/api/create-shipment-with-payment` endpoint maneja verificación, generación de etiqueta, transfer a vendedor, y registro de cargos en una transacción coordinada
 
 ## External Dependencies
 

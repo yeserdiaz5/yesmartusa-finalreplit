@@ -34,7 +34,9 @@ export async function createStripeCheckoutSession(
           description,
           price,
           stock_quantity,
-          seller_id
+          seller_id,
+          shipping_policy,
+          shipping_cost
         )
       `)
       .eq("user_id", user.id)
@@ -52,10 +54,31 @@ export async function createStripeCheckoutSession(
     cartItems = guestCartItems
   }
 
-  const totalAmount = cartItems.reduce((sum, item) => {
+  // Calculate product total
+  const productTotal = cartItems.reduce((sum, item) => {
     const price = isGuest ? item.product.price : item.product.price
     return sum + price * item.quantity
   }, 0)
+
+  // Calculate shipping total (only when buyer pays or shared)
+  const shippingTotal = cartItems.reduce((sum, item) => {
+    const product = item.product
+    const shippingPolicy = product.shipping_policy
+    const shippingCost = product.shipping_cost || 0
+
+    // Buyer pays full shipping
+    if (shippingPolicy === 'buyer_pays') {
+      return sum + shippingCost * item.quantity
+    }
+    // Shared: buyer pays 50%
+    if (shippingPolicy === 'shared') {
+      return sum + (shippingCost * 0.5) * item.quantity
+    }
+    // Seller pays: buyer pays nothing
+    return sum
+  }, 0)
+
+  const totalAmount = productTotal + shippingTotal
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -109,6 +132,21 @@ export async function createStripeCheckoutSession(
     }
   })
 
+  // Add shipping as a separate line item if there's a shipping cost
+  if (shippingTotal > 0) {
+    lineItems.push({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: "Shipping",
+          description: "Shipping costs for your order",
+        },
+        unit_amount: Math.round(shippingTotal * 100), // Convert to cents
+      },
+      quantity: 1,
+    })
+  }
+
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: lineItems,
@@ -160,18 +198,18 @@ export async function updateOrderWithShippingAddress(orderId: string, sessionId:
     // Get shipping address from Stripe session
     const session = await stripe.checkout.sessions.retrieve(sessionId)
     
-    if (session.shipping_details) {
+    if (session.customer_details?.address) {
       const { error } = await supabase
         .from("orders")
         .update({
           shipping_address: {
-            name: session.shipping_details.name,
-            street: session.shipping_details.address?.line1,
-            street2: session.shipping_details.address?.line2,
-            city: session.shipping_details.address?.city,
-            state: session.shipping_details.address?.state,
-            zip: session.shipping_details.address?.postal_code,
-            country: session.shipping_details.address?.country,
+            name: session.customer_details.name || '',
+            street: session.customer_details.address.line1 || '',
+            street2: session.customer_details.address.line2 || undefined,
+            city: session.customer_details.address.city || '',
+            state: session.customer_details.address.state || '',
+            zip: session.customer_details.address.postal_code || '',
+            country: session.customer_details.address.country || '',
           },
           status: "paid",
           payment_intent_id: session.payment_intent as string,
