@@ -95,7 +95,13 @@ function ProductCard({
   product,
   userId,
   buyerLocation,
-}: { product: any; userId: string | null; buyerLocation: { latitude: number; longitude: number } | null }) {
+  onFindSimilar,
+}: { 
+  product: any
+  userId: string | null
+  buyerLocation: { latitude: number; longitude: number } | null
+  onFindSimilar: (productImageUrl: string, productTitle: string) => void
+}) {
   const router = useRouter()
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
@@ -303,6 +309,21 @@ function ProductCard({
           >
             {isAdding ? t("processing") : t("buyNow")}
           </Button>
+          
+          {/* More Like This Button - Amazon Style */}
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              onFindSimilar(product.image_url, product.title)
+            }}
+            className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 font-medium"
+            data-testid="button-find-similar"
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            {t("findSimilar") || "Find Similar Products"}
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -418,6 +439,90 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
     setSelectedImage(null)
   }
 
+  const handleFindSimilar = async (productImageUrl: string, productTitle: string) => {
+    if (!productImageUrl) {
+      toast({
+        title: "Error",
+        description: t("noImageAvailable") || "No image available for this product",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setImageSearching(true)
+    
+    try {
+      // Fetch the image and convert to base64
+      const response = await fetch(productImageUrl)
+      const blob = await response.blob()
+      
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string
+        
+        try {
+          const searchResponse = await fetch("/api/search-by-image", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ image: base64Image }),
+          })
+
+          const data = await searchResponse.json()
+
+          if (searchResponse.ok && data.success) {
+            const productCount = data.products?.length || 0
+            
+            setImageSearchResults(data.products || [])
+            setIsImageSearch(true)
+            setSearchQuery("")
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: "smooth" })
+            
+            if (productCount === 0) {
+              toast({
+                title: t("imageSearchResults"),
+                description: t("noSimilarProducts"),
+              })
+            } else {
+              toast({
+                title: t("foundSimilarProducts") || `Found ${productCount} similar products`,
+                description: t("similarTo") || `Similar to: ${productTitle}`,
+              })
+            }
+          } else {
+            toast({
+              title: "Error",
+              description: data.error || t("imageSearchFailed"),
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          console.error("Image search error:", error)
+          toast({
+            title: "Error",
+            description: t("imageSearchFailedRetry"),
+            variant: "destructive",
+          })
+        } finally {
+          setImageSearching(false)
+        }
+      }
+      
+      reader.readAsDataURL(blob)
+    } catch (error) {
+      console.error("Error loading product image:", error)
+      setImageSearching(false)
+      toast({
+        title: "Error",
+        description: t("couldNotLoadImage") || "Could not load product image",
+        variant: "destructive",
+      })
+    }
+  }
+
   const filteredProducts = useMemo(() => {
     // If image search is active, use image search results
     if (isImageSearch) {
@@ -508,14 +613,17 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
           </aside>
 
           <main className="flex-1">
+            {/* Amazon-style Search Bar */}
             <div className="mb-6">
-              <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
-                <div className="flex gap-2">
+              <div className="bg-white rounded-xl shadow-md p-2 mb-4">
+                <div className="flex items-center gap-2">
+                  {/* Search Input */}
                   <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
                       type="text"
                       placeholder={t("searchProducts")}
-                      className="w-full pl-4 pr-12 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                      className="w-full pl-12 pr-4 py-4 text-base rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:outline-none text-gray-900 transition-colors"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyPress={(e) => {
@@ -526,55 +634,70 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                       disabled={isImageSearch}
                       data-testid="input-search-products"
                     />
-                    <button
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md transition-colors disabled:opacity-50"
-                      onClick={() => setSearchQuery(searchQuery)}
-                      disabled={isImageSearch}
-                      data-testid="button-search"
-                    >
-                      <Search className="w-5 h-5" />
-                    </button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="default"
-                    className="px-4 py-3 h-auto"
+
+                  {/* Search Button */}
+                  <button
+                    className="bg-gradient-to-b from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 px-6 py-4 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                    onClick={() => setSearchQuery(searchQuery)}
+                    disabled={isImageSearch}
+                    data-testid="button-search"
+                  >
+                    <Search className="w-5 h-5" />
+                  </button>
+
+                  {/* Image Search Button */}
+                  <button
+                    className="bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                     onClick={() => setImageSearchOpen(true)}
                     data-testid="button-image-search"
                   >
                     <ImageIcon className="w-5 h-5" />
-                  </Button>
+                    <span className="hidden sm:inline">{t("searchByImage") || "Search by Image"}</span>
+                  </button>
                 </div>
+
+                {/* Search Results Info */}
                 {searchQuery && !isImageSearch && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-600">
-                      {t("searchResultsFor")} <span className="font-semibold">"{searchQuery}"</span>
+                  <div className="mt-3 px-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-700">
+                        {filteredProducts.length} {t("results")} {t("for")} <span className="font-semibold text-gray-900">"{searchQuery}"</span>
+                      </p>
                       <Button
                         variant="link"
                         size="sm"
-                        className="ml-2 text-blue-600"
+                        className="text-blue-600 hover:text-blue-700"
                         onClick={() => setSearchQuery("")}
                         data-testid="button-clear-search"
                       >
                         {t("clearSearch")}
                       </Button>
-                    </p>
+                    </div>
                   </div>
                 )}
+                
+                {/* Image Search Results Info */}
                 {isImageSearch && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-600">
-                      {t("imageSearchActive")} <span className="font-semibold">({imageSearchResults.length} results)</span>
+                  <div className="mt-3 px-2">
+                    <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5 text-blue-600" />
+                        <p className="text-sm text-blue-900 font-medium">
+                          {t("imageSearchActive")} - <span className="font-bold">{imageSearchResults.length}</span> {t("similarProducts")}
+                        </p>
+                      </div>
                       <Button
-                        variant="link"
+                        variant="ghost"
                         size="sm"
-                        className="ml-2 text-blue-600"
+                        className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
                         onClick={clearImageSearch}
                         data-testid="button-clear-image-search"
                       >
+                        <X className="w-4 h-4 mr-1" />
                         {t("clearSearch")}
                       </Button>
-                    </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -590,6 +713,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                     product={product}
                     userId={user?.id || null}
                     buyerLocation={buyerLocation}
+                    onFindSimilar={handleFindSimilar}
                   />
                 ))}
               </div>
@@ -610,38 +734,95 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
         </div>
       </div>
 
-      {/* Image Search Modal */}
+      {/* Image Search Modal - Enhanced with Drag & Drop */}
       <Dialog open={imageSearchOpen} onOpenChange={setImageSearchOpen}>
-        <DialogContent className="sm:max-w-md" data-testid="dialog-image-search">
+        <DialogContent className="sm:max-w-2xl" data-testid="dialog-image-search">
           <DialogHeader>
-            <DialogTitle>{t("searchByImage")}</DialogTitle>
-            <DialogDescription>{t("uploadImageToSearch")}</DialogDescription>
+            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+              <ImageIcon className="w-6 h-6 text-blue-600" />
+              {t("searchByImage")}
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              {t("uploadImageToSearch")} - {t("findSimilarProducts") || "Find similar products instantly"}
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+          <div className="space-y-6">
+            {/* Drop Zone */}
+            <div 
+              className={`border-4 border-dashed rounded-2xl p-12 text-center transition-all ${
+                selectedImage 
+                  ? "border-green-300 bg-green-50/30" 
+                  : "border-gray-300 hover:border-blue-400 hover:bg-blue-50/30"
+              }`}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.currentTarget.classList.add("border-blue-500", "bg-blue-100/50")
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove("border-blue-500", "bg-blue-100/50")
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                e.currentTarget.classList.remove("border-blue-500", "bg-blue-100/50")
+                const file = e.dataTransfer.files[0]
+                if (file && file.type.startsWith("image/")) {
+                  const reader = new FileReader()
+                  reader.onload = (e) => {
+                    const result = e.target?.result
+                    if (typeof result === "string") {
+                      setSelectedImage(result)
+                    }
+                  }
+                  reader.readAsDataURL(file)
+                }
+              }}
+            >
               {selectedImage ? (
                 <div className="relative">
                   <img
                     src={selectedImage}
                     alt="Selected"
-                    className="max-h-64 mx-auto rounded-lg"
+                    className="max-h-96 mx-auto rounded-xl shadow-lg border-4 border-white"
                     data-testid="img-selected-preview"
                   />
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-4 right-4 bg-red-500 hover:bg-red-600 shadow-lg"
                     onClick={() => setSelectedImage(null)}
                     data-testid="button-remove-image"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-4 h-4 mr-1" />
+                    {t("remove") || "Remove"}
                   </Button>
+                  <div className="mt-4 bg-green-100 border border-green-300 rounded-lg p-3">
+                    <p className="text-sm text-green-800 font-medium">
+                      {t("imageReady") || "Image ready to search!"} - {t("clickSearchBelow") || "Click search below"}
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <label htmlFor="image-upload" className="cursor-pointer block">
-                  <Upload className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                  <p className="text-sm text-gray-600 mb-2">{t("dragAndDropOrClick")}</p>
-                  <p className="text-xs text-gray-400">{t("supportedFormats")}</p>
+                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                    <Upload className="w-12 h-12 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {t("dragImageHere") || "Drag your image here"}
+                  </h3>
+                  <p className="text-base text-gray-600 mb-3">
+                    {t("orClickToUpload") || "or click to upload from your device"}
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                      JPG
+                    </Badge>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                      PNG
+                    </Badge>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                      WEBP
+                    </Badge>
+                  </div>
                   <input
                     id="image-upload"
                     type="file"
@@ -653,10 +834,12 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                 </label>
               )}
             </div>
-            <div className="flex gap-2">
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
               <Button
                 variant="outline"
-                className="flex-1"
+                className="flex-1 h-12 text-base"
                 onClick={() => {
                   setImageSearchOpen(false)
                   setSelectedImage(null)
@@ -666,13 +849,38 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                 {t("cancel")}
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 h-12 text-base bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                 onClick={handleImageSearch}
                 disabled={!selectedImage || imageSearching}
                 data-testid="button-search-by-image"
               >
-                {imageSearching ? t("searching") : t("search")}
+                {imageSearching ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {t("searching")}...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5 mr-2" />
+                    {t("search")}
+                  </>
+                )}
               </Button>
+            </div>
+
+            {/* How it works */}
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {t("howItWorks") || "How it works"}
+              </h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>1. {t("uploadProductImage") || "Upload a photo of any product"}</li>
+                <li>2. {t("aiAnalyzesImage") || "Our AI analyzes the image to identify the product"}</li>
+                <li>3. {t("showSimilarProducts") || "We show you similar products from our marketplace"}</li>
+              </ul>
             </div>
           </div>
         </DialogContent>
