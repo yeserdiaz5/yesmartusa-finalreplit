@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useMemo, useEffect } from "react"
-import { Star, Search, ShoppingCart, Plus, Minus, MapPin, Clock, Image as ImageIcon, X, Upload } from "lucide-react"
+import { Star, Search, ShoppingCart, Plus, Minus, MapPin, Clock, Image as ImageIcon, X, Upload, Camera } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -19,6 +19,7 @@ import { addToGuestCart } from "@/lib/guest-cart"
 import { useBuyerLocation } from "@/hooks/use-buyer-location"
 import { calculateDistance, getDeliveryTimeMessage, geocodeAddress } from "@/lib/geolocation"
 import { useLanguage } from "@/lib/i18n/LanguageContext"
+import { CameraCapture } from "@/components/camera-capture"
 
 interface BuyerHomepageClientProps {
   user: User | null
@@ -340,6 +341,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
   const [imageSearching, setImageSearching] = useState(false)
   const [imageSearchResults, setImageSearchResults] = useState<any[]>([])
   const [isImageSearch, setIsImageSearch] = useState(false)
+  const [showCamera, setShowCamera] = useState(false)
   const { toast } = useToast()
   const { location: buyerLocation } = useBuyerLocation()
   const { t } = useLanguage()
@@ -438,6 +440,17 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
     setIsImageSearch(false)
     setImageSearchResults([])
     setSelectedImage(null)
+  }
+
+  const handleCameraCapture = (imageDataUrl: string) => {
+    setSelectedImage(imageDataUrl)
+    setShowCamera(false)
+    setImageSearchOpen(true)
+  }
+
+  const handleOpenCamera = () => {
+    setImageSearchOpen(false)
+    setShowCamera(true)
   }
 
   const handleFindSimilar = async (productImageUrl: string, productTitle: string) => {
@@ -804,36 +817,66 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                   </div>
                 </div>
               ) : (
-                <label htmlFor="image-upload" className="cursor-pointer block">
-                  <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                    <Upload className="w-12 h-12 text-blue-600" />
+                <div className="space-y-4">
+                  {/* Camera Option - Primary */}
+                  <Button
+                    onClick={handleOpenCamera}
+                    className="w-full h-32 bg-gradient-to-br from-black to-gray-800 hover:from-gray-900 hover:to-black text-white flex flex-col items-center justify-center gap-3 rounded-2xl shadow-xl"
+                    data-testid="button-open-camera"
+                  >
+                    <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center">
+                      <Camera className="w-9 h-9 text-black" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xl font-bold">Usar Cámara</p>
+                      <p className="text-sm opacity-90">Escanea productos en tiempo real</p>
+                    </div>
+                  </Button>
+
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-4 bg-white text-gray-500">o</span>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {t("dragImageHere") || "Drag your image here"}
-                  </h3>
-                  <p className="text-base text-gray-600 mb-3">
-                    {t("orClickToUpload") || "or click to upload from your device"}
-                  </p>
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                      JPG
-                    </Badge>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                      PNG
-                    </Badge>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                      WEBP
-                    </Badge>
-                  </div>
-                  <input
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageSelect}
-                    data-testid="input-image-upload"
-                  />
-                </label>
+
+                  {/* Upload Option - Secondary */}
+                  <label htmlFor="image-upload" className="cursor-pointer block">
+                    <div className="border-2 border-gray-300 hover:border-blue-400 rounded-2xl p-8 text-center transition-all hover:bg-blue-50/30">
+                      <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                        <Upload className="w-10 h-10 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        {t("dragImageHere") || "Subir desde dispositivo"}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {t("orClickToUpload") || "Arrastra una imagen o haz clic aquí"}
+                      </p>
+                      <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          JPG
+                        </Badge>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          PNG
+                        </Badge>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          WEBP
+                        </Badge>
+                      </div>
+                    </div>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageSelect}
+                      data-testid="input-image-upload"
+                    />
+                  </label>
+                </div>
               )}
             </div>
 
@@ -887,6 +930,14 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Camera Capture - Full Screen */}
+      {showCamera && (
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onClose={() => setShowCamera(false)}
+        />
+      )}
     </div>
   )
 }
