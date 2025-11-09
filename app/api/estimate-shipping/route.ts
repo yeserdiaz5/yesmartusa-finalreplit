@@ -128,17 +128,19 @@ export async function POST(request: NextRequest) {
 
     const estimatedCost = parseFloat(cheapestRate.amount)
     const roundedCost = Math.ceil(estimatedCost) // Round up to nearest dollar
+    const finalCost = roundedCost + 0.99 // Add platform margin of $0.99
 
     console.log("[v0] Estimated shipping cost:", {
       raw: estimatedCost,
       rounded: roundedCost,
+      final_with_margin: finalCost,
       carrier: cheapestRate.provider,
       service: cheapestRate.servicelevel?.name,
     })
 
     return NextResponse.json({
       success: true,
-      estimated_cost: roundedCost,
+      estimated_cost: finalCost,
       raw_cost: estimatedCost,
       carrier: cheapestRate.provider,
       service: cheapestRate.servicelevel?.name || "Standard",
