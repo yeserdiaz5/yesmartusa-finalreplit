@@ -365,6 +365,7 @@ export default function ProductForm({
                 </Button>
                 <Button
                   type="button"
+                  variant="default"
                   onClick={handleImportFromAmazon}
                   disabled={importing || !importInput}
                   data-testid="button-confirm-import"
