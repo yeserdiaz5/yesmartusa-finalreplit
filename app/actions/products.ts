@@ -29,10 +29,12 @@ export interface CreateProductInput {
 }
 
 export interface VariantInput {
-  asin: string
+  asin?: string | null  // Optional for manual variants
   title: string
   price: number
-  image_url: string
+  stock_quantity: number  // Stock for each variant
+  image_url: string  // Main image (for backward compatibility)
+  images: string[]  // Multiple images for variant
   attributes: Record<string, string>
 }
 
@@ -157,11 +159,14 @@ export async function createProductWithVariants(
 
   // Validate variants up-front
   for (const variant of selectedVariants) {
-    if (!variant.asin || !variant.asin.trim()) {
-      return { error: "All variants must have a valid ASIN" }
-    }
     if (!variant.title || !variant.title.trim()) {
       return { error: "All variants must have a valid title" }
+    }
+    if (variant.price <= 0) {
+      return { error: "All variants must have a valid price" }
+    }
+    if (variant.stock_quantity < 0) {
+      return { error: "All variants must have valid stock quantity" }
     }
   }
 
@@ -234,9 +239,9 @@ export async function createProductWithVariants(
         title: variant.title,
         description: parentInput.description,
         price: variant.price,
-        stock_quantity: 0,
+        stock_quantity: variant.stock_quantity,  // Use stock from variant
         image_url: variant.image_url,
-        images: [variant.image_url],
+        images: variant.images.length > 0 ? variant.images : [variant.image_url],  // Use variant images or fallback
         brand: parentInput.brand || null,
         condition: parentInput.condition || null,
         is_active: true,
@@ -246,7 +251,7 @@ export async function createProductWithVariants(
         package_width: parentInput.package_width || null,
         package_height: parentInput.package_height || null,
         package_weight: parentInput.package_weight || null,
-        asin: variant.asin,
+        asin: variant.asin || null,  // Optional for manual variants
         attributes: variant.attributes,
       }))
 
