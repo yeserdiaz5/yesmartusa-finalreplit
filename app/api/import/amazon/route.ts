@@ -1,8 +1,27 @@
 import { type NextRequest, NextResponse } from "next/server"
 import axios from "axios"
 
+interface RainforestVariant {
+  asin?: string
+  title?: string
+  link?: string
+  image?: string
+  is_current_product?: boolean
+  price?: {
+    symbol?: string
+    value?: number
+    currency?: string
+    raw?: string
+  }
+  dimensions?: Array<{
+    name?: string
+    value?: string
+  }>
+}
+
 interface RainforestProduct {
   product?: {
+    asin?: string
     title?: string
     main_image?: {
       link?: string
@@ -19,6 +38,8 @@ interface RainforestProduct {
     }
     rating?: number
     ratings_total?: number
+    variants?: RainforestVariant[]
+    variants_count?: number
   }
 }
 
@@ -140,6 +161,28 @@ export async function POST(request: NextRequest) {
     const rating = productData.rating || 0
     const reviewsCount = productData.ratings_total || 0
 
+    // Extract and format variants
+    const variants = (productData.variants || []).map((variant) => {
+      // Extract variant attributes from dimensions
+      const attributes: Record<string, string> = {}
+      if (variant.dimensions && variant.dimensions.length > 0) {
+        variant.dimensions.forEach((dim) => {
+          if (dim.name && dim.value) {
+            attributes[dim.name.toLowerCase()] = dim.value
+          }
+        })
+      }
+
+      return {
+        asin: variant.asin || "",
+        title: variant.title || "",
+        image: variant.image || "",
+        price: variant.price?.value || 0,
+        attributes,
+        is_current: variant.is_current_product || false,
+      }
+    })
+
     const importedProduct = {
       title,
       main_image: mainImage,
@@ -151,8 +194,14 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[Amazon Import] Successfully imported product:", title)
+    console.log("[Amazon Import] Found", variants.length, "variants")
 
-    return NextResponse.json({ product: importedProduct })
+    return NextResponse.json({ 
+      product: importedProduct,
+      asin: asin,
+      variants: variants,
+      total_variants: productData.variants_count || 0,
+    })
   } catch (error: any) {
     console.error("[Amazon Import] Error:", error)
 
