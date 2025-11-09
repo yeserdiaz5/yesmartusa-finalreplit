@@ -47,14 +47,18 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
   - **Dual Image Input Options**: Modal offers both camera capture (primary, dark UI) and file upload (secondary) with clear visual separation
   - **Drag-and-Drop Image Search**: Professional modal interface with real-time drag-and-drop support, large image preview (up to 384px), visual feedback for drag states, and "How it works" educational section
   - **Find Similar Products Feature**: Amazon-style "More Like This" functionality - each product card includes a blue-themed button that automatically converts the product image to base64 and searches for visually similar products
-  - **Advanced Vector Image Search (pgvector)**: Semantic similarity search using hybrid AI approach:
-    - **Step 1**: GPT-4o Vision analyzes uploaded image and generates detailed description (color, material, texture, design, brand, features, style)
-    - **Step 2**: text-embedding-3-small creates 1536-dimensional vector embedding from description
-    - **Step 3**: PostgreSQL pgvector performs cosine similarity search (≥70% threshold) using HNSW index
-    - Automatic embedding generation on product creation/update via background jobs
-    - Batch processing tools for existing products (`scripts/generate-product-embeddings.ts`, `/api/generate-embeddings`)
-    - More accurate than keyword search - finds visually similar products based on semantic meaning
-    - Requires SQL setup: `scripts/019_enable_pgvector_for_image_search.sql` and `scripts/020_create_vector_search_function.sql`
+  - **Advanced Vector Image Search (Hugging Face CLIP + Pinecone)**: Free, scalable visual similarity search using CLIP embeddings:
+    - **Architecture**: Uses Hugging Face CLIP model (openai/clip-vit-base-patch32) + Pinecone vector database instead of OpenAI
+    - **Step 1**: Image uploaded by user (camera or file upload)
+    - **Step 2**: Hugging Face CLIP generates 512-dimensional visual embedding directly from image pixels
+    - **Step 3**: Pinecone vector database performs similarity search (≥60% threshold) across indexed products
+    - **Step 4**: Returns top 20 visually similar products with similarity scores
+    - **Model Loading**: Free tier models "sleep" when inactive - first request may take 5-30 seconds to warm up
+    - **Retry Logic**: Automatic retry with exponential backoff (3 attempts: 5s, 10s, 15s) for model loading states
+    - **Product Indexing**: Products automatically indexed to Pinecone on creation/update
+    - **Batch Tools**: `scripts/sync-products-to-pinecone.ts` for bulk indexing, `/api/index-product-to-pinecone` for manual single-product indexing
+    - **Cost**: 100% free using Hugging Face Inference API (free tier) + Pinecone (free starter plan)
+    - **Accuracy**: Direct visual embeddings more accurate than text-based search for product images
   - **Visual Search Results**: Dedicated results banner with product count, clear visual distinction (blue theme) for image search mode, and one-click "Clear Search" to return to regular browsing
   - **Seamless Integration**: Image search results use the same grid layout and filtering as text search, with automatic scroll-to-top and toast notifications for user feedback
 - **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support, stored in `localStorage`. Provides full bilingual coverage for key platform areas including product forms, galleries, seller tools, image search, store pages, authentication pages, buyer/seller profiles, and navigation menus.
@@ -112,9 +116,9 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **UI/Styling**: Google Fonts (Inter, JetBrains Mono), Radix UI, class-variance-authority, Tailwind CSS
 - **State/Forms**: TanStack Query, React Hook Form with Zod
 - **AI Integration**: 
-  - OpenAI GPT-4o for product description generation
-  - OpenAI GPT-4o Vision for image analysis (vector search)
-  - OpenAI text-embedding-3-small for semantic embeddings (1536 dims)
+  - OpenAI GPT-4o for product description generation (via Replit AI Integrations)
+  - **Hugging Face CLIP** (openai/clip-vit-base-patch32) for visual image embeddings (512 dimensions, free tier)
+  - **Pinecone** vector database for similarity search (yesmart-images index, free starter plan)
 - **Product Data Import**: Rainforest API for importing Amazon product data
 - **Image Processing**: `react-easy-crop`
 - **Email Service**: Resend for transactional emails
