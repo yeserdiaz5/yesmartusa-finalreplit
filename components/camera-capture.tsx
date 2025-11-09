@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react"
-import { Camera, X, Search, FlipHorizontal } from "lucide-react"
+import { Camera, X, Search, FlipHorizontal, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
@@ -11,6 +11,7 @@ interface CameraCaptureProps {
 export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -84,6 +85,42 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
 
   const toggleCamera = () => {
     setFacingMode((prev) => (prev === "user" ? "environment" : "user"))
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast({
+        variant: "destructive",
+        title: "Archivo inválido",
+        description: "Por favor selecciona una imagen válida",
+      })
+      return
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Imagen muy grande",
+        description: "Por favor selecciona una imagen menor a 10MB",
+      })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      stopCamera()
+      onCapture(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const openGallery = () => {
+    fileInputRef.current?.click()
   }
 
   return (
@@ -186,22 +223,36 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
             </Button>
           </div>
 
-          {/* Bottom Navigation Hint */}
+          {/* Bottom Navigation */}
           <div className="flex items-center justify-center gap-8 mt-6 text-white text-sm">
-            <div className="flex flex-col items-center gap-1 opacity-50">
+            <div className="flex flex-col items-center gap-1">
               <Camera className="h-5 w-5" />
               <span>Buscar</span>
             </div>
-            <div className="flex flex-col items-center gap-1 opacity-30">
-              <div className="h-5 w-5" />
+            <button 
+              onClick={openGallery}
+              className="flex flex-col items-center gap-1 hover:opacity-100 transition-opacity"
+              data-testid="button-open-gallery"
+            >
+              <Upload className="h-5 w-5" />
               <span>Cargar</span>
-            </div>
+            </button>
             <div className="flex flex-col items-center gap-1 opacity-30">
               <div className="h-5 w-5" />
               <span>Código de barras</span>
             </div>
           </div>
         </div>
+
+        {/* Hidden file input for gallery */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+          data-testid="input-file-upload"
+        />
 
         {/* Hidden canvas for photo capture */}
         <canvas ref={canvasRef} className="hidden" />
