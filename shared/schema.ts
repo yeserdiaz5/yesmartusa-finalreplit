@@ -41,7 +41,7 @@ export const products = pgTable("products", {
   package_weight: decimal("package_weight", { precision: 10, scale: 2 }),
   // New fields for product variants
   parent_id: varchar("parent_id"), // Self-referencing FK - constraint defined below
-  asin: text("asin").unique(), // Amazon Standard Identification Number
+  asin: text("asin"), // Amazon Standard Identification Number (optional for manual variants)
   attributes: jsonb("attributes").$type<Record<string, string>>().default(sql`'{}'::jsonb`), // Variant attributes
   // Timestamps
   created_at: timestamp("created_at").defaultNow(),
