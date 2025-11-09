@@ -12,9 +12,13 @@
 /**
  * Generate an embedding for an image using Hugging Face CLIP
  * @param imageBase64 - Base64 encoded image (with or without data URI prefix)
+ * @param retries - Number of retries for model loading (default: 3)
  * @returns The embedding vector (512 dimensions) or null if failed
  */
-export async function generateImageEmbedding(imageBase64: string): Promise<number[] | null> {
+export async function generateImageEmbedding(
+  imageBase64: string,
+  retries: number = 3
+): Promise<number[] | null> {
   try {
     if (!process.env.HUGGINGFACE_TOKEN) {
       console.error("[HuggingFace] HUGGINGFACE_TOKEN not configured")
@@ -31,44 +35,72 @@ export async function generateImageEmbedding(imageBase64: string): Promise<numbe
 
     console.log("[HuggingFace] Generating embedding with CLIP model...")
 
-    // Call Hugging Face Inference API
-    const response = await fetch(
-      "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
-          "Content-Type": "application/octet-stream",
-        },
-        body: binaryData,
-      }
-    )
+    // Try multiple times if model is loading
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      // Call Hugging Face Inference API
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
+            "Content-Type": "application/octet-stream",
+          },
+          body: binaryData,
+        }
+      )
 
-    if (!response.ok) {
+      if (response.ok) {
+        const result = await response.json()
+
+        // Hugging Face feature-extraction returns batched arrays: [[...512 floats...]]
+        // We need to extract the first (and only) embedding from the batch
+        let embedding: number[]
+        
+        if (Array.isArray(result) && Array.isArray(result[0])) {
+          // Nested array - extract the inner array
+          embedding = result[0]
+        } else if (Array.isArray(result)) {
+          // Already flat array (shouldn't happen with CLIP, but handle it)
+          embedding = result
+        } else {
+          console.error("[HuggingFace] Invalid embedding format:", result)
+          return null
+        }
+
+        // Validate embedding dimensions (CLIP ViT-B/32 = 512 dimensions)
+        if (!Array.isArray(embedding) || embedding.length !== 512) {
+          console.error(`[HuggingFace] Invalid embedding dimensions: expected 512, got ${embedding?.length || 0}`)
+          return null
+        }
+
+        console.log(`[HuggingFace] Successfully generated ${embedding.length}-dimensional CLIP embedding`)
+        
+        return embedding
+      }
+
+      // Handle errors
       const errorText = await response.text()
-      console.error("[HuggingFace] API error:", response.status, errorText)
       
-      // Handle model loading state
+      // Handle model loading state (503)
       if (response.status === 503) {
-        console.log("[HuggingFace] Model is loading, this may take a few seconds...")
-        return null
+        if (attempt < retries) {
+          const waitTime = Math.min(5000 * (attempt + 1), 20000) // 5s, 10s, 15s (max 20s)
+          console.log(`[HuggingFace] Model is loading (attempt ${attempt + 1}/${retries + 1}), waiting ${waitTime/1000}s...`)
+          await new Promise(resolve => setTimeout(resolve, waitTime))
+          continue
+        } else {
+          console.error("[HuggingFace] Model loading timeout after retries")
+          return null
+        }
       }
       
+      // Other errors - don't retry
+      console.error("[HuggingFace] API error:", response.status, errorText)
       return null
     }
 
-    const embedding = await response.json()
-
-    // Validate embedding
-    if (!Array.isArray(embedding) || embedding.length === 0) {
-      console.error("[HuggingFace] Invalid embedding format:", embedding)
-      return null
-    }
-
-    // CLIP ViT-B/32 produces 512-dimensional embeddings
-    console.log(`[HuggingFace] Generated embedding with ${embedding.length} dimensions`)
-    
-    return embedding
+    return null
   } catch (error) {
     console.error("[HuggingFace] Error generating embedding:", error)
     return null

@@ -42,13 +42,13 @@ export async function POST(request: Request) {
 
     console.log("[Vector Image Search] Generating image embedding with Hugging Face CLIP...")
 
-    // Generate embedding using Hugging Face CLIP
-    const imageEmbedding = await generateImageEmbedding(image)
+    // Generate embedding using Hugging Face CLIP (with automatic retries for model loading)
+    const imageEmbedding = await generateImageEmbedding(image, 3) // 3 retries
 
     if (!imageEmbedding) {
-      console.error("[Vector Image Search] Failed to generate embedding")
+      console.error("[Vector Image Search] Failed to generate embedding after retries")
       return NextResponse.json(
-        { error: "Failed to analyze image. The model may be loading. Please try again in a moment." },
+        { error: "Unable to analyze image at this time. The AI model may still be initializing. Please try again in 30 seconds." },
         { status: 503 }
       )
     }
