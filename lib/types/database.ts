@@ -49,6 +49,9 @@ export interface Product {
   package_width: number | null
   package_height: number | null
   package_weight: number | null
+  parent_id: string | null
+  asin: string | null
+  attributes: Record<string, string> | null
   created_at: string
   updated_at: string
 }
