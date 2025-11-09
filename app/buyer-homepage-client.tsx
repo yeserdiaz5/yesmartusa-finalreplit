@@ -623,7 +623,7 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                     <input
                       type="text"
                       placeholder={t("searchProducts")}
-                      className="w-full pl-12 pr-4 py-4 text-base rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:outline-none text-gray-900 transition-colors"
+                      className="w-full pl-12 pr-14 py-4 text-base rounded-lg border-2 border-gray-200 focus:border-orange-400 focus:outline-none text-gray-900 transition-colors"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyPress={(e) => {
@@ -634,6 +634,15 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                       disabled={isImageSearch}
                       data-testid="input-search-products"
                     />
+                    {/* Camera Icon - Alibaba Style */}
+                    <button
+                      onClick={() => setShowCamera(true)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      title={t("searchByImage") || "Buscar por imagen"}
+                      data-testid="button-camera-search"
+                    >
+                      <Camera className="w-5 h-5 text-gray-600" />
+                    </button>
                   </div>
 
                   {/* Search Button */}
