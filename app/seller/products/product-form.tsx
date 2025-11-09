@@ -56,6 +56,44 @@ export default function ProductForm({
   const [importedAsin, setImportedAsin] = useState<string>("")
   const [selectedVariants, setSelectedVariants] = useState<Set<string>>(new Set())
   const { toast } = useToast()
+  
+  // Manual variants state
+  const [hasManualVariants, setHasManualVariants] = useState(false)
+  const [manualVariants, setManualVariants] = useState<Array<{
+    id: string
+    title: string
+    price: string
+    stock_quantity: string
+    images: string[]
+    attributes: Record<string, string>
+  }>>([])
+  
+  // Add a new manual variant
+  const addManualVariant = () => {
+    setManualVariants([
+      ...manualVariants,
+      {
+        id: crypto.randomUUID(),
+        title: "",
+        price: "",
+        stock_quantity: "",
+        images: [],
+        attributes: {},
+      },
+    ])
+  }
+  
+  // Remove a manual variant
+  const removeManualVariant = (id: string) => {
+    setManualVariants(manualVariants.filter((v) => v.id !== id))
+  }
+  
+  // Update a manual variant
+  const updateManualVariant = (id: string, field: string, value: any) => {
+    setManualVariants(
+      manualVariants.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+    )
+  }
 
   console.log("[v0] Product data:", product)
   console.log("[v0] Product images:", product?.images)
@@ -308,15 +346,54 @@ export default function ProductForm({
       let result
       if (product) {
         result = await updateProduct({ id: product.id, ...input })
+      } else if (hasManualVariants && manualVariants.length > 0) {
+        // Validate manual variants
+        for (const variant of manualVariants) {
+          if (!variant.title || !variant.title.trim()) {
+            setError(t("variantTitleRequired"))
+            setLoading(false)
+            return
+          }
+          if (!variant.price || Number.parseFloat(variant.price) <= 0) {
+            setError(t("variantPriceRequired"))
+            setLoading(false)
+            return
+          }
+          if (!variant.stock_quantity || Number.parseInt(variant.stock_quantity) < 0) {
+            setError(t("variantStockRequired"))
+            setLoading(false)
+            return
+          }
+          if (variant.images.length === 0) {
+            setError(t("variantImagesRequired"))
+            setLoading(false)
+            return
+          }
+        }
+
+        // Create product with manual variants
+        const variantsToCreate: VariantInput[] = manualVariants.map((v) => ({
+          asin: null,  // Manual variants don't have ASIN
+          title: v.title,
+          price: Number.parseFloat(v.price),
+          stock_quantity: Number.parseInt(v.stock_quantity),
+          image_url: v.images[0] || "",
+          images: v.images,
+          attributes: v.attributes,
+        }))
+
+        result = await createProductWithVariants(input, variantsToCreate)
       } else if (selectedVariants.size > 0) {
-        // Create product with variants
+        // Create product with Amazon-imported variants
         const variantsToCreate: VariantInput[] = importedVariants
           .filter((v: any) => selectedVariants.has(v.asin))
           .map((v: any) => ({
             asin: v.asin,
             title: v.title,
             price: v.price,
+            stock_quantity: 0,  // Default stock for Amazon imports
             image_url: v.image,
+            images: v.image ? [v.image] : [],  // Amazon imports have single image
             attributes: v.attributes,
           }))
 
@@ -769,6 +846,203 @@ export default function ProductForm({
             ))}
           </div>
         </CardContent>
+      </Card>
+
+      {/* Manual Variants Toggle and Editor */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>{t("productVariants")}</CardTitle>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="has-variants" className="text-sm font-medium">
+                {t("hasVariants")}
+              </Label>
+              <Checkbox
+                id="has-variants"
+                checked={hasManualVariants}
+                onCheckedChange={(checked) => {
+                  setHasManualVariants(!!checked)
+                  if (checked && manualVariants.length === 0) {
+                    // Add first variant when enabling
+                    addManualVariant()
+                  }
+                }}
+                data-testid="checkbox-has-variants"
+              />
+            </div>
+          </div>
+          {hasManualVariants && (
+            <p className="text-sm text-muted-foreground mt-2">
+              {t("createVariantsDescription")}
+            </p>
+          )}
+        </CardHeader>
+        {hasManualVariants && (
+          <CardContent className="space-y-4">
+            {manualVariants.map((variant, index) => (
+              <Card key={variant.id} className="p-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium">
+                      {t("variant")} {index + 1}
+                    </h4>
+                    {manualVariants.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeManualVariant(variant.id)}
+                        data-testid={`button-remove-variant-${index}`}
+                      >
+                        {t("remove")}
+                      </Button>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor={`variant-title-${variant.id}`}>
+                      {t("variantName")} *
+                    </Label>
+                    <Input
+                      id={`variant-title-${variant.id}`}
+                      value={variant.title}
+                      onChange={(e) => updateManualVariant(variant.id, "title", e.target.value)}
+                      placeholder={t("variantNamePlaceholder")}
+                      required
+                      data-testid={`input-variant-title-${index}`}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`variant-price-${variant.id}`}>
+                        {t("price")} *
+                      </Label>
+                      <Input
+                        id={`variant-price-${variant.id}`}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={variant.price}
+                        onChange={(e) => updateManualVariant(variant.id, "price", e.target.value)}
+                        placeholder="0.00"
+                        required
+                        data-testid={`input-variant-price-${index}`}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor={`variant-stock-${variant.id}`}>
+                        {t("stockQuantity")} *
+                      </Label>
+                      <Input
+                        id={`variant-stock-${variant.id}`}
+                        type="number"
+                        min="0"
+                        value={variant.stock_quantity}
+                        onChange={(e) =>
+                          updateManualVariant(variant.id, "stock_quantity", e.target.value)
+                        }
+                        placeholder="0"
+                        required
+                        data-testid={`input-variant-stock-${index}`}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>{t("variantImages")}</Label>
+                    <div className="mt-2">
+                      <ImageUploadGrid
+                        images={variant.images}
+                        onChange={(images) => updateManualVariant(variant.id, "images", images)}
+                        maxImages={6}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>{t("variantAttributes")}</Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {t("attributesDescription")}
+                    </p>
+                    <div className="space-y-2">
+                      {Object.entries(variant.attributes).map(([key, value]) => (
+                        <div key={key} className="flex gap-2">
+                          <Input
+                            value={key}
+                            placeholder={t("attributeKey")}
+                            disabled
+                            className="flex-1"
+                          />
+                          <Input value={value} placeholder={t("attributeValue")} disabled className="flex-1" />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              const newAttrs = { ...variant.attributes }
+                              delete newAttrs[key]
+                              updateManualVariant(variant.id, "attributes", newAttrs)
+                            }}
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder={t("attributeKey")}
+                          id={`attr-key-${variant.id}`}
+                          data-testid={`input-attr-key-${index}`}
+                        />
+                        <Input
+                          placeholder={t("attributeValue")}
+                          id={`attr-value-${variant.id}`}
+                          data-testid={`input-attr-value-${index}`}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const keyInput = document.getElementById(
+                              `attr-key-${variant.id}`
+                            ) as HTMLInputElement
+                            const valueInput = document.getElementById(
+                              `attr-value-${variant.id}`
+                            ) as HTMLInputElement
+                            if (keyInput.value && valueInput.value) {
+                              updateManualVariant(variant.id, "attributes", {
+                                ...variant.attributes,
+                                [keyInput.value]: valueInput.value,
+                              })
+                              keyInput.value = ""
+                              valueInput.value = ""
+                            }
+                          }}
+                          data-testid={`button-add-attribute-${index}`}
+                        >
+                          {t("addAttribute")}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addManualVariant}
+              className="w-full"
+              data-testid="button-add-variant"
+            >
+              + {t("addVariant")}
+            </Button>
+          </CardContent>
+        )}
       </Card>
 
       {/* Variants Card - Only shown when variants are imported from Amazon */}
