@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,11 +13,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createProduct, updateProduct, type CreateProductInput } from "@/app/actions/products"
 import type { Category, Tag, Product, ShippingPolicy } from "@/lib/types/database"
-import { ArrowLeft, Loader2, Sparkles, ShoppingBag } from "lucide-react"
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react"
 import ImageUploadGrid from "@/components/image-upload-grid"
 import { useLanguage } from "@/lib/i18n/LanguageContext"
-import AmazonImportModal from "@/components/amazon-import-modal"
-import { useToast } from "@/hooks/use-toast"
 
 interface ProductFormProps {
   categories: Category[]
@@ -36,15 +34,12 @@ export default function ProductForm({
 }: ProductFormProps) {
   const { t, language } = useLanguage()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [estimating, setEstimating] = useState(false)
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
   const [generatingDescription, setGeneratingDescription] = useState(false)
   const [isNoBrand, setIsNoBrand] = useState(product?.brand === "Generic" || false)
-  const [amazonModalOpen, setAmazonModalOpen] = useState(false)
 
   console.log("[v0] Product data:", product)
   console.log("[v0] Product images:", product?.images)
@@ -127,51 +122,6 @@ export default function ProductForm({
 
     estimateShippingAutomatically()
   }, [formData.package_length, formData.package_width, formData.package_height, formData.package_weight, t])
-
-  useEffect(() => {
-    if (searchParams.get("amazon_connected") === "true") {
-      toast({
-        title: "Amazon Connected",
-        description: "Your Amazon account has been connected successfully. You can now import products.",
-      })
-      const url = new URL(window.location.href)
-      url.searchParams.delete("amazon_connected")
-      window.history.replaceState({}, "", url.toString())
-    }
-    
-    const error = searchParams.get("error")
-    if (error) {
-      toast({
-        title: "Amazon Connection Failed",
-        description: "Failed to connect your Amazon account. Please try again.",
-        variant: "destructive",
-      })
-      const url = new URL(window.location.href)
-      url.searchParams.delete("error")
-      window.history.replaceState({}, "", url.toString())
-    }
-  }, [searchParams, toast])
-
-  const handleAmazonImport = (listing: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      title: listing.title || prev.title,
-      description: listing.description || prev.description,
-      price: listing.price > 0 ? listing.price.toString() : prev.price,
-      brand: listing.brand || prev.brand,
-      condition: listing.condition || prev.condition,
-      images: listing.images.length > 0 ? listing.images : prev.images,
-      package_length: listing.package_dimensions?.length ? listing.package_dimensions.length.toString() : prev.package_length,
-      package_width: listing.package_dimensions?.width ? listing.package_dimensions.width.toString() : prev.package_width,
-      package_height: listing.package_dimensions?.height ? listing.package_dimensions.height.toString() : prev.package_height,
-      package_weight: listing.package_dimensions?.weight ? listing.package_dimensions.weight.toString() : prev.package_weight,
-    }))
-
-    toast({
-      title: "Product Imported",
-      description: `Successfully imported "${listing.title}" from Amazon. Review and edit the details before publishing.`,
-    })
-  }
 
   const handleGenerateDescription = async () => {
     // Validate product name is filled
@@ -291,32 +241,14 @@ export default function ProductForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6">
         <Button type="button" variant="ghost" onClick={() => router.back()} data-testid="button-back">
           <ArrowLeft className="w-4 h-4 mr-2" />
           {t("backButton")}
         </Button>
-        
-        {!product && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setAmazonModalOpen(true)}
-            data-testid="button-import-amazon"
-          >
-            <ShoppingBag className="w-4 h-4 mr-2" />
-            Import from Amazon
-          </Button>
-        )}
       </div>
 
       {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800" data-testid="text-error">{error}</div>}
-      
-      <AmazonImportModal
-        open={amazonModalOpen}
-        onOpenChange={setAmazonModalOpen}
-        onImport={handleAmazonImport}
-      />
 
       <Card className="mb-6">
         <CardHeader>
