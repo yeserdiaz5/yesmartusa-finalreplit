@@ -168,6 +168,9 @@ export async function createProductWithVariants(
     if (variant.stock_quantity < 0) {
       return { error: "All variants must have valid stock quantity" }
     }
+    if (!variant.images || variant.images.length === 0) {
+      return { error: "All variants must have at least one image" }
+    }
   }
 
   try {

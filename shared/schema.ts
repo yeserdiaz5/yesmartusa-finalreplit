@@ -51,7 +51,8 @@ export const products = pgTable("products", {
   categoryIdx: index("products_category_idx").on(table.category),
   isActiveIdx: index("products_is_active_idx").on(table.is_active),
   parentIdIdx: index("products_parent_id_idx").on(table.parent_id),
-  asinIdx: index("products_asin_idx").on(table.asin),
+  // Note: A partial unique index exists on ASIN (products_asin_unique WHERE asin IS NOT NULL)
+  // This allows NULL ASINs for manual variants while ensuring Amazon ASINs are unique
   parentIdFk: foreignKey({
     columns: [table.parent_id],
     foreignColumns: [table.id],
