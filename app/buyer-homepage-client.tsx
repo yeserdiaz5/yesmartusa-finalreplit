@@ -310,21 +310,6 @@ function ProductCard({
           >
             {isAdding ? t("processing") : t("buyNow")}
           </Button>
-          
-          {/* More Like This Button - Amazon Style */}
-          <Button
-            variant="outline"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              onFindSimilar(product.image_url, product.title)
-            }}
-            className="w-full border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 font-medium"
-            data-testid="button-find-similar"
-          >
-            <ImageIcon className="w-4 h-4 mr-2" />
-            {t("findSimilar") || "Find Similar Products"}
-          </Button>
         </div>
       </CardContent>
     </Card>
