@@ -31,6 +31,7 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
 - **Package Dimensions System**: Sellers input package dimensions (`package_length`, `package_width`, `package_height`, `package_weight`) for each product. The system automatically estimates shipping costs using Shippo API, pre-fills the `shipping_cost` field, and auto-populates dimensions for shipping label creation.
 - **Shipping Cost Flow & Profit**: Buyer pays product price + estimated shipping. Seller pays actual shipping cost. Profit/loss on shipping is managed by the difference between estimated and actual costs, with Stripe Connect handling transfers. Estimated costs are rounded up to mitigate seller losses.
 - **AI Product Description Generation**: Integration with OpenAI GPT-4o via Replit AI Integrations to generate product descriptions in Spanish based on the product name, with user editing capabilities.
+- **Amazon Product Import**: One-click import from Amazon using Rainforest API. Sellers can paste an Amazon product URL or ASIN to automatically populate product title, description, price, and images (up to 5). Supports multiple Amazon URL formats including /dp/, /gp/product/, and query parameters. Fully bilingual with English and Spanish translations.
 - **Image Editing & Cropping**: `react-easy-crop` integration for client-side image cropping (1:1 aspect ratio, zoom 0.5x-3x, free repositioning) before uploading to Supabase Storage.
 - **Product Details System**: Products include optional `brand` (text) and `condition` fields with 6 eBay-style options (new, like_new, used, refurbished, open_box, for_parts). Brand field features "No brand (Generic)" checkbox for auto-fill. Fully integrated with i18n translations for both English and Spanish.
 - **Product Gallery**: Amazon-style product image gallery with large main image (500px), always-visible thumbnails in 5-column grid, hover effects, and clickable image switching. Uses object-contain to show full images.
@@ -114,5 +115,6 @@ YesmartUSA is a comprehensive e-commerce marketplace built with Next.js 14, enab
   - OpenAI GPT-4o for product description generation
   - OpenAI GPT-4o Vision for image analysis (vector search)
   - OpenAI text-embedding-3-small for semantic embeddings (1536 dims)
+- **Product Data Import**: Rainforest API for importing Amazon product data
 - **Image Processing**: `react-easy-crop`
 - **Email Service**: Resend for transactional emails
