@@ -660,16 +660,6 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
                   >
                     <Search className="w-5 h-5" />
                   </button>
-
-                  {/* Image Search Button */}
-                  <button
-                    className="bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-4 rounded-lg font-medium transition-all shadow-sm hover:shadow-md flex items-center gap-2"
-                    onClick={() => setImageSearchOpen(true)}
-                    data-testid="button-image-search"
-                  >
-                    <ImageIcon className="w-5 h-5" />
-                    <span className="hidden sm:inline">{t("searchByImage") || "Search by Image"}</span>
-                  </button>
                 </div>
 
                 {/* Search Results Info */}
