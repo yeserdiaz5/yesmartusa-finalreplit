@@ -247,16 +247,26 @@ export async function POST(request: NextRequest) {
     // Step 5: Send email notification to seller
     if (shipmentData.status === "SUCCESS" && seller_email) {
       try {
+        // Get seller's name for personalized email
+        const { data: sellerData } = await supabase
+          .from("users")
+          .select("full_name, store_name")
+          .eq("id", seller_id)
+          .single()
+
+        const sellerName = sellerData?.store_name || sellerData?.full_name || "Seller"
+
         const emailData = {
           orderNumber: order_id,
           trackingNumber: shipmentData.tracking_number,
           trackingUrl: shipmentData.tracking_url_provider,
           carrier: shipmentData.provider,
           labelUrl: shipmentData.label_url,
+          sellerName: sellerName,
         }
 
         console.log("[v0] Sending label created email to seller:", seller_email)
-        const emailResult = await sendOrderEmail(seller_email, "Etiqueta creada", sellerLabelCreatedTemplate(emailData))
+        const emailResult = await sendOrderEmail(seller_email, "Shipping Label Ready - Action Required", sellerLabelCreatedTemplate(emailData))
         console.log("[v0] Seller email result:", emailResult)
       } catch (emailError) {
         console.error("[v0] Error sending seller email (non-fatal):", emailError)
