@@ -39,6 +39,8 @@
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
     "@react-email/render": "latest",
+    "@sp-api-sdk/auth": "^2.2.14",
+    "@sp-api-sdk/listings-items-api-2021-08-01": "^5.2.4",
     "@stripe/react-stripe-js": "5.2.0",
     "@stripe/stripe-js": "8.1.0",
     "@supabase/ssr": "latest",
