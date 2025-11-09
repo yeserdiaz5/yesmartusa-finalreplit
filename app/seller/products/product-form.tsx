@@ -13,9 +13,18 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createProduct, updateProduct, type CreateProductInput } from "@/app/actions/products"
 import type { Category, Tag, Product, ShippingPolicy } from "@/lib/types/database"
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react"
+import { ArrowLeft, Loader2, Sparkles, Package } from "lucide-react"
 import ImageUploadGrid from "@/components/image-upload-grid"
 import { useLanguage } from "@/lib/i18n/LanguageContext"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProductFormProps {
   categories: Category[]
@@ -40,6 +49,10 @@ export default function ProductForm({
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null)
   const [generatingDescription, setGeneratingDescription] = useState(false)
   const [isNoBrand, setIsNoBrand] = useState(product?.brand === "Generic" || false)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [importInput, setImportInput] = useState("")
+  const [importing, setImporting] = useState(false)
+  const { toast } = useToast()
 
   console.log("[v0] Product data:", product)
   console.log("[v0] Product images:", product?.images)
@@ -164,6 +177,66 @@ export default function ProductForm({
     }
   }
 
+  const handleImportFromAmazon = async () => {
+    if (!importInput || importInput.trim() === "") {
+      toast({
+        title: t("importError"),
+        description: t("amazonUrlOrAsin"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    setImporting(true)
+    setError(null)
+
+    try {
+      const response = await fetch("/api/import/amazon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: importInput.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t("importError"))
+      }
+
+      const importedProduct = data.product
+
+      // Auto-fill form with imported data
+      setFormData((prev) => ({
+        ...prev,
+        title: importedProduct.title || prev.title,
+        description: importedProduct.description || prev.description,
+        price: importedProduct.price ? importedProduct.price.toString() : prev.price,
+        images: importedProduct.images && importedProduct.images.length > 0 ? importedProduct.images : prev.images,
+      }))
+
+      console.log("[Amazon Import] Product imported successfully:", importedProduct)
+
+      toast({
+        title: t("importSuccess"),
+        description: importedProduct.title,
+      })
+
+      setImportDialogOpen(false)
+      setImportInput("")
+    } catch (err) {
+      console.error("[Amazon Import] Error:", err)
+      toast({
+        title: t("importError"),
+        description: err instanceof Error ? err.message : t("importError"),
+        variant: "destructive",
+      })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -241,11 +314,74 @@ export default function ProductForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Button type="button" variant="ghost" onClick={() => router.back()} data-testid="button-back">
           <ArrowLeft className="w-4 h-4 mr-2" />
           {t("backButton")}
         </Button>
+
+        <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+          <DialogTrigger asChild>
+            <Button type="button" variant="outline" data-testid="button-import-amazon">
+              <Package className="w-4 h-4 mr-2" />
+              {t("importFromAmazon")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md" data-testid="dialog-import-amazon">
+            <DialogHeader>
+              <DialogTitle>{t("importAmazonProduct")}</DialogTitle>
+              <DialogDescription>{t("importAmazonDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="amazon-input">{t("amazonUrlOrAsin")}</Label>
+                <Input
+                  id="amazon-input"
+                  value={importInput}
+                  onChange={(e) => setImportInput(e.target.value)}
+                  placeholder={t("amazonUrlPlaceholder")}
+                  data-testid="input-amazon-url"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      handleImportFromAmazon()
+                    }
+                  }}
+                />
+                <p className="text-sm text-muted-foreground mt-2">{t("importInstructions")}</p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setImportDialogOpen(false)
+                    setImportInput("")
+                  }}
+                  disabled={importing}
+                  data-testid="button-cancel-import"
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleImportFromAmazon}
+                  disabled={importing || !importInput}
+                  data-testid="button-confirm-import"
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      {t("importing")}
+                    </>
+                  ) : (
+                    t("importProduct")
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {error && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800" data-testid="text-error">{error}</div>}

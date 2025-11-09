@@ -454,6 +454,20 @@ const translationsEN: Record<string, string> = {
   "productNameRequired": "Product name is required to generate description",
   "descriptionGenerateError": "Could not generate description. Please try again.",
   
+  // Amazon Import
+  "importFromAmazon": "Import from Amazon",
+  "importAmazonProduct": "Import Product from Amazon",
+  "importAmazonDescription": "Enter an Amazon product URL or ASIN to import product details automatically",
+  "amazonUrlOrAsin": "Amazon URL or ASIN",
+  "amazonUrlPlaceholder": "e.g., https://www.amazon.com/dp/B0C12345 or B0C12345",
+  "importProduct": "Import Product",
+  "importing": "Importing...",
+  "importSuccess": "Product imported successfully!",
+  "importError": "Could not import product. Please check the URL or ASIN.",
+  "invalidAsin": "Invalid ASIN format",
+  "productNotFound": "Product not found on Amazon",
+  "importInstructions": "You can paste either the full Amazon product URL or just the 10-character ASIN code.",
+  
   "checkout": "Checkout",
   "total": "Total",
   "subtotal": "Subtotal",
@@ -968,6 +982,20 @@ const translationsES: Record<string, string> = {
   "generating": "Generando...",
   "productNameRequired": "El nombre del producto es requerido para generar descripción",
   "descriptionGenerateError": "No se pudo generar la descripción. Por favor intenta de nuevo.",
+  
+  // Amazon Import
+  "importFromAmazon": "Importar desde Amazon",
+  "importAmazonProduct": "Importar Producto desde Amazon",
+  "importAmazonDescription": "Ingresa una URL de producto de Amazon o ASIN para importar los detalles automáticamente",
+  "amazonUrlOrAsin": "URL de Amazon o ASIN",
+  "amazonUrlPlaceholder": "ej., https://www.amazon.com/dp/B0C12345 o B0C12345",
+  "importProduct": "Importar Producto",
+  "importing": "Importando...",
+  "importSuccess": "¡Producto importado exitosamente!",
+  "importError": "No se pudo importar el producto. Por favor verifica la URL o ASIN.",
+  "invalidAsin": "Formato ASIN inválido",
+  "productNotFound": "Producto no encontrado en Amazon",
+  "importInstructions": "Puedes pegar la URL completa del producto de Amazon o solo el código ASIN de 10 caracteres.",
   
   "checkout": "Pagar",
   "total": "Total",
