@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, uuid, decimal, integer, boolean, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, uuid, decimal, integer, boolean, jsonb, index, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -40,19 +40,24 @@ export const products = pgTable("products", {
   package_height: decimal("package_height", { precision: 10, scale: 2 }),
   package_weight: decimal("package_weight", { precision: 10, scale: 2 }),
   // New fields for product variants
-  parent_id: varchar("parent_id").references((): any => products.id, { onDelete: "cascade" }), // Self-referencing to link variants
-  asin: text("asin").unique(), // Amazon Standard Identification Number (unique per product/variant)
-  attributes: jsonb("attributes").$type<Record<string, string>>().default(sql`'{}'::jsonb`), // Variant attributes like {color: "red", size: "M"}
-  // Existing timestamps
+  parent_id: varchar("parent_id"), // Self-referencing FK - constraint defined below
+  asin: text("asin").unique(), // Amazon Standard Identification Number
+  attributes: jsonb("attributes").$type<Record<string, string>>().default(sql`'{}'::jsonb`), // Variant attributes
+  // Timestamps
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
-}, (table: any) => ({
+}, (table) => ({
   sellerIdIdx: index("products_seller_id_idx").on(table.seller_id),
   categoryIdx: index("products_category_idx").on(table.category),
   isActiveIdx: index("products_is_active_idx").on(table.is_active),
   parentIdIdx: index("products_parent_id_idx").on(table.parent_id),
   asinIdx: index("products_asin_idx").on(table.asin),
-});
+  parentIdFk: foreignKey({
+    columns: [table.parent_id],
+    foreignColumns: [table.id],
+    name: "products_parent_id_fkey"
+  }).onDelete("cascade"),
+}));
 
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
