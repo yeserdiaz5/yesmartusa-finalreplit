@@ -489,6 +489,11 @@ const translationsEN: Record<string, string> = {
   "parentProductInfo": "Parent product - variants will share this information",
   "enableVariants": "Enable product variants",
   "disableVariants": "Disable variants",
+  "selectVariantsToCreate": "Select which variants you want to create as separate products. Each will be linked to the main product.",
+  "currentProduct": "Current",
+  "variant": "variant",
+  "variants": "variants",
+  "variantsSelectedCount": "{{count}} variant(s) selected to create",
   
   "checkout": "Checkout",
   "total": "Total",
@@ -1040,6 +1045,11 @@ const translationsES: Record<string, string> = {
   "parentProductInfo": "Producto padre - las variantes compartirán esta información",
   "enableVariants": "Habilitar variantes de producto",
   "disableVariants": "Deshabilitar variantes",
+  "selectVariantsToCreate": "Selecciona cuáles variantes deseas crear como productos separados. Cada una estará vinculada al producto principal.",
+  "currentProduct": "Actual",
+  "variant": "variante",
+  "variants": "variantes",
+  "variantsSelectedCount": "{{count}} variante(s) seleccionada(s) para crear",
   
   "checkout": "Pagar",
   "total": "Total",

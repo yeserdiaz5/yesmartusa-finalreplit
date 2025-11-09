@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createProduct, updateProduct, type CreateProductInput } from "@/app/actions/products"
+import { createProduct, updateProduct, createProductWithVariants, type CreateProductInput, type VariantInput } from "@/app/actions/products"
 import type { Category, Tag, Product, ShippingPolicy } from "@/lib/types/database"
 import { ArrowLeft, Loader2, Sparkles, Package } from "lucide-react"
 import ImageUploadGrid from "@/components/image-upload-grid"
@@ -52,6 +52,9 @@ export default function ProductForm({
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [importInput, setImportInput] = useState("")
   const [importing, setImporting] = useState(false)
+  const [importedVariants, setImportedVariants] = useState<any[]>([])
+  const [importedAsin, setImportedAsin] = useState<string>("")
+  const [selectedVariants, setSelectedVariants] = useState<Set<string>>(new Set())
   const { toast } = useToast()
 
   console.log("[v0] Product data:", product)
@@ -206,6 +209,8 @@ export default function ProductForm({
       }
 
       const importedProduct = data.product
+      const importedAsin = data.asin
+      const variants = data.variants || []
 
       // Auto-fill form with imported data
       setFormData((prev) => ({
@@ -216,11 +221,33 @@ export default function ProductForm({
         images: importedProduct.images && importedProduct.images.length > 0 ? importedProduct.images : prev.images,
       }))
 
+      // Store ASIN and variants
+      setImportedAsin(importedAsin)
+      setImportedVariants(variants)
+
+      // Reset selectedVariants to avoid stale state from previous imports
+      let newSelectedVariants = new Set<string>()
+
+      // Auto-select the current product variant if it exists
+      if (variants.length > 0) {
+        const currentVariant = variants.find((v: any) => v.is_current)
+        if (currentVariant && currentVariant.asin) {
+          newSelectedVariants.add(currentVariant.asin)
+        }
+      }
+
+      setSelectedVariants(newSelectedVariants)
+
       console.log("[Amazon Import] Product imported successfully:", importedProduct)
+      console.log("[Amazon Import] Found", variants.length, "variants")
+
+      const variantMessage = variants.length > 0
+        ? `${importedProduct.title} (${variants.length} ${variants.length === 1 ? t("variant") : t("variants")})`
+        : importedProduct.title
 
       toast({
         title: t("importSuccess"),
-        description: importedProduct.title,
+        description: variantMessage,
       })
 
       setImportDialogOpen(false)
@@ -274,11 +301,26 @@ export default function ProductForm({
         package_width: formData.package_width ? Number.parseFloat(formData.package_width) : null,
         package_height: formData.package_height ? Number.parseFloat(formData.package_height) : null,
         package_weight: formData.package_weight ? Number.parseFloat(formData.package_weight) : null,
+        asin: importedAsin || null,
+        attributes: {},
       }
 
       let result
       if (product) {
         result = await updateProduct({ id: product.id, ...input })
+      } else if (selectedVariants.size > 0) {
+        // Create product with variants
+        const variantsToCreate: VariantInput[] = importedVariants
+          .filter((v: any) => selectedVariants.has(v.asin))
+          .map((v: any) => ({
+            asin: v.asin,
+            title: v.title,
+            price: v.price,
+            image_url: v.image,
+            attributes: v.attributes,
+          }))
+
+        result = await createProductWithVariants(input, variantsToCreate)
       } else {
         result = await createProduct(input)
       }
@@ -728,6 +770,95 @@ export default function ProductForm({
           </div>
         </CardContent>
       </Card>
+
+      {/* Variants Card - Only shown when variants are imported from Amazon */}
+      {importedVariants.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>
+              {t("productVariants")} ({importedVariants.length})
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              {t("selectVariantsToCreate")}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {importedVariants.map((variant: any) => (
+                <div
+                  key={variant.asin}
+                  className="flex items-start gap-3 p-3 border rounded-lg hover-elevate"
+                  data-testid={`variant-item-${variant.asin}`}
+                >
+                  <Checkbox
+                    id={`variant-${variant.asin}`}
+                    checked={selectedVariants.has(variant.asin)}
+                    onCheckedChange={(checked) => {
+                      const newSelected = new Set(selectedVariants)
+                      if (checked) {
+                        newSelected.add(variant.asin)
+                      } else {
+                        newSelected.delete(variant.asin)
+                      }
+                      setSelectedVariants(newSelected)
+                    }}
+                    data-testid={`checkbox-variant-${variant.asin}`}
+                  />
+                  <div className="flex-1 flex gap-3">
+                    {variant.image && (
+                      <img
+                        src={variant.image}
+                        alt={variant.title}
+                        className="w-16 h-16 object-contain rounded border"
+                        data-testid={`img-variant-${variant.asin}`}
+                      />
+                    )}
+                    <div className="flex-1">
+                      <label
+                        htmlFor={`variant-${variant.asin}`}
+                        className="text-sm font-medium leading-tight cursor-pointer"
+                      >
+                        {variant.title}
+                      </label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {Object.entries(variant.attributes || {}).map(([key, value]) => (
+                          <span
+                            key={key}
+                            className="text-xs bg-muted px-2 py-1 rounded"
+                            data-testid={`variant-attribute-${variant.asin}-${key}`}
+                          >
+                            {key}: {value}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm font-semibold" data-testid={`variant-price-${variant.asin}`}>
+                          ${variant.price.toFixed(2)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          ASIN: {variant.asin}
+                        </span>
+                        {variant.is_current && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                            {t("currentProduct")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {selectedVariants.size > 0 && (
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <p className="text-sm">
+                  {t("variantsSelectedCount", { count: selectedVariants.size })}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex gap-4">
         <Button type="submit" disabled={loading} className="flex-1" data-testid="button-submit">

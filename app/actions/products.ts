@@ -23,6 +23,17 @@ export interface CreateProductInput {
   package_width?: number | null
   package_height?: number | null
   package_weight?: number | null
+  asin?: string | null
+  attributes?: Record<string, string>
+  parent_id?: string | null
+}
+
+export interface VariantInput {
+  asin: string
+  title: string
+  price: number
+  image_url: string
+  attributes: Record<string, string>
 }
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {
@@ -108,6 +119,218 @@ export async function createProduct(input: CreateProductInput) {
 
   revalidatePath("/seller")
   return { data: product }
+}
+
+// Helper function to rollback all created products and their relations
+async function rollbackProducts(supabase: any, productIds: string[]) {
+  if (productIds.length === 0) return
+
+  // Delete relations first (categories and tags)
+  await supabase.from("product_categories").delete().in("product_id", productIds)
+  await supabase.from("product_tags").delete().in("product_id", productIds)
+
+  // Then delete products
+  await supabase.from("products").delete().in("id", productIds)
+}
+
+export async function createProductWithVariants(
+  parentInput: CreateProductInput,
+  selectedVariants: VariantInput[]
+) {
+  const supabase = await createClient()
+
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "Unauthorized" }
+  }
+
+  // Verify user is a seller or admin
+  const { data: userProfile } = await supabase.from("users").select("role").eq("id", user.id).single()
+
+  if (!userProfile || !["seller", "admin"].includes(userProfile.role)) {
+    return { error: "Only sellers can create products" }
+  }
+
+  // Validate variants up-front
+  for (const variant of selectedVariants) {
+    if (!variant.asin || !variant.asin.trim()) {
+      return { error: "All variants must have a valid ASIN" }
+    }
+    if (!variant.title || !variant.title.trim()) {
+      return { error: "All variants must have a valid title" }
+    }
+  }
+
+  try {
+    // Step 1: Create parent product with ASIN
+    const { data: parentProduct, error: parentError } = await supabase
+      .from("products")
+      .insert({
+        seller_id: user.id,
+        title: parentInput.title,
+        description: parentInput.description,
+        price: parentInput.price,
+        stock_quantity: parentInput.stock_quantity,
+        image_url: parentInput.image_url,
+        images: parentInput.images || [],
+        brand: parentInput.brand || null,
+        condition: parentInput.condition || null,
+        is_active: true,
+        shipping_policy: parentInput.shipping_policy || null,
+        shipping_cost: parentInput.shipping_cost || null,
+        package_length: parentInput.package_length || null,
+        package_width: parentInput.package_width || null,
+        package_height: parentInput.package_height || null,
+        package_weight: parentInput.package_weight || null,
+        asin: parentInput.asin || null,
+        attributes: parentInput.attributes || {},
+        parent_id: null,
+      })
+      .select()
+      .single()
+
+    if (parentError) {
+      throw new Error(`Failed to create parent product: ${parentError.message}`)
+    }
+
+    const createdProductIds = [parentProduct.id]
+
+    // Step 2: Add categories and tags to parent
+    if (parentInput.category_ids && parentInput.category_ids.length > 0) {
+      const categoryInserts = parentInput.category_ids.map((category_id) => ({
+        product_id: parentProduct.id,
+        category_id,
+      }))
+      const { error: categoryError } = await supabase.from("product_categories").insert(categoryInserts)
+      if (categoryError) {
+        // Rollback: Delete parent product and its relations
+        await rollbackProducts(supabase, [parentProduct.id])
+        throw new Error(`Failed to add categories to parent product: ${categoryError.message}`)
+      }
+    }
+
+    if (parentInput.tag_ids && parentInput.tag_ids.length > 0) {
+      const tagInserts = parentInput.tag_ids.map((tag_id) => ({
+        product_id: parentProduct.id,
+        tag_id,
+      }))
+      const { error: tagError } = await supabase.from("product_tags").insert(tagInserts)
+      if (tagError) {
+        // Rollback: Delete parent product and its relations
+        await rollbackProducts(supabase, [parentProduct.id])
+        throw new Error(`Failed to add tags to parent product: ${tagError.message}`)
+      }
+    }
+
+    // Step 3: Create variant products if any selected
+    if (selectedVariants.length > 0) {
+      const variantInserts = selectedVariants.map((variant) => ({
+        seller_id: user.id,
+        parent_id: parentProduct.id,
+        title: variant.title,
+        description: parentInput.description,
+        price: variant.price,
+        stock_quantity: 0,
+        image_url: variant.image_url,
+        images: [variant.image_url],
+        brand: parentInput.brand || null,
+        condition: parentInput.condition || null,
+        is_active: true,
+        shipping_policy: parentInput.shipping_policy || null,
+        shipping_cost: parentInput.shipping_cost || null,
+        package_length: parentInput.package_length || null,
+        package_width: parentInput.package_width || null,
+        package_height: parentInput.package_height || null,
+        package_weight: parentInput.package_weight || null,
+        asin: variant.asin,
+        attributes: variant.attributes,
+      }))
+
+      const { data: variantProducts, error: variantError } = await supabase
+        .from("products")
+        .insert(variantInserts)
+        .select()
+
+      if (variantError) {
+        // Rollback: Delete parent product and its relations
+        await rollbackProducts(supabase, [parentProduct.id])
+        throw new Error(`Failed to create variants: ${variantError.message}`)
+      }
+
+      if (!variantProducts || variantProducts.length === 0) {
+        // Rollback: Delete parent product and its relations
+        await rollbackProducts(supabase, [parentProduct.id])
+        throw new Error("No variants were created")
+      }
+
+      createdProductIds.push(...variantProducts.map((p) => p.id))
+
+      // Add categories and tags to each variant
+      for (const variantProduct of variantProducts) {
+        if (parentInput.category_ids && parentInput.category_ids.length > 0) {
+          const categoryInserts = parentInput.category_ids.map((category_id) => ({
+            product_id: variantProduct.id,
+            category_id,
+          }))
+          const { error: catError } = await supabase.from("product_categories").insert(categoryInserts)
+          if (catError) {
+            // Rollback: Delete all created products and their relations
+            await rollbackProducts(supabase, createdProductIds)
+            throw new Error(`Failed to add categories to variant: ${catError.message}`)
+          }
+        }
+
+        if (parentInput.tag_ids && parentInput.tag_ids.length > 0) {
+          const tagInserts = parentInput.tag_ids.map((tag_id) => ({
+            product_id: variantProduct.id,
+            tag_id,
+          }))
+          const { error: tagError } = await supabase.from("product_tags").insert(tagInserts)
+          if (tagError) {
+            // Rollback: Delete all created products and their relations
+            await rollbackProducts(supabase, createdProductIds)
+            throw new Error(`Failed to add tags to variant: ${tagError.message}`)
+          }
+        }
+      }
+    }
+
+    // Step 4: Generate embeddings asynchronously for all created products
+    const adminClient = createAdminClient()
+    for (const productId of createdProductIds) {
+      const product = productId === parentProduct.id ? parentProduct : await supabase
+        .from("products")
+        .select("image_url, images")
+        .eq("id", productId)
+        .single()
+        .then(({ data }) => data)
+
+      if (product) {
+        const imageUrl = product.image_url || product.images?.[0]
+        if (imageUrl) {
+          updateProductEmbedding(adminClient, productId, imageUrl).catch((error) => {
+            console.error(`[Create Product With Variants] Failed to generate embedding for product ${productId}:`, error)
+          })
+        }
+      }
+    }
+
+    revalidatePath("/seller")
+    return {
+      data: {
+        parent: parentProduct,
+        variantCount: selectedVariants.length,
+        totalProducts: createdProductIds.length,
+      },
+    }
+  } catch (error: any) {
+    console.error("[Create Product With Variants] Error:", error)
+    return { error: error.message || "Failed to create product with variants" }
+  }
 }
 
 export async function updateProduct(input: UpdateProductInput) {
