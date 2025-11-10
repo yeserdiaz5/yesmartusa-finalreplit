@@ -472,6 +472,12 @@ const translationsEN: Record<string, string> = {
   "amazonImportCleared": "Amazon import cleared",
   "amazonImportClearedDescription": "You can now create variants manually. Your product information has been preserved.",
   "editAmazonVariants": "Edit Amazon variants below. You can modify price, stock, images, and attributes for each variant.",
+  "importVariant": "Import Variant",
+  "importingVariant": "Importing variant...",
+  "variantImported": "Variant imported successfully",
+  "variantImportError": "Could not import variant. Please try again.",
+  "variantDescription": "Variant Description",
+  "variantDescriptionPlaceholder": "Describe the specific features of this variant...",
   
   // Product Variants
   "productVariants": "Product Variants",
@@ -1046,6 +1052,12 @@ const translationsES: Record<string, string> = {
   "amazonImportCleared": "Importación de Amazon limpiada",
   "amazonImportClearedDescription": "Ahora puedes crear variantes manualmente. Tu información del producto se ha preservado.",
   "editAmazonVariants": "Edita las variantes de Amazon a continuación. Puedes modificar precio, stock, imágenes y atributos de cada variante.",
+  "importVariant": "Importar Variante",
+  "importingVariant": "Importando variante...",
+  "variantImported": "Variante importada exitosamente",
+  "variantImportError": "No se pudo importar la variante. Por favor intenta de nuevo.",
+  "variantDescription": "Descripción de Variante",
+  "variantDescriptionPlaceholder": "Describe las características específicas de esta variante...",
   
   // Product Variants
   "productVariants": "Variantes del Producto",
