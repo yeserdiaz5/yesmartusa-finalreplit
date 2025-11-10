@@ -182,180 +182,103 @@ export async function createProductWithVariants(
   }
 
   try {
-    // Step 1: Create parent product - build object dynamically to avoid schema cache issues
-    const parentProductData: any = {
-      seller_id: user.id,
-      title: parentInput.title,
-      description: parentInput.description,
-      price: parentInput.price,
-      stock_quantity: parentInput.stock_quantity,
-      image_url: parentInput.image_url,
-      images: parentInput.images || [],
-      brand: parentInput.brand || null,
-      condition: parentInput.condition || null,
-      is_active: true,
-      shipping_policy: parentInput.shipping_policy || null,
-      shipping_cost: parentInput.shipping_cost || null,
-      package_length: parentInput.package_length || null,
-      package_width: parentInput.package_width || null,
-      package_height: parentInput.package_height || null,
-      package_weight: parentInput.package_weight || null,
-      attributes: parentInput.attributes || {},
-      parent_id: null,
-    }
-    
-    // Only include asin if it exists to avoid schema cache issues
-    if (parentInput.asin) {
-      parentProductData.asin = parentInput.asin
-    }
-    
-    const { data: parentProduct, error: parentError } = await supabase
+    // Generate a unique variant_group_id for all variants in this group
+    const variantGroupId = crypto.randomUUID()
+    const createdProductIds: string[] = []
+
+    // Create all variants as independent products with shared variant_group_id
+    const variantInserts = selectedVariants.map((variant) => {
+      const variantData: any = {
+        seller_id: user.id,
+        variant_group_id: variantGroupId,
+        title: variant.title,
+        description: variant.description ?? parentInput.description,
+        price: variant.price,
+        stock_quantity: variant.stock_quantity,
+        image_url: variant.image_url,
+        images: variant.images.length > 0 ? variant.images : [variant.image_url],
+        brand: parentInput.brand ?? null,
+        condition: parentInput.condition ?? null,
+        is_active: true,
+        // Use variant-specific logistics fields if provided, otherwise inherit from parent form (using ?? to preserve valid zero values)
+        shipping_policy: variant.shipping_policy ?? parentInput.shipping_policy ?? null,
+        shipping_cost: variant.shipping_cost !== undefined ? variant.shipping_cost : (parentInput.shipping_cost ?? null),
+        package_length: variant.package_length !== undefined ? variant.package_length : (parentInput.package_length ?? null),
+        package_width: variant.package_width !== undefined ? variant.package_width : (parentInput.package_width ?? null),
+        package_height: variant.package_height !== undefined ? variant.package_height : (parentInput.package_height ?? null),
+        package_weight: variant.package_weight !== undefined ? variant.package_weight : (parentInput.package_weight ?? null),
+        attributes: variant.attributes,
+      }
+      
+      // Only include asin if it exists
+      if (variant.asin) {
+        variantData.asin = variant.asin
+      }
+      
+      return variantData
+    })
+
+    const { data: variantProducts, error: variantError } = await supabase
       .from("products")
-      .insert(parentProductData)
+      .insert(variantInserts)
       .select()
-      .single()
 
-    if (parentError) {
-      throw new Error(`Failed to create parent product: ${parentError.message}`)
+    if (variantError) {
+      throw new Error(`Failed to create variants: ${variantError.message}`)
     }
 
-    const createdProductIds = [parentProduct.id]
-
-    // Step 2: Add categories and tags to parent
-    if (parentInput.category_ids && parentInput.category_ids.length > 0) {
-      const categoryInserts = parentInput.category_ids.map((category_id) => ({
-        product_id: parentProduct.id,
-        category_id,
-      }))
-      const { error: categoryError } = await supabase.from("product_categories").insert(categoryInserts)
-      if (categoryError) {
-        // Rollback: Delete parent product and its relations
-        await rollbackProducts(supabase, [parentProduct.id])
-        throw new Error(`Failed to add categories to parent product: ${categoryError.message}`)
-      }
+    if (!variantProducts || variantProducts.length === 0) {
+      throw new Error("No variants were created")
     }
 
-    if (parentInput.tag_ids && parentInput.tag_ids.length > 0) {
-      const tagInserts = parentInput.tag_ids.map((tag_id) => ({
-        product_id: parentProduct.id,
-        tag_id,
-      }))
-      const { error: tagError } = await supabase.from("product_tags").insert(tagInserts)
-      if (tagError) {
-        // Rollback: Delete parent product and its relations
-        await rollbackProducts(supabase, [parentProduct.id])
-        throw new Error(`Failed to add tags to parent product: ${tagError.message}`)
-      }
-    }
+    createdProductIds.push(...variantProducts.map((p) => p.id))
 
-    // Step 3: Create variant products if any selected
-    if (selectedVariants.length > 0) {
-      const variantInserts = selectedVariants.map((variant) => {
-        const variantData: any = {
-          seller_id: user.id,
-          parent_id: parentProduct.id,
-          title: variant.title,
-          description: variant.description || parentInput.description,  // Use variant description if available
-          price: variant.price,
-          stock_quantity: variant.stock_quantity,  // Use stock from variant
-          image_url: variant.image_url,
-          images: variant.images.length > 0 ? variant.images : [variant.image_url],  // Use variant images or fallback
-          brand: parentInput.brand || null,
-          condition: parentInput.condition || null,
-          is_active: true,
-          // Use variant-specific logistics fields if provided, otherwise fallback to parent
-          shipping_policy: variant.shipping_policy || parentInput.shipping_policy || null,
-          shipping_cost: variant.shipping_cost !== undefined ? variant.shipping_cost : (parentInput.shipping_cost || null),
-          package_length: variant.package_length !== undefined ? variant.package_length : (parentInput.package_length || null),
-          package_width: variant.package_width !== undefined ? variant.package_width : (parentInput.package_width || null),
-          package_height: variant.package_height !== undefined ? variant.package_height : (parentInput.package_height || null),
-          package_weight: variant.package_weight !== undefined ? variant.package_weight : (parentInput.package_weight || null),
-          attributes: variant.attributes,
+    // Add categories and tags to each variant product
+    for (const variantProduct of variantProducts) {
+      if (parentInput.category_ids && parentInput.category_ids.length > 0) {
+        const categoryInserts = parentInput.category_ids.map((category_id) => ({
+          product_id: variantProduct.id,
+          category_id,
+        }))
+        const { error: catError } = await supabase.from("product_categories").insert(categoryInserts)
+        if (catError) {
+          // Rollback: Delete all created products and their relations
+          await rollbackProducts(supabase, createdProductIds)
+          throw new Error(`Failed to add categories to variant: ${catError.message}`)
         }
-        
-        // Only include asin if it exists to avoid schema cache issues
-        if (variant.asin) {
-          variantData.asin = variant.asin
-        }
-        
-        return variantData
-      })
-
-      const { data: variantProducts, error: variantError } = await supabase
-        .from("products")
-        .insert(variantInserts)
-        .select()
-
-      if (variantError) {
-        // Rollback: Delete parent product and its relations
-        await rollbackProducts(supabase, [parentProduct.id])
-        throw new Error(`Failed to create variants: ${variantError.message}`)
       }
 
-      if (!variantProducts || variantProducts.length === 0) {
-        // Rollback: Delete parent product and its relations
-        await rollbackProducts(supabase, [parentProduct.id])
-        throw new Error("No variants were created")
-      }
-
-      createdProductIds.push(...variantProducts.map((p) => p.id))
-
-      // Add categories and tags to each variant
-      for (const variantProduct of variantProducts) {
-        if (parentInput.category_ids && parentInput.category_ids.length > 0) {
-          const categoryInserts = parentInput.category_ids.map((category_id) => ({
-            product_id: variantProduct.id,
-            category_id,
-          }))
-          const { error: catError } = await supabase.from("product_categories").insert(categoryInserts)
-          if (catError) {
-            // Rollback: Delete all created products and their relations
-            await rollbackProducts(supabase, createdProductIds)
-            throw new Error(`Failed to add categories to variant: ${catError.message}`)
-          }
-        }
-
-        if (parentInput.tag_ids && parentInput.tag_ids.length > 0) {
-          const tagInserts = parentInput.tag_ids.map((tag_id) => ({
-            product_id: variantProduct.id,
-            tag_id,
-          }))
-          const { error: tagError } = await supabase.from("product_tags").insert(tagInserts)
-          if (tagError) {
-            // Rollback: Delete all created products and their relations
-            await rollbackProducts(supabase, createdProductIds)
-            throw new Error(`Failed to add tags to variant: ${tagError.message}`)
-          }
+      if (parentInput.tag_ids && parentInput.tag_ids.length > 0) {
+        const tagInserts = parentInput.tag_ids.map((tag_id) => ({
+          product_id: variantProduct.id,
+          tag_id,
+        }))
+        const { error: tagError } = await supabase.from("product_tags").insert(tagInserts)
+        if (tagError) {
+          // Rollback: Delete all created products and their relations
+          await rollbackProducts(supabase, createdProductIds)
+          throw new Error(`Failed to add tags to variant: ${tagError.message}`)
         }
       }
     }
 
-    // Step 4: Generate embeddings asynchronously for all created products
+    // Generate embeddings asynchronously for all created variant products
     const adminClient = createAdminClient()
-    for (const productId of createdProductIds) {
-      const product = productId === parentProduct.id ? parentProduct : await supabase
-        .from("products")
-        .select("image_url, images")
-        .eq("id", productId)
-        .single()
-        .then(({ data }) => data)
-
-      if (product) {
-        const imageUrl = product.image_url || product.images?.[0]
-        if (imageUrl) {
-          updateProductEmbedding(adminClient, productId, imageUrl).catch((error) => {
-            console.error(`[Create Product With Variants] Failed to generate embedding for product ${productId}:`, error)
-          })
-        }
+    for (const variantProduct of variantProducts) {
+      const imageUrl = variantProduct.image_url || variantProduct.images?.[0]
+      if (imageUrl) {
+        updateProductEmbedding(adminClient, variantProduct.id, imageUrl).catch((error) => {
+          console.error(`[Create Product With Variants] Failed to generate embedding for product ${variantProduct.id}:`, error)
+        })
       }
     }
 
     revalidatePath("/seller")
     return {
       data: {
-        parent: parentProduct,
+        variantGroupId: variantGroupId,
         variantCount: selectedVariants.length,
-        totalProducts: createdProductIds.length,
+        createdProducts: variantProducts,
       },
     }
   } catch (error: any) {
