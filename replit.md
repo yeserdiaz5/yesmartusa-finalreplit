@@ -68,6 +68,7 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 - **Email Notifications**: Resend integration for automated two-stage seller emails (review and welcome).
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage.
 - **Automated Shipping Payment System**: Dual-flow system using Stripe Connect Transfers and Shippo for buyer pays, seller pays, and shared shipping models, including deficit handling and pre-flight verification.
+- **Domain Redirect**: Automatic www to non-www redirect configured in `next.config.mjs` (www.yesmartusa.com → https://yesmartusa.com) with permanent (308) status code for SEO optimization.
 
 ## External Dependencies
 

@@ -9,6 +9,21 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.yesmartusa.com',
+          },
+        ],
+        destination: 'https://yesmartusa.com/:path*',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig
