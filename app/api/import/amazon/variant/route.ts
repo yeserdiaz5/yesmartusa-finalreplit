@@ -19,6 +19,7 @@ interface RainforestProduct {
       }
     }
     variants?: Array<{
+      asin?: string
       dimensions?: Array<{
         name?: string
         value?: string
@@ -110,13 +111,18 @@ export async function POST(request: NextRequest) {
     const price = productData.buybox_winner?.price?.value || 0
 
     // Extract attributes from the main product's variant dimensions (if available)
+    // IMPORTANT: Match by ASIN to get the correct variant attributes
     const attributes: Record<string, string> = {}
     if (productData.variants && productData.variants.length > 0) {
-      const currentVariant = productData.variants.find(v => 
-        v.dimensions && v.dimensions.length > 0
+      // Find the variant that matches our requested ASIN (case-insensitive)
+      const matchingVariant = productData.variants.find(v => 
+        v.asin && v.asin.toUpperCase() === normalizedAsin
       )
-      if (currentVariant && currentVariant.dimensions) {
-        currentVariant.dimensions.forEach((dim) => {
+      
+      // Only use attributes from the matching variant (if found and has dimensions)
+      // Do NOT fall back to other variants as that would return incorrect attributes
+      if (matchingVariant && matchingVariant.dimensions && matchingVariant.dimensions.length > 0) {
+        matchingVariant.dimensions.forEach((dim) => {
           if (dim.name && dim.value) {
             attributes[dim.name.toLowerCase()] = dim.value
           }
