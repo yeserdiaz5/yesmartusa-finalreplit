@@ -5,10 +5,7 @@ import { NextResponse } from "next/server"
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || ""
   
-  console.log(`[Middleware] Request to hostname: ${hostname}`)
-  
   if (hostname === "www.yesmartusa.com") {
-    console.log("[Middleware] Redirecting www to non-www")
     const url = request.nextUrl.clone()
     url.host = "yesmartusa.com"
     url.protocol = "https"
