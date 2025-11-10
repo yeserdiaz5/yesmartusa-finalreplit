@@ -356,29 +356,34 @@ export default function ProductForm({
         attributes: {},
       }
 
+      // Helper function to validate variants (used for both manual and Amazon variants)
+      const validateVariant = (variant: { title: string, price: number | string, stock_quantity: number | string, images: string[] }, index: number): string | null => {
+        if (!variant.title || !variant.title.trim()) {
+          return `${t("variantTitleRequired")} (Variant ${index + 1})`
+        }
+        const price = typeof variant.price === 'string' ? Number.parseFloat(variant.price) : variant.price
+        if (!price || price <= 0) {
+          return `${t("variantPriceRequired")} (Variant ${index + 1}: ${variant.title})`
+        }
+        const stock = typeof variant.stock_quantity === 'string' ? Number.parseInt(variant.stock_quantity) : variant.stock_quantity
+        if (stock === undefined || stock === null || stock < 0) {
+          return `${t("variantStockRequired")} (Variant ${index + 1}: ${variant.title})`
+        }
+        if (!variant.images || variant.images.length === 0) {
+          return `${t("variantImagesRequired")} (Variant ${index + 1}: ${variant.title})`
+        }
+        return null
+      }
+
       let result
       if (product) {
         result = await updateProduct({ id: product.id, ...input })
       } else if (hasManualVariants && manualVariants.length > 0) {
         // Validate manual variants
-        for (const variant of manualVariants) {
-          if (!variant.title || !variant.title.trim()) {
-            setError(t("variantTitleRequired"))
-            setLoading(false)
-            return
-          }
-          if (!variant.price || Number.parseFloat(variant.price) <= 0) {
-            setError(t("variantPriceRequired"))
-            setLoading(false)
-            return
-          }
-          if (!variant.stock_quantity || Number.parseInt(variant.stock_quantity) < 0) {
-            setError(t("variantStockRequired"))
-            setLoading(false)
-            return
-          }
-          if (variant.images.length === 0) {
-            setError(t("variantImagesRequired"))
+        for (let i = 0; i < manualVariants.length; i++) {
+          const validationError = validateVariant(manualVariants[i], i)
+          if (validationError) {
+            setError(validationError)
             setLoading(false)
             return
           }
@@ -397,6 +402,16 @@ export default function ProductForm({
 
         result = await createProductWithVariants(input, variantsToCreate)
       } else if (importedVariants.length > 0) {
+        // Validate Amazon-imported variants (same validation as manual variants)
+        for (let i = 0; i < importedVariants.length; i++) {
+          const validationError = validateVariant(importedVariants[i], i)
+          if (validationError) {
+            setError(validationError)
+            setLoading(false)
+            return
+          }
+        }
+
         // Create product with Amazon-imported variants (all variants are editable and will be created)
         const variantsToCreate: VariantInput[] = importedVariants.map((v) => ({
           asin: v.isDetached ? null : v.asin,  // Clear ASIN if detached
@@ -1193,29 +1208,121 @@ export default function ProductForm({
                       </div>
                     </div>
                     
-                    {/* TODO: Add editable fields similar to manual variants */}
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Editable Fields */}
+                    <div className="space-y-4">
+                      {/* Title */}
                       <div>
-                        <Label>Price ($)</Label>
-                        <p className="text-sm">${variant.price.toFixed(2)}</p>
+                        <Label htmlFor={`variant-title-${variant.id}`}>
+                          {t("variantTitle")}
+                        </Label>
+                        <Input
+                          id={`variant-title-${variant.id}`}
+                          value={variant.title}
+                          onChange={(e) => updateImportedVariant(variant.id, "title", e.target.value)}
+                          placeholder="Variant name"
+                          data-testid={`input-variant-title-${variant.id}`}
+                        />
                       </div>
+
+                      {/* Price and Stock */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor={`variant-price-${variant.id}`}>
+                            {t("price")} ($)
+                          </Label>
+                          <Input
+                            id={`variant-price-${variant.id}`}
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={variant.price}
+                            onChange={(e) => updateImportedVariant(variant.id, "price", Number.parseFloat(e.target.value) || 0)}
+                            placeholder="0.00"
+                            data-testid={`input-variant-price-${variant.id}`}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`variant-stock-${variant.id}`}>
+                            {t("stock")}
+                          </Label>
+                          <Input
+                            id={`variant-stock-${variant.id}`}
+                            type="number"
+                            min="0"
+                            value={variant.stock_quantity}
+                            onChange={(e) => updateImportedVariant(variant.id, "stock_quantity", Number.parseInt(e.target.value) || 0)}
+                            placeholder="0"
+                            data-testid={`input-variant-stock-${variant.id}`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Images */}
                       <div>
-                        <Label>Stock</Label>
-                        <p className="text-sm">{variant.stock_quantity}</p>
+                        <Label>{t("variantImages")}</Label>
+                        <ImageUploadGrid
+                          images={variant.images}
+                          onChange={(images) => updateImportedVariant(variant.id, "images", images)}
+                          maxImages={6}
+                        />
                       </div>
-                    </div>
-                    
-                    <div>
-                      <Label>Attributes</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {Object.entries(variant.attributes || {}).map(([key, value]) => (
-                          <span
-                            key={key}
-                            className="text-xs bg-muted px-2 py-1 rounded"
+
+                      {/* Attributes */}
+                      <div>
+                        <Label>{t("attributes")}</Label>
+                        <div className="space-y-2 mt-2">
+                          {Object.entries(variant.attributes || {}).map(([key, value], index) => (
+                            <div key={`${key}-${index}`} className="flex gap-2">
+                              <Input
+                                value={key}
+                                onChange={(e) => {
+                                  const newAttrs = { ...variant.attributes }
+                                  delete newAttrs[key]
+                                  newAttrs[e.target.value] = value
+                                  updateImportedVariant(variant.id, "attributes", newAttrs)
+                                }}
+                                placeholder="Attribute name"
+                                className="flex-1"
+                                data-testid={`input-variant-attr-key-${variant.id}-${index}`}
+                              />
+                              <Input
+                                value={String(value)}
+                                onChange={(e) => {
+                                  const newAttrs = { ...variant.attributes, [key]: e.target.value }
+                                  updateImportedVariant(variant.id, "attributes", newAttrs)
+                                }}
+                                placeholder="Value"
+                                className="flex-1"
+                                data-testid={`input-variant-attr-value-${variant.id}-${index}`}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const newAttrs = { ...variant.attributes }
+                                  delete newAttrs[key]
+                                  updateImportedVariant(variant.id, "attributes", newAttrs)
+                                }}
+                                data-testid={`button-remove-attr-${variant.id}-${index}`}
+                              >
+                                ✕
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newAttrs = { ...variant.attributes, "": "" }
+                              updateImportedVariant(variant.id, "attributes", newAttrs)
+                            }}
+                            data-testid={`button-add-attr-${variant.id}`}
                           >
-                            {key}: {String(value)}
-                          </span>
-                        ))}
+                            {t("addAttribute")}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
