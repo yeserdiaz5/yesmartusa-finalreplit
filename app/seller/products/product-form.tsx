@@ -85,6 +85,11 @@ export default function ProductForm({
     stock_quantity: string
     images: string[]
     attributes: Record<string, string>
+    description?: string
+    // Amazon import tracking
+    asin?: string
+    source?: "manual" | "amazon-single"
+    originalData?: any
     // Inherited fields from parent product
     shipping_policy?: string
     shipping_cost?: string
@@ -93,6 +98,11 @@ export default function ProductForm({
     package_height?: string
     package_weight?: string
   }>>([])
+  
+  // Import single variant dialog state
+  const [singleVariantDialogOpen, setSingleVariantDialogOpen] = useState(false)
+  const [singleVariantAsin, setSingleVariantAsin] = useState("")
+  const [importingSingleVariant, setImportingSingleVariant] = useState(false)
   
   // Add a new manual variant
   const addManualVariant = () => {
@@ -138,6 +148,89 @@ export default function ProductForm({
         return v
       })
     )
+  }
+  
+  // Import a single variant by ASIN
+  const importSingleVariant = async () => {
+    const cleanedAsin = singleVariantAsin.trim().toUpperCase()
+    
+    if (!cleanedAsin) {
+      toast({
+        title: t("error") || "Error",
+        description: t("pleaseEnterAsin") || "Please enter an ASIN",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Check for duplicates
+    const isDuplicate = manualVariants.some(v => v.asin === cleanedAsin)
+    if (isDuplicate) {
+      toast({
+        title: t("error") || "Error",
+        description: t("asinAlreadyImported") || "This ASIN has already been imported",
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setImportingSingleVariant(true)
+    
+    try {
+      const response = await fetch("/api/import/amazon/variant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ asin: cleanedAsin }),
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to import variant")
+      }
+      
+      const data = await response.json()
+      
+      // Map Amazon response to manual variant format
+      const newVariant = {
+        id: crypto.randomUUID(),
+        title: data.title || "",
+        description: data.description || "",
+        price: data.price?.toString() || "",
+        stock_quantity: data.stock_quantity?.toString() || "0",
+        images: data.images || [],
+        attributes: data.attributes || {},
+        // Amazon tracking
+        asin: cleanedAsin,
+        source: "amazon-single" as const,
+        originalData: data,
+        // Inherit logistics from parent product using nullish coalescing
+        shipping_policy: formData.shipping_policy,
+        shipping_cost: formData.shipping_cost,
+        package_length: formData.package_length,
+        package_width: formData.package_width,
+        package_height: formData.package_height,
+        package_weight: formData.package_weight,
+      }
+      
+      setManualVariants([...manualVariants, newVariant])
+      
+      toast({
+        title: t("success") || "Success",
+        description: t("variantImported") || "Variant imported successfully",
+      })
+      
+      // Reset and close dialog
+      setSingleVariantAsin("")
+      setSingleVariantDialogOpen(false)
+    } catch (error) {
+      console.error("Error importing variant:", error)
+      toast({
+        title: t("error") || "Error",
+        description: t("failedToImportVariant") || "Failed to import variant from Amazon",
+        variant: "destructive",
+      })
+    } finally {
+      setImportingSingleVariant(false)
+    }
   }
 
   console.log("[v0] Product data:", product)
@@ -492,14 +585,14 @@ export default function ProductForm({
 
         // Create product with manual variants
         const variantsToCreate: VariantInput[] = manualVariants.map((v) => ({
-          asin: null,  // Manual variants don't have ASIN
+          asin: v.asin || null,  // Preserve ASIN if imported from Amazon
           title: v.title,
           price: Number.parseFloat(v.price),
           stock_quantity: Number.parseInt(v.stock_quantity),
           image_url: v.images[0] || "",
           images: v.images,
           attributes: v.attributes,
-          description: "",  // Manual variants don't have description by default
+          description: v.description || "",  // Preserve description if imported from Amazon
           // Include inherited logistics fields
           shipping_policy: v.shipping_policy,
           shipping_cost: v.shipping_cost ? parseFloat(v.shipping_cost) : undefined,
@@ -1177,15 +1270,76 @@ export default function ProductForm({
               </Card>
             ))}
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addManualVariant}
-              className="w-full"
-              data-testid="button-add-variant"
-            >
-              + {t("addVariant")}
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addManualVariant}
+                data-testid="button-add-variant"
+              >
+                + {t("addVariant")}
+              </Button>
+              
+              <Dialog open={singleVariantDialogOpen} onOpenChange={setSingleVariantDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="default"
+                    data-testid="button-import-single-variant"
+                  >
+                    <Package className="w-4 h-4 mr-2" />
+                    {t("importVariantIndividual") || "Importar Variante"}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{t("importVariantIndividual") || "Importar Variante Individual"}</DialogTitle>
+                    <DialogDescription>
+                      {t("importVariantIndividualDescription") || "Pega el ASIN de Amazon para importar una variante individual. Heredará la configuración de envío del producto principal."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="single-variant-asin">ASIN</Label>
+                      <Input
+                        id="single-variant-asin"
+                        value={singleVariantAsin}
+                        onChange={(e) => setSingleVariantAsin(e.target.value)}
+                        placeholder="B0BP1M594S"
+                        data-testid="input-single-variant-asin"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={importSingleVariant}
+                        disabled={importingSingleVariant}
+                        className="flex-1"
+                        data-testid="button-confirm-import-variant"
+                      >
+                        {importingSingleVariant ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {t("importing") || "Importando..."}
+                          </>
+                        ) : (
+                          t("import") || "Importar"
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSingleVariantAsin("")
+                          setSingleVariantDialogOpen(false)
+                        }}
+                        disabled={importingSingleVariant}
+                      >
+                        {t("cancel") || "Cancelar"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardContent>
         )}
         </Card>
