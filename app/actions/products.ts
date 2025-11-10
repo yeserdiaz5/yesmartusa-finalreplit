@@ -182,30 +182,36 @@ export async function createProductWithVariants(
   }
 
   try {
-    // Step 1: Create parent product with ASIN
+    // Step 1: Create parent product - build object dynamically to avoid schema cache issues
+    const parentProductData: any = {
+      seller_id: user.id,
+      title: parentInput.title,
+      description: parentInput.description,
+      price: parentInput.price,
+      stock_quantity: parentInput.stock_quantity,
+      image_url: parentInput.image_url,
+      images: parentInput.images || [],
+      brand: parentInput.brand || null,
+      condition: parentInput.condition || null,
+      is_active: true,
+      shipping_policy: parentInput.shipping_policy || null,
+      shipping_cost: parentInput.shipping_cost || null,
+      package_length: parentInput.package_length || null,
+      package_width: parentInput.package_width || null,
+      package_height: parentInput.package_height || null,
+      package_weight: parentInput.package_weight || null,
+      attributes: parentInput.attributes || {},
+      parent_id: null,
+    }
+    
+    // Only include asin if it exists to avoid schema cache issues
+    if (parentInput.asin) {
+      parentProductData.asin = parentInput.asin
+    }
+    
     const { data: parentProduct, error: parentError } = await supabase
       .from("products")
-      .insert({
-        seller_id: user.id,
-        title: parentInput.title,
-        description: parentInput.description,
-        price: parentInput.price,
-        stock_quantity: parentInput.stock_quantity,
-        image_url: parentInput.image_url,
-        images: parentInput.images || [],
-        brand: parentInput.brand || null,
-        condition: parentInput.condition || null,
-        is_active: true,
-        shipping_policy: parentInput.shipping_policy || null,
-        shipping_cost: parentInput.shipping_cost || null,
-        package_length: parentInput.package_length || null,
-        package_width: parentInput.package_width || null,
-        package_height: parentInput.package_height || null,
-        package_weight: parentInput.package_weight || null,
-        asin: parentInput.asin || null,
-        attributes: parentInput.attributes || {},
-        parent_id: null,
-      })
+      .insert(parentProductData)
       .select()
       .single()
 
@@ -244,28 +250,36 @@ export async function createProductWithVariants(
 
     // Step 3: Create variant products if any selected
     if (selectedVariants.length > 0) {
-      const variantInserts = selectedVariants.map((variant) => ({
-        seller_id: user.id,
-        parent_id: parentProduct.id,
-        title: variant.title,
-        description: variant.description || parentInput.description,  // Use variant description if available
-        price: variant.price,
-        stock_quantity: variant.stock_quantity,  // Use stock from variant
-        image_url: variant.image_url,
-        images: variant.images.length > 0 ? variant.images : [variant.image_url],  // Use variant images or fallback
-        brand: parentInput.brand || null,
-        condition: parentInput.condition || null,
-        is_active: true,
-        // Use variant-specific logistics fields if provided, otherwise fallback to parent
-        shipping_policy: variant.shipping_policy || parentInput.shipping_policy || null,
-        shipping_cost: variant.shipping_cost !== undefined ? variant.shipping_cost : (parentInput.shipping_cost || null),
-        package_length: variant.package_length !== undefined ? variant.package_length : (parentInput.package_length || null),
-        package_width: variant.package_width !== undefined ? variant.package_width : (parentInput.package_width || null),
-        package_height: variant.package_height !== undefined ? variant.package_height : (parentInput.package_height || null),
-        package_weight: variant.package_weight !== undefined ? variant.package_weight : (parentInput.package_weight || null),
-        asin: variant.asin || null,  // Optional for manual variants
-        attributes: variant.attributes,
-      }))
+      const variantInserts = selectedVariants.map((variant) => {
+        const variantData: any = {
+          seller_id: user.id,
+          parent_id: parentProduct.id,
+          title: variant.title,
+          description: variant.description || parentInput.description,  // Use variant description if available
+          price: variant.price,
+          stock_quantity: variant.stock_quantity,  // Use stock from variant
+          image_url: variant.image_url,
+          images: variant.images.length > 0 ? variant.images : [variant.image_url],  // Use variant images or fallback
+          brand: parentInput.brand || null,
+          condition: parentInput.condition || null,
+          is_active: true,
+          // Use variant-specific logistics fields if provided, otherwise fallback to parent
+          shipping_policy: variant.shipping_policy || parentInput.shipping_policy || null,
+          shipping_cost: variant.shipping_cost !== undefined ? variant.shipping_cost : (parentInput.shipping_cost || null),
+          package_length: variant.package_length !== undefined ? variant.package_length : (parentInput.package_length || null),
+          package_width: variant.package_width !== undefined ? variant.package_width : (parentInput.package_width || null),
+          package_height: variant.package_height !== undefined ? variant.package_height : (parentInput.package_height || null),
+          package_weight: variant.package_weight !== undefined ? variant.package_weight : (parentInput.package_weight || null),
+          attributes: variant.attributes,
+        }
+        
+        // Only include asin if it exists to avoid schema cache issues
+        if (variant.asin) {
+          variantData.asin = variant.asin
+        }
+        
+        return variantData
+      })
 
       const { data: variantProducts, error: variantError } = await supabase
         .from("products")
