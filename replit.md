@@ -68,7 +68,7 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 - **Email Notifications**: Resend integration for automated two-stage seller emails (review and welcome).
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage.
 - **Automated Shipping Payment System**: Dual-flow system using Stripe Connect Transfers and Shippo for buyer pays, seller pays, and shared shipping models, including deficit handling and pre-flight verification.
-- **Domain Configuration**: Both www.yesmartusa.com and yesmartusa.com serve the application with SSL. Stripe webhooks and integrations use yesmartusa.com as the primary domain.
+- **Domain Configuration**: Both www.yesmartusa.com and yesmartusa.com serve the application with SSL. Selective 301 redirect configured in middleware: seller verification routes (`/seller/pagos`, `/onboarding/*`) automatically redirect from www to non-www for Stripe Connect compatibility. All other routes work on both domains. Stripe webhooks and integrations use yesmartusa.com as the primary domain.
 
 ## External Dependencies
 
