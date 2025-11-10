@@ -63,11 +63,30 @@ export async function createProduct(input: CreateProductInput) {
     return { error: "Unauthorized" }
   }
 
-  // Verify user is a seller or admin
-  const { data: userProfile } = await supabase.from("users").select("role").eq("id", user.id).single()
+  // Verify user is a seller or admin and check verification status
+  const { data: userProfile } = await supabase
+    .from("users")
+    .select("role, stripe_account_verified, stripe_connect_account_id")
+    .eq("id", user.id)
+    .single()
 
   if (!userProfile || !["seller", "admin"].includes(userProfile.role)) {
     return { error: "Only sellers can create products" }
+  }
+
+  // Check if seller is verified (unless admin)
+  if (userProfile.role === "seller") {
+    if (!userProfile.stripe_connect_account_id) {
+      return { 
+        error: "You must set up your Stripe Connect account before listing products. Please go to 'My Earnings' to complete your seller setup." 
+      }
+    }
+    
+    if (!userProfile.stripe_account_verified) {
+      return { 
+        error: "Your Stripe account is pending verification. You'll be able to list products once Stripe approves your account (usually within 24 hours)." 
+      }
+    }
   }
 
   // Create product
@@ -158,11 +177,30 @@ export async function createProductWithVariants(
     return { error: "Unauthorized" }
   }
 
-  // Verify user is a seller or admin
-  const { data: userProfile } = await supabase.from("users").select("role").eq("id", user.id).single()
+  // Verify user is a seller or admin and check verification status
+  const { data: userProfile } = await supabase
+    .from("users")
+    .select("role, stripe_account_verified, stripe_connect_account_id")
+    .eq("id", user.id)
+    .single()
 
   if (!userProfile || !["seller", "admin"].includes(userProfile.role)) {
     return { error: "Only sellers can create products" }
+  }
+
+  // Check if seller is verified (unless admin)
+  if (userProfile.role === "seller") {
+    if (!userProfile.stripe_connect_account_id) {
+      return { 
+        error: "You must set up your Stripe Connect account before listing products. Please go to 'My Earnings' to complete your seller setup." 
+      }
+    }
+    
+    if (!userProfile.stripe_account_verified) {
+      return { 
+        error: "Your Stripe account is pending verification. You'll be able to list products once Stripe approves your account (usually within 24 hours)." 
+      }
+    }
   }
 
   // Validate variants up-front
