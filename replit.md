@@ -21,7 +21,14 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 - **Shipping Cost Flow & Profit**: Buyer pays product + estimated shipping; seller pays actual shipping cost. Stripe Connect manages transfers, with estimated costs rounded up.
 - **AI Product Description Generation**: OpenAI GPT-4o generates Spanish product descriptions based on product name.
 - **Amazon Product Import**: One-click import from Amazon using Rainforest API to populate product details and images, supporting multiple URL formats and bilingual content.
-- **Product Variants System**: Amazon-style parent-child product variants with atomic creation, rollback mechanism, and i18n support.
+- **Product Variants System**: 
+  - **Dual Mode**: Supports both Amazon-imported variants and manual variant creation (mutually exclusive)
+  - **Amazon Variants**: Automated import with proper image extraction from Rainforest API objects/strings, with fallback to main product image
+  - **Manual Variants**: Custom variant creation with individual pricing, stock, images (up to 6), and attribute key-value pairs
+  - **Clear Import**: One-click button to clear Amazon import state and switch to manual variant creation mode while preserving product form data
+  - **Database**: Partial unique index on ASIN (WHERE asin IS NOT NULL) allows multiple manual variants with NULL ASIN while ensuring Amazon ASIN uniqueness
+  - **Atomic Operations**: Parent-child creation with rollback mechanism and comprehensive validation
+  - **i18n Support**: Full bilingual interface for both Amazon and manual variant workflows
 - **Image Editing & Cropping**: Client-side image cropping (1:1 aspect ratio) before Supabase upload.
 - **Product Details System**: Optional brand and 6 eBay-style condition fields with i18n support.
 - **Product Gallery**: Amazon-style image gallery with large main image, thumbnails, and hover effects.
