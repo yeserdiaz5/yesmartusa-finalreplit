@@ -64,6 +64,13 @@ export default function ProductForm({
     originalData: any
     isDetached: boolean
     modified: boolean
+    // Inherited fields from parent product
+    shipping_policy?: string
+    shipping_cost?: number
+    package_length?: number
+    package_width?: number
+    package_height?: number
+    package_weight?: number
   }>>([])
   const [importedAsin, setImportedAsin] = useState<string>("")
   const [importingVariantId, setImportingVariantId] = useState<string | null>(null)
@@ -78,6 +85,13 @@ export default function ProductForm({
     stock_quantity: string
     images: string[]
     attributes: Record<string, string>
+    // Inherited fields from parent product
+    shipping_policy?: string
+    shipping_cost?: string
+    package_length?: string
+    package_width?: string
+    package_height?: string
+    package_weight?: string
   }>>([])
   
   // Add a new manual variant
@@ -91,6 +105,13 @@ export default function ProductForm({
         stock_quantity: "",
         images: [],
         attributes: {},
+        // Inherit logistics fields from parent product
+        shipping_policy: formData.shipping_policy,
+        shipping_cost: formData.shipping_cost,
+        package_length: formData.package_length,
+        package_width: formData.package_width,
+        package_height: formData.package_height,
+        package_weight: formData.package_weight,
       },
     ])
   }
@@ -288,6 +309,13 @@ export default function ProductForm({
       const variantsWithIds = variants.map((v: any) => ({
         ...v,
         id: crypto.randomUUID(),
+        // Inherit logistics fields from parent product (convert strings to numbers)
+        shipping_policy: formData.shipping_policy,
+        shipping_cost: formData.shipping_cost ? parseFloat(formData.shipping_cost) : undefined,
+        package_length: formData.package_length ? parseFloat(formData.package_length) : undefined,
+        package_width: formData.package_width ? parseFloat(formData.package_width) : undefined,
+        package_height: formData.package_height ? parseFloat(formData.package_height) : undefined,
+        package_weight: formData.package_weight ? parseFloat(formData.package_weight) : undefined,
       }))
       setImportedVariants(variantsWithIds)
 
@@ -471,6 +499,14 @@ export default function ProductForm({
           image_url: v.images[0] || "",
           images: v.images,
           attributes: v.attributes,
+          description: "",  // Manual variants don't have description by default
+          // Include inherited logistics fields
+          shipping_policy: v.shipping_policy,
+          shipping_cost: v.shipping_cost ? parseFloat(v.shipping_cost) : undefined,
+          package_length: v.package_length ? parseFloat(v.package_length) : undefined,
+          package_width: v.package_width ? parseFloat(v.package_width) : undefined,
+          package_height: v.package_height ? parseFloat(v.package_height) : undefined,
+          package_weight: v.package_weight ? parseFloat(v.package_weight) : undefined,
         }))
 
         result = await createProductWithVariants(input, variantsToCreate)
@@ -494,6 +530,14 @@ export default function ProductForm({
           image_url: v.images[0] || "",
           images: v.images,
           attributes: v.attributes,
+          description: v.description || "",
+          // Include inherited logistics fields
+          shipping_policy: v.shipping_policy,
+          shipping_cost: v.shipping_cost,
+          package_length: v.package_length,
+          package_width: v.package_width,
+          package_height: v.package_height,
+          package_weight: v.package_weight,
         }))
 
         result = await createProductWithVariants(input, variantsToCreate)
@@ -1040,9 +1084,10 @@ export default function ProductForm({
                         type="number"
                         min="0"
                         value={variant.stock_quantity}
-                        onChange={(e) =>
-                          updateManualVariant(variant.id, "stock_quantity", e.target.value)
-                        }
+                        onChange={(e) => {
+                          const value = e.target.valueAsNumber
+                          updateManualVariant(variant.id, "stock_quantity", isNaN(value) ? "" : value.toString())
+                        }}
                         placeholder="0"
                         required
                         data-testid={`input-variant-stock-${index}`}
@@ -1355,7 +1400,10 @@ export default function ProductForm({
                             type="number"
                             min="0"
                             value={variant.stock_quantity}
-                            onChange={(e) => updateImportedVariant(variant.id, "stock_quantity", Number.parseInt(e.target.value) || 0)}
+                            onChange={(e) => {
+                              const value = e.target.valueAsNumber
+                              updateImportedVariant(variant.id, "stock_quantity", isNaN(value) ? 0 : value)
+                            }}
                             placeholder="0"
                             data-testid={`input-variant-stock-${variant.id}`}
                           />

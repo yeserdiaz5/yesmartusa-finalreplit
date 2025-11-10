@@ -36,6 +36,14 @@ export interface VariantInput {
   image_url: string  // Main image (for backward compatibility)
   images: string[]  // Multiple images for variant
   attributes: Record<string, string>
+  description?: string  // Variant-specific description
+  // Inherited logistics fields from parent product
+  shipping_policy?: string
+  shipping_cost?: number
+  package_length?: number
+  package_width?: number
+  package_height?: number
+  package_weight?: number
 }
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {
@@ -240,7 +248,7 @@ export async function createProductWithVariants(
         seller_id: user.id,
         parent_id: parentProduct.id,
         title: variant.title,
-        description: parentInput.description,
+        description: variant.description || parentInput.description,  // Use variant description if available
         price: variant.price,
         stock_quantity: variant.stock_quantity,  // Use stock from variant
         image_url: variant.image_url,
@@ -248,12 +256,13 @@ export async function createProductWithVariants(
         brand: parentInput.brand || null,
         condition: parentInput.condition || null,
         is_active: true,
-        shipping_policy: parentInput.shipping_policy || null,
-        shipping_cost: parentInput.shipping_cost || null,
-        package_length: parentInput.package_length || null,
-        package_width: parentInput.package_width || null,
-        package_height: parentInput.package_height || null,
-        package_weight: parentInput.package_weight || null,
+        // Use variant-specific logistics fields if provided, otherwise fallback to parent
+        shipping_policy: variant.shipping_policy || parentInput.shipping_policy || null,
+        shipping_cost: variant.shipping_cost !== undefined ? variant.shipping_cost : (parentInput.shipping_cost || null),
+        package_length: variant.package_length !== undefined ? variant.package_length : (parentInput.package_length || null),
+        package_width: variant.package_width !== undefined ? variant.package_width : (parentInput.package_width || null),
+        package_height: variant.package_height !== undefined ? variant.package_height : (parentInput.package_height || null),
+        package_weight: variant.package_weight !== undefined ? variant.package_weight : (parentInput.package_weight || null),
         asin: variant.asin || null,  // Optional for manual variants
         attributes: variant.attributes,
       }))
