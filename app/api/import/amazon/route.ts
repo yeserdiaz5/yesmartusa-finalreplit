@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
       const variantData = {
         asin: variant.asin || "",
         title: variant.title || "",
+        description: "", // Will be filled when user imports individual variant
         image: imageUrl,
         images: imageUrl ? [imageUrl] : [],
         price: variant.price?.value || 0,

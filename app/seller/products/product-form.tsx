@@ -56,6 +56,7 @@ export default function ProductForm({
     id: string
     asin: string
     title: string
+    description: string
     price: number
     stock_quantity: number
     images: string[]
@@ -65,6 +66,7 @@ export default function ProductForm({
     modified: boolean
   }>>([])
   const [importedAsin, setImportedAsin] = useState<string>("")
+  const [importingVariantId, setImportingVariantId] = useState<string | null>(null)
   const { toast } = useToast()
   
   // Manual variants state
@@ -312,6 +314,77 @@ export default function ProductForm({
       })
     } finally {
       setImporting(false)
+    }
+  }
+
+  // Import individual variant data from Amazon
+  const handleImportVariant = async (variantId: string, asin: string) => {
+    if (!asin || asin.trim() === "") {
+      toast({
+        title: t("variantImportError"),
+        description: "ASIN is required",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setImportingVariantId(variantId)
+
+    try {
+      const response = await fetch("/api/import/amazon/variant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          asin: asin.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || t("variantImportError"))
+      }
+
+      // Update the variant with the imported data
+      setImportedVariants(
+        importedVariants.map((v) => {
+          if (v.id === variantId) {
+            // Only update images and description, keep user-modified price/stock if changed
+            const updatedVariant = {
+              ...v,
+              images: data.images || v.images,
+              description: data.description || v.description,
+              // Update price only if not manually modified
+              price: v.modified ? v.price : (data.price || v.price),
+              modified: true,
+            }
+            // Also update originalData to reflect the fresh import
+            updatedVariant.originalData = {
+              ...updatedVariant.originalData,
+              images: data.images,
+              description: data.description,
+            }
+            return updatedVariant
+          }
+          return v
+        })
+      )
+
+      console.log("[Variant Import] Successfully imported variant:", data.title)
+
+      toast({
+        title: t("variantImported"),
+        description: data.title,
+      })
+    } catch (err) {
+      console.error("[Variant Import] Error:", err)
+      toast({
+        title: t("variantImportError"),
+        description: err instanceof Error ? err.message : t("variantImportError"),
+        variant: "destructive",
+      })
+    } finally {
+      setImportingVariantId(null)
     }
   }
 
@@ -1137,7 +1210,24 @@ export default function ProductForm({
                           ASIN: {variant.isDetached ? "Detached (Manual)" : variant.asin}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleImportVariant(variant.id, variant.asin)}
+                          disabled={!variant.asin || variant.isDetached || importingVariantId === variant.id}
+                          data-testid={`button-import-variant-${variant.id}`}
+                        >
+                          {importingVariantId === variant.id ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              {t("importingVariant")}
+                            </>
+                          ) : (
+                            t("importVariant")
+                          )}
+                        </Button>
                         <Button
                           type="button"
                           variant="outline"
@@ -1221,6 +1311,21 @@ export default function ProductForm({
                           onChange={(e) => updateImportedVariant(variant.id, "title", e.target.value)}
                           placeholder="Variant name"
                           data-testid={`input-variant-title-${variant.id}`}
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <Label htmlFor={`variant-description-${variant.id}`}>
+                          {t("variantDescription")}
+                        </Label>
+                        <Textarea
+                          id={`variant-description-${variant.id}`}
+                          value={variant.description || ""}
+                          onChange={(e) => updateImportedVariant(variant.id, "description", e.target.value)}
+                          placeholder={t("variantDescriptionPlaceholder")}
+                          rows={3}
+                          data-testid={`textarea-variant-description-${variant.id}`}
                         />
                       </div>
 
