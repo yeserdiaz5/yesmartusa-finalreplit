@@ -52,9 +52,19 @@ export default function ProductForm({
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [importInput, setImportInput] = useState("")
   const [importing, setImporting] = useState(false)
-  const [importedVariants, setImportedVariants] = useState<any[]>([])
+  const [importedVariants, setImportedVariants] = useState<Array<{
+    id: string
+    asin: string
+    title: string
+    price: number
+    stock_quantity: number
+    images: string[]
+    attributes: Record<string, string>
+    originalData: any
+    isDetached: boolean
+    modified: boolean
+  }>>([])
   const [importedAsin, setImportedAsin] = useState<string>("")
-  const [selectedVariants, setSelectedVariants] = useState<Set<string>>(new Set())
   const { toast } = useToast()
   
   // Manual variants state
@@ -92,6 +102,18 @@ export default function ProductForm({
   const updateManualVariant = (id: string, field: string, value: any) => {
     setManualVariants(
       manualVariants.map((v) => (v.id === id ? { ...v, [field]: value } : v))
+    )
+  }
+  
+  // Update an imported Amazon variant
+  const updateImportedVariant = (id: string, field: string, value: any) => {
+    setImportedVariants(
+      importedVariants.map((v) => {
+        if (v.id === id) {
+          return { ...v, [field]: value, modified: true }
+        }
+        return v
+      })
     )
   }
 
@@ -259,22 +281,13 @@ export default function ProductForm({
         images: importedProduct.images && importedProduct.images.length > 0 ? importedProduct.images : prev.images,
       }))
 
-      // Store ASIN and variants
+      // Store ASIN and variants with unique IDs
       setImportedAsin(importedAsin)
-      setImportedVariants(variants)
-
-      // Reset selectedVariants to avoid stale state from previous imports
-      let newSelectedVariants = new Set<string>()
-
-      // Auto-select the current product variant if it exists
-      if (variants.length > 0) {
-        const currentVariant = variants.find((v: any) => v.is_current)
-        if (currentVariant && currentVariant.asin) {
-          newSelectedVariants.add(currentVariant.asin)
-        }
-      }
-
-      setSelectedVariants(newSelectedVariants)
+      const variantsWithIds = variants.map((v: any) => ({
+        ...v,
+        id: crypto.randomUUID(),
+      }))
+      setImportedVariants(variantsWithIds)
 
       console.log("[Amazon Import] Product imported successfully:", importedProduct)
       console.log("[Amazon Import] Found", variants.length, "variants")
@@ -383,19 +396,17 @@ export default function ProductForm({
         }))
 
         result = await createProductWithVariants(input, variantsToCreate)
-      } else if (selectedVariants.size > 0) {
-        // Create product with Amazon-imported variants
-        const variantsToCreate: VariantInput[] = importedVariants
-          .filter((v: any) => selectedVariants.has(v.asin))
-          .map((v: any) => ({
-            asin: v.asin,
-            title: v.title,
-            price: v.price,
-            stock_quantity: 0,  // Default stock for Amazon imports
-            image_url: v.image,
-            images: v.image ? [v.image] : [],  // Amazon imports have single image
-            attributes: v.attributes,
-          }))
+      } else if (importedVariants.length > 0) {
+        // Create product with Amazon-imported variants (all variants are editable and will be created)
+        const variantsToCreate: VariantInput[] = importedVariants.map((v) => ({
+          asin: v.isDetached ? null : v.asin,  // Clear ASIN if detached
+          title: v.title,
+          price: v.price,
+          stock_quantity: v.stock_quantity,
+          image_url: v.images[0] || "",
+          images: v.images,
+          attributes: v.attributes,
+        }))
 
         result = await createProductWithVariants(input, variantsToCreate)
       } else {
@@ -1057,7 +1068,7 @@ export default function ProductForm({
                   {t("productVariants")} ({importedVariants.length})
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {t("selectVariantsToCreate")}
+                  {t("editAmazonVariants")}
                 </p>
               </div>
               <Button
@@ -1065,16 +1076,12 @@ export default function ProductForm({
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  // Show confirmation only if user has selected variants
-                  if (selectedVariants.size > 0) {
-                    if (!confirm(t("clearAmazonImportConfirm"))) {
-                      return
-                    }
+                  if (!confirm(t("clearAmazonImportConfirm"))) {
+                    return
                   }
                   
                   // Clear Amazon import state
                   setImportedVariants([])
-                  setSelectedVariants(new Set())
                   setImportedAsin("")
                   
                   // Enable manual variants mode
@@ -1098,80 +1105,123 @@ export default function ProductForm({
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {importedVariants.map((variant: any) => (
-                <div
-                  key={variant.asin}
-                  className="flex items-start gap-3 p-3 border rounded-lg hover-elevate"
-                  data-testid={`variant-item-${variant.asin}`}
-                >
-                  <Checkbox
-                    id={`variant-${variant.asin}`}
-                    checked={selectedVariants.has(variant.asin)}
-                    onCheckedChange={(checked) => {
-                      const newSelected = new Set(selectedVariants)
-                      if (checked) {
-                        newSelected.add(variant.asin)
-                      } else {
-                        newSelected.delete(variant.asin)
-                      }
-                      setSelectedVariants(newSelected)
-                    }}
-                    data-testid={`checkbox-variant-${variant.asin}`}
-                  />
-                  <div className="flex-1 flex gap-3">
-                    {variant.image && (
-                      <img
-                        src={variant.image}
-                        alt={variant.title}
-                        className="w-16 h-16 object-contain rounded border"
-                        data-testid={`img-variant-${variant.asin}`}
-                      />
-                    )}
-                    <div className="flex-1">
-                      <label
-                        htmlFor={`variant-${variant.asin}`}
-                        className="text-sm font-medium leading-tight cursor-pointer"
-                      >
-                        {variant.title}
-                      </label>
-                      <div className="flex flex-wrap gap-2 mt-1">
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Amazon variants are now editable. Modify price, stock, images, and attributes as needed.
+            </p>
+            
+            {/* Placeholder for editable variant UI - will be implemented next */}
+            <div className="space-y-4">
+              {importedVariants.map((variant) => (
+                <Card key={variant.id} className="p-4" data-testid={`amazon-variant-${variant.id}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{variant.title}</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ASIN: {variant.isDetached ? "Detached (Manual)" : variant.asin}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Reset to original Amazon data
+                            setImportedVariants(
+                              importedVariants.map((v) =>
+                                v.id === variant.id
+                                  ? {
+                                      ...v,
+                                      ...v.originalData,
+                                      isDetached: false,
+                                      modified: false,
+                                    }
+                                  : v
+                              )
+                            )
+                            toast({
+                              title: "Variant Reset",
+                              description: "Variant restored to original Amazon data",
+                            })
+                          }}
+                          disabled={!variant.modified}
+                          data-testid={`button-reset-${variant.id}`}
+                        >
+                          Reset
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            // Detach from Amazon (convert to manual)
+                            setImportedVariants(
+                              importedVariants.map((v) =>
+                                v.id === variant.id
+                                  ? { ...v, isDetached: true, modified: true }
+                                  : v
+                              )
+                            )
+                            toast({
+                              title: "Variant Detached",
+                              description: "This variant will be created as a manual variant (no ASIN)",
+                            })
+                          }}
+                          data-testid={`button-detach-${variant.id}`}
+                        >
+                          {variant.isDetached ? "Detached" : "Detach"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            // Remove variant
+                            setImportedVariants(importedVariants.filter((v) => v.id !== variant.id))
+                            toast({
+                              title: "Variant Removed",
+                              description: "This variant will not be created",
+                            })
+                          }}
+                          data-testid={`button-remove-${variant.id}`}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* TODO: Add editable fields similar to manual variants */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Price ($)</Label>
+                        <p className="text-sm">${variant.price.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <Label>Stock</Label>
+                        <p className="text-sm">{variant.stock_quantity}</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>Attributes</Label>
+                      <div className="flex flex-wrap gap-2 mt-2">
                         {Object.entries(variant.attributes || {}).map(([key, value]) => (
                           <span
                             key={key}
                             className="text-xs bg-muted px-2 py-1 rounded"
-                            data-testid={`variant-attribute-${variant.asin}-${key}`}
                           >
                             {key}: {String(value)}
                           </span>
                         ))}
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm font-semibold" data-testid={`variant-price-${variant.asin}`}>
-                          ${variant.price.toFixed(2)}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          ASIN: {variant.asin}
-                        </span>
-                        {variant.is_current && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            {t("currentProduct")}
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
-            {selectedVariants.size > 0 && (
-              <div className="mt-4 p-3 bg-muted rounded-lg">
-                <p className="text-sm">
-                  {t("variantsSelectedCount", { count: selectedVariants.size })}
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}

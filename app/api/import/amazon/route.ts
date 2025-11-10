@@ -187,13 +187,23 @@ export async function POST(request: NextRequest) {
         imageUrl = mainImage
       }
 
-      return {
+      const variantData = {
         asin: variant.asin || "",
         title: variant.title || "",
         image: imageUrl,
+        images: imageUrl ? [imageUrl] : [],
         price: variant.price?.value || 0,
+        stock_quantity: 0,
         attributes,
         is_current: variant.is_current_product || false,
+      }
+      
+      return {
+        ...variantData,
+        // Store original data for reset functionality
+        originalData: JSON.parse(JSON.stringify(variantData)),
+        isDetached: false,
+        modified: false,
       }
     })
 
