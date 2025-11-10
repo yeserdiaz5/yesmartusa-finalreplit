@@ -53,22 +53,10 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 
 ### Technical Implementations
 - **Stripe Connect**: API endpoints for creating accounts, onboarding links, login links, and webhook handling for account status updates.
-- **Stripe Webhooks**: Consolidated webhook endpoint (`/api/webhooks/stripe`) handles all Stripe events:
-  - `checkout.session.completed`: Updates orders from "pending" to "paid" status with payment intent tracking
-  - `account.updated`: Verifies seller Stripe Connect accounts when charges and payouts are enabled, triggers welcome email
-  - `account.application.deauthorized`: De-verifies seller accounts when Connect authorization is revoked
-  - `capability.updated`: Logs capability status changes for debugging
-  - Detailed logging with ERROR/SUCCESS/WARNING/INFO prefixes for comprehensive diagnostics
-- **Seller Verification System**: Enforces Stripe Connect verification before product listing:
-  - Blocks unverified sellers from creating/publishing products
-  - Two-tier validation: (1) Stripe Connect account setup required, (2) Account verification completed
-  - Clear error messages directing sellers to "My Earnings" for setup
-  - Admin users bypass verification requirements
-  - Applied to both `createProduct` and `createProductWithVariants` actions
+- **Stripe Webhooks**: Two endpoints for checkout completion and Connect account verification/de-verification.
 - **Email Notifications**: Resend integration for automated two-stage seller emails (review and welcome).
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage.
 - **Automated Shipping Payment System**: Dual-flow system using Stripe Connect Transfers and Shippo for buyer pays, seller pays, and shared shipping models, including deficit handling and pre-flight verification.
-- **Domain Configuration**: Both www.yesmartusa.com and yesmartusa.com serve the application with SSL. Selective 301 redirect configured in middleware: seller verification routes (`/seller/pagos`, `/onboarding/*`) automatically redirect from www to non-www for Stripe Connect compatibility. All other routes work on both domains. Stripe webhooks and integrations use yesmartusa.com as the primary domain.
 
 ## External Dependencies
 
