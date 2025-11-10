@@ -22,6 +22,10 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 - **AI Product Description Generation**: OpenAI GPT-4o generates Spanish product descriptions based on product name.
 - **Amazon Product Import**: One-click import from Amazon using Rainforest API to populate product details and images, supporting multiple URL formats and bilingual content.
 - **Product Variants System**: 
+  - **Architecture**: Independent products grouped by `variant_group_id` (no parent/child hierarchy). Each variant is a standalone product in seller inventory with unique price, stock, images, description, and attributes.
+  - **Display Logic**: Variants show separately on main product listings; grouped only on product detail page (PDP) via variant-picker UI
+  - **Variant-Picker UI**: Responsive grid (2-3 columns) of clickable variant cards showing image, title, price, and top attributes; enables seamless navigation between related variants
+  - **Database**: `variant_group_id` column (nullable UUID) groups related products; partial unique index on ASIN (WHERE asin IS NOT NULL) ensures Amazon ASIN uniqueness while allowing multiple manual variants
   - **Dual Mode**: Supports both Amazon-imported variants and manual variant creation (mutually exclusive)
   - **Amazon Variants - Fully Editable**: 
     - Automated import with proper image extraction from Rainforest API objects/strings, with fallback to main product image
@@ -34,12 +38,11 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
     - All imported variants editable by default (no selection required)
     - Case-insensitive ASIN matching ensures correct variant data extraction
   - **Manual Variants**: Custom variant creation with individual pricing, stock, images (up to 6), description, and attribute key-value pairs
-  - **Logistics Field Inheritance**: All variants (both Amazon-imported and manual) automatically inherit shipping_policy, shipping_cost, and package dimensions (length/width/height/weight) from parent product form at creation time. Backend stores per-variant logistics with parent fallback for undefined values.
+  - **Logistics Field Inheritance**: All variants inherit shipping_policy, shipping_cost, and package dimensions (length/width/height/weight) from parent form at creation time using nullish coalescing (??) to preserve valid zero values (e.g., free shipping, zero-weight items)
   - **Stock Input Fix**: Stock quantity inputs use valueAsNumber to prevent leading zero display issues (e.g., "05" displays correctly as "5")
   - **Clear Import**: One-click button to clear Amazon import state and switch to manual variant creation mode while preserving product form data
   - **Validation**: Shared validation for both Amazon and manual variants (title, price > 0, stock >= 0, images required)
-  - **Database**: Partial unique index on ASIN (WHERE asin IS NOT NULL) allows multiple manual variants with NULL ASIN while ensuring Amazon ASIN uniqueness
-  - **Atomic Operations**: Parent-child creation with rollback mechanism and comprehensive validation
+  - **Atomic Operations**: All variants created in single transaction with shared variant_group_id; rollback mechanism ensures data integrity
   - **i18n Support**: Full bilingual interface for both Amazon and manual variant workflows
 - **Image Editing & Cropping**: Client-side image cropping (1:1 aspect ratio) before Supabase upload.
 - **Product Details System**: Optional brand and 6 eBay-style condition fields with i18n support.
