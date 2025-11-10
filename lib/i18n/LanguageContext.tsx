@@ -467,6 +467,10 @@ const translationsEN: Record<string, string> = {
   "invalidAsin": "Invalid ASIN format",
   "productNotFound": "Product not found on Amazon",
   "importInstructions": "You can paste either the full Amazon product URL or just the 10-character ASIN code.",
+  "clearAmazonImport": "Clear Import",
+  "clearAmazonImportConfirm": "You have selected variants. Are you sure you want to clear the Amazon import and switch to manual variant creation?",
+  "amazonImportCleared": "Amazon import cleared",
+  "amazonImportClearedDescription": "You can now create variants manually. Your product information has been preserved.",
   
   // Product Variants
   "productVariants": "Product Variants",
@@ -1036,6 +1040,10 @@ const translationsES: Record<string, string> = {
   "invalidAsin": "Formato ASIN inválido",
   "productNotFound": "Producto no encontrado en Amazon",
   "importInstructions": "Puedes pegar la URL completa del producto de Amazon o solo el código ASIN de 10 caracteres.",
+  "clearAmazonImport": "Limpiar Importación",
+  "clearAmazonImportConfirm": "Has seleccionado variantes. ¿Estás seguro de que quieres limpiar la importación de Amazon y cambiar a creación manual de variantes?",
+  "amazonImportCleared": "Importación de Amazon limpiada",
+  "amazonImportClearedDescription": "Ahora puedes crear variantes manualmente. Tu información del producto se ha preservado.",
   
   // Product Variants
   "productVariants": "Variantes del Producto",

@@ -848,35 +848,36 @@ export default function ProductForm({
         </CardContent>
       </Card>
 
-      {/* Manual Variants Toggle and Editor */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{t("productVariants")}</CardTitle>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="has-variants" className="text-sm font-medium">
-                {t("hasVariants")}
-              </Label>
-              <Checkbox
-                id="has-variants"
-                checked={hasManualVariants}
-                onCheckedChange={(checked) => {
-                  setHasManualVariants(!!checked)
-                  if (checked && manualVariants.length === 0) {
-                    // Add first variant when enabling
-                    addManualVariant()
-                  }
-                }}
-                data-testid="checkbox-has-variants"
-              />
+      {/* Manual Variants Toggle and Editor - Only show if NO Amazon variants imported */}
+      {importedVariants.length === 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>{t("productVariants")}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="has-variants" className="text-sm font-medium">
+                  {t("hasVariants")}
+                </Label>
+                <Checkbox
+                  id="has-variants"
+                  checked={hasManualVariants}
+                  onCheckedChange={(checked) => {
+                    setHasManualVariants(!!checked)
+                    if (checked && manualVariants.length === 0) {
+                      // Add first variant when enabling
+                      addManualVariant()
+                    }
+                  }}
+                  data-testid="checkbox-has-variants"
+                />
+              </div>
             </div>
-          </div>
-          {hasManualVariants && (
-            <p className="text-sm text-muted-foreground mt-2">
-              {t("createVariantsDescription")}
-            </p>
-          )}
-        </CardHeader>
+            {hasManualVariants && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {t("createVariantsDescription")}
+              </p>
+            )}
+          </CardHeader>
         {hasManualVariants && (
           <CardContent className="space-y-4">
             {manualVariants.map((variant, index) => (
@@ -1043,18 +1044,59 @@ export default function ProductForm({
             </Button>
           </CardContent>
         )}
-      </Card>
+        </Card>
+      )}
 
       {/* Variants Card - Only shown when variants are imported from Amazon */}
       {importedVariants.length > 0 && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>
-              {t("productVariants")} ({importedVariants.length})
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
-              {t("selectVariantsToCreate")}
-            </p>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <CardTitle>
+                  {t("productVariants")} ({importedVariants.length})
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {t("selectVariantsToCreate")}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // Show confirmation only if user has selected variants
+                  if (selectedVariants.size > 0) {
+                    if (!confirm(t("clearAmazonImportConfirm"))) {
+                      return
+                    }
+                  }
+                  
+                  // Clear Amazon import state
+                  setImportedVariants([])
+                  setSelectedVariants(new Set())
+                  setImportedAsin("")
+                  
+                  // Enable manual variants mode
+                  setHasManualVariants(true)
+                  
+                  // Add first manual variant if none exist
+                  if (manualVariants.length === 0) {
+                    addManualVariant()
+                  }
+                  
+                  // Show feedback
+                  toast({
+                    title: t("amazonImportCleared"),
+                    description: t("amazonImportClearedDescription"),
+                  })
+                }}
+                data-testid="button-clear-amazon-import"
+                className="text-destructive hover:text-destructive"
+              >
+                {t("clearAmazonImport")}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -1101,7 +1143,7 @@ export default function ProductForm({
                             className="text-xs bg-muted px-2 py-1 rounded"
                             data-testid={`variant-attribute-${variant.asin}-${key}`}
                           >
-                            {key}: {value}
+                            {key}: {String(value)}
                           </span>
                         ))}
                       </div>

@@ -173,10 +173,24 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // Extract image URL from variant (Rainforest API returns image objects or strings)
+      let imageUrl = ""
+      if (variant.image) {
+        if (typeof variant.image === "string") {
+          imageUrl = variant.image
+        } else if (typeof variant.image === "object" && "link" in variant.image) {
+          imageUrl = (variant.image as { link: string }).link
+        }
+      }
+      // Fallback to main product image if variant has no specific image
+      if (!imageUrl) {
+        imageUrl = mainImage
+      }
+
       return {
         asin: variant.asin || "",
         title: variant.title || "",
-        image: variant.image || "",
+        image: imageUrl,
         price: variant.price?.value || 0,
         attributes,
         is_current: variant.is_current_product || false,
