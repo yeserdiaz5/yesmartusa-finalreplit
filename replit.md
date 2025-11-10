@@ -23,9 +23,17 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 - **Amazon Product Import**: One-click import from Amazon using Rainforest API to populate product details and images, supporting multiple URL formats and bilingual content.
 - **Product Variants System**: 
   - **Dual Mode**: Supports both Amazon-imported variants and manual variant creation (mutually exclusive)
-  - **Amazon Variants**: Automated import with proper image extraction from Rainforest API objects/strings, with fallback to main product image
+  - **Amazon Variants - Fully Editable**: 
+    - Automated import with proper image extraction from Rainforest API objects/strings, with fallback to main product image
+    - Complete editing capabilities: title, price, stock, images (up to 6), and attribute key-value pairs
+    - Reset functionality: restore original Amazon data for edited variants
+    - Detach functionality: convert Amazon variant to manual variant (clears ASIN)
+    - Remove functionality: exclude individual variants from submission
+    - Modification tracking: `modified` flag tracks changes, `originalData` preserves import state
+    - All imported variants editable by default (no selection required)
   - **Manual Variants**: Custom variant creation with individual pricing, stock, images (up to 6), and attribute key-value pairs
   - **Clear Import**: One-click button to clear Amazon import state and switch to manual variant creation mode while preserving product form data
+  - **Validation**: Shared validation for both Amazon and manual variants (title, price > 0, stock >= 0, images required)
   - **Database**: Partial unique index on ASIN (WHERE asin IS NOT NULL) allows multiple manual variants with NULL ASIN while ensuring Amazon ASIN uniqueness
   - **Atomic Operations**: Parent-child creation with rollback mechanism and comprehensive validation
   - **i18n Support**: Full bilingual interface for both Amazon and manual variant workflows
