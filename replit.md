@@ -34,6 +34,8 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
     - All imported variants editable by default (no selection required)
     - Case-insensitive ASIN matching ensures correct variant data extraction
   - **Manual Variants**: Custom variant creation with individual pricing, stock, images (up to 6), description, and attribute key-value pairs
+  - **Logistics Field Inheritance**: All variants (both Amazon-imported and manual) automatically inherit shipping_policy, shipping_cost, and package dimensions (length/width/height/weight) from parent product form at creation time. Backend stores per-variant logistics with parent fallback for undefined values.
+  - **Stock Input Fix**: Stock quantity inputs use valueAsNumber to prevent leading zero display issues (e.g., "05" displays correctly as "5")
   - **Clear Import**: One-click button to clear Amazon import state and switch to manual variant creation mode while preserving product form data
   - **Validation**: Shared validation for both Amazon and manual variants (title, price > 0, stock >= 0, images required)
   - **Database**: Partial unique index on ASIN (WHERE asin IS NOT NULL) allows multiple manual variants with NULL ASIN while ensuring Amazon ASIN uniqueness
