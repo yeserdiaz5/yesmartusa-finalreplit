@@ -45,5 +45,19 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
     notFound()
   }
 
-  return <ProductDetailClient product={product} user={user} />
+  // Fetch related variants if this product is part of a variant group
+  let relatedVariants: any[] = []
+  if (product.variant_group_id) {
+    const { data: variants } = await supabase
+      .from("products")
+      .select("id, title, price, image_url, images, stock_quantity, attributes")
+      .eq("variant_group_id", product.variant_group_id)
+      .eq("is_active", true)
+      .neq("id", params.id) // Exclude current product
+      .order("created_at", { ascending: true })
+
+    relatedVariants = variants || []
+  }
+
+  return <ProductDetailClient product={product} user={user} relatedVariants={relatedVariants} />
 }

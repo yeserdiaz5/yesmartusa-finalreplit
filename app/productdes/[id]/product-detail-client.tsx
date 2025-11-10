@@ -16,9 +16,10 @@ import { useLanguage } from "@/lib/i18n/LanguageContext"
 interface ProductDetailClientProps {
   product: any
   user: User | null
+  relatedVariants?: any[]
 }
 
-export default function ProductDetailClient({ product, user }: ProductDetailClientProps) {
+export default function ProductDetailClient({ product, user, relatedVariants = [] }: ProductDetailClientProps) {
   const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
@@ -225,6 +226,41 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {relatedVariants.length > 0 && (
+                <div className="mb-6">
+                  <p className="text-sm font-medium mb-3">{t("availableVariants") || "Available Variants"}:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {relatedVariants.map((variant) => (
+                      <Link
+                        key={variant.id}
+                        href={`/productdes/${variant.id}`}
+                        className="block p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
+                        data-testid={`link-variant-${variant.id}`}
+                      >
+                        <div className="aspect-square mb-2 overflow-hidden rounded">
+                          <img
+                            src={variant.image_url || variant.images?.[0] || "/placeholder.svg"}
+                            alt={variant.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <p className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{variant.title}</p>
+                        <p className="text-sm font-semibold text-blue-600">${variant.price}</p>
+                        {variant.attributes && Object.keys(variant.attributes).length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {Object.entries(variant.attributes).slice(0, 2).map(([key, value]) => (
+                              <span key={key} className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">
+                                {String(value)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </Link>
+                    ))}
                   </div>
                 </div>
               )}
