@@ -5,8 +5,37 @@ import { sendUserWelcomeEmail } from "@/lib/email/welcome-user"
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
+  const token_hash = requestUrl.searchParams.get("token_hash")
+  const type = requestUrl.searchParams.get("type")
+  const next = requestUrl.searchParams.get("next")
   const origin = requestUrl.origin
 
+  console.log('[AUTH CALLBACK] Code:', code ? 'EXISTS' : 'NONE')
+  console.log('[AUTH CALLBACK] Token hash:', token_hash ? 'EXISTS' : 'NONE')
+  console.log('[AUTH CALLBACK] Type:', type)
+  console.log('[AUTH CALLBACK] Next:', next)
+
+  // Handle password recovery/reset
+  if (token_hash && type === 'recovery') {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.verifyOtp({
+      type: type as any,
+      token_hash,
+    })
+
+    console.log('[AUTH CALLBACK] Recovery - Error:', error?.message || 'NONE')
+    console.log('[AUTH CALLBACK] Recovery - Session:', data?.session ? 'EXISTS' : 'NONE')
+
+    if (!error && data?.session) {
+      console.log('[AUTH CALLBACK] ✅ Recovery successful, redirecting to update-password')
+      return NextResponse.redirect(`${origin}/auth/update-password`)
+    }
+    
+    console.log('[AUTH CALLBACK] ❌ Recovery failed, redirecting to update-password with error')
+    return NextResponse.redirect(`${origin}/auth/update-password?error=invalid_link`)
+  }
+
+  // Handle OAuth callback
   if (code) {
     const supabase = await createClient()
     const { data } = await supabase.auth.exchangeCodeForSession(code)
@@ -31,5 +60,6 @@ export async function GET(request: Request) {
     }
   }
 
+  console.log('[AUTH CALLBACK] Redirecting to homepage')
   return NextResponse.redirect(`${origin}/`)
 }
