@@ -6,22 +6,14 @@
  * @param lon2 Longitude of second point
  * @returns Distance in kilometers
  */
-export function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
+export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371 // Earth's radius in kilometers
   const dLat = toRadians(lat2 - lat1)
   const dLon = toRadians(lon2 - lon1)
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   const distance = R * c
@@ -57,19 +49,16 @@ export function getDeliveryTimeMessage(distanceKm: number): string {
 /**
  * Geocode a city and state to latitude/longitude coordinates
  * Uses OpenStreetMap Nominatim with proper caching and rate limiting
- * 
+ *
  * @param city City name
  * @param state State code (e.g., "FL", "CA")
  * @returns Coordinates or null if not found
  */
-export async function geocodeAddress(
-  city: string,
-  state: string
-): Promise<{ lat: number; lng: number } | null> {
+export async function geocodeAddress(city: string, state: string): Promise<{ lat: number; lng: number } | null> {
   // Check cache first to avoid hitting rate limits
   const cacheKey = `geocode_${city}_${state}`
   const cached = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null
-  
+
   if (cached) {
     try {
       return JSON.parse(cached)
@@ -80,17 +69,17 @@ export async function geocodeAddress(
 
   try {
     // Add delay to respect rate limits (max 1 request per second for Nominatim)
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(
-        city
+        city,
       )}&state=${encodeURIComponent(state)}&country=USA&format=json&limit=1`,
       {
         headers: {
           "User-Agent": "YesmartUSA-App/1.0 (marketplace)",
         },
-      }
+      },
     )
 
     if (!response.ok) {
@@ -107,15 +96,15 @@ export async function geocodeAddress(
 
     if (data && data.length > 0) {
       const coords = {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
+        lat: Number.parseFloat(data[0].lat),
+        lng: Number.parseFloat(data[0].lon),
       }
-      
+
       // Cache successful result
       if (typeof window !== "undefined") {
         sessionStorage.setItem(cacheKey, JSON.stringify(coords))
       }
-      
+
       return coords
     }
 
@@ -145,15 +134,13 @@ export async function getBuyerLocation(): Promise<GeoLocation | null> {
 
   try {
     // Try to get GPS location
-    const position = await new Promise<GeolocationPosition>(
-      (resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 300000, // Cache location for 5 minutes
-        })
-      }
-    )
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 300000, // Cache location for 5 minutes
+      })
+    })
 
     return {
       latitude: position.coords.latitude,
@@ -173,27 +160,71 @@ export async function getBuyerLocation(): Promise<GeoLocation | null> {
  * @returns Promise with location coordinates or null if unavailable
  */
 async function getIPBasedLocation(): Promise<GeoLocation | null> {
+  const IP_CACHE_KEY = "ip_location_cache"
+  const IP_CACHE_DURATION = 3600000 // 1 hour
+
+  if (typeof window !== "undefined") {
+    const cached = localStorage.getItem(IP_CACHE_KEY)
+    if (cached) {
+      try {
+        const { location, timestamp } = JSON.parse(cached)
+        const age = Date.now() - timestamp
+        if (age < IP_CACHE_DURATION) {
+          return location
+        }
+      } catch {
+        // Invalid cache, continue
+      }
+    }
+  }
+
   try {
     // Using ipapi.co free tier (no API key required for basic usage)
     const response = await fetch("https://ipapi.co/json/")
 
     if (!response.ok) {
+      if (response.status === 429) {
+        console.warn("IP geolocation rate limited. Using default US location.")
+        // Return approximate center of US as fallback
+        return {
+          latitude: 39.8283,
+          longitude: -98.5795,
+        }
+      }
       console.error("IP geolocation request failed:", response.statusText)
       return null
     }
 
     const data = await response.json()
 
-    if (data.latitude && data.longitude) {
+    if (data.error) {
+      console.warn("IP geolocation API error:", data.reason || data.message)
+      // Return approximate center of US as fallback
       return {
+        latitude: 39.8283,
+        longitude: -98.5795,
+      }
+    }
+
+    if (data.latitude && data.longitude) {
+      const location: GeoLocation = {
         latitude: data.latitude,
         longitude: data.longitude,
       }
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem(IP_CACHE_KEY, JSON.stringify({ location, timestamp: Date.now() }))
+      }
+
+      return location
     }
 
     return null
   } catch (error) {
     console.error("Error getting IP-based location:", error)
-    return null
+    return {
+      latitude: 39.8283,
+      longitude: -98.5795,
+    }
   }
 }
