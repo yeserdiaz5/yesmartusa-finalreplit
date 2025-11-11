@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest'
+import { execSync } from 'child_process'
 
 let connectionSettings;
 
@@ -36,50 +37,31 @@ async function getAccessToken() {
   return accessToken;
 }
 
-async function getGitHubClient() {
-  const accessToken = await getAccessToken();
-  return new Octokit({ auth: accessToken });
-}
-
-async function createPullRequest() {
+async function pushAndCreatePR() {
   try {
-    const octokit = await getGitHubClient();
     const accessToken = await getAccessToken();
+    const octokit = new Octokit({ auth: accessToken });
     
     const owner = 'yeserdiaz5';
     const repo = 'YesmartUSA';
-    const branchName = `fix/password-reset-flow-${Date.now()}`;
+    const branchName = `fix/password-reset-flow`;
     const baseBranch = 'main';
     
-    console.log('📦 Getting local HEAD commit...');
-    const { execSync } = await import('child_process');
-    const localCommitSha = execSync('git rev-parse HEAD').toString().trim();
-    console.log('✅ Local commit SHA:', localCommitSha);
-    
-    console.log('🔍 Getting GitHub main branch reference...');
-    const { data: baseRef } = await octokit.git.getRef({
-      owner,
-      repo,
-      ref: `heads/${baseBranch}`,
-    });
-    
-    console.log('✅ GitHub main SHA:', baseRef.object.sha);
-    
-    console.log('🌿 Creating new branch from local HEAD...');
+    console.log('🔧 Configuring git remote...');
     try {
-      await octokit.git.createRef({
-        owner,
-        repo,
-        ref: `refs/heads/${branchName}`,
-        sha: localCommitSha,  // Use local commit instead of base
-      });
-      console.log('✅ Branch created:', branchName);
+      execSync(`git remote remove github 2>/dev/null || true`);
+      execSync(`git remote add github https://x-access-token:${accessToken}@github.com/${owner}/${repo}.git`);
+    } catch (e) {
+      console.log('Remote configuration done');
+    }
+    
+    console.log('📤 Pushing to GitHub...');
+    try {
+      execSync(`git push github HEAD:${branchName} --force`, { stdio: 'inherit' });
+      console.log('✅ Pushed successfully');
     } catch (error) {
-      if (error.status === 422) {
-        console.log('⚠️ Branch already exists, using existing branch');
-      } else {
-        throw error;
-      }
+      console.error('❌ Push failed:', error.message);
+      throw error;
     }
     
     console.log('📝 Creating Pull Request...');
@@ -142,7 +124,7 @@ Asegurarse que en **Supabase Dashboard → Authentication → URL Configuration*
     
     return pr;
   } catch (error) {
-    console.error('❌ Error creating PR:', error.message);
+    console.error('❌ Error:', error.message);
     if (error.status) {
       console.error('Status:', error.status);
     }
@@ -153,4 +135,4 @@ Asegurarse que en **Supabase Dashboard → Authentication → URL Configuration*
   }
 }
 
-createPullRequest();
+pushAndCreatePR();
