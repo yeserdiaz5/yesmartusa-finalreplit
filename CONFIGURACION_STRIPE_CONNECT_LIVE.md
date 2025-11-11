@@ -4,9 +4,9 @@
 
 Al cambiar de claves TEST a claves LIVE, las cuentas de Stripe Connect creadas anteriormente **no existen en el entorno LIVE**. Esto causa el error:
 
-```
+\`\`\`
 You requested an account link for an account that is not connected to your platform or does not exist.
-```
+\`\`\`
 
 ## ✅ Solución
 
@@ -25,10 +25,10 @@ You requested an account link for an account that is not connected to your platf
 
 1. Asegúrate de estar en modo LIVE
 2. En la sección **"Redirect URIs"**, añade:
-   ```
+   \`\`\`
    https://yesmartusa.com/onboarding/complete
    https://yesmartusa.com/onboarding/refresh
-   ```
+   \`\`\`
 
 ### Paso 3: Configurar Branding
 
@@ -51,12 +51,12 @@ Las cuentas creadas con claves TEST no funcionan con claves LIVE. Necesitas limp
 1. Ve a tu Supabase Dashboard
 2. Abre la tabla `users`
 3. Ejecuta esta query SQL:
-   ```sql
+   \`\`\`sql
    UPDATE users 
    SET stripe_connect_account_id = NULL, 
        stripe_account_verified = false 
    WHERE stripe_connect_account_id IS NOT NULL;
-   ```
+   \`\`\`
 
 ### Paso 5: Probar el Flujo Completo
 

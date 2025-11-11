@@ -47,7 +47,7 @@ También se corrigieron las páginas que tenían problemas de sesión pasando `n
 
 Desde tu terminal local (NO desde Replit, ya que git push está bloqueado):
 
-```bash
+\`\`\`bash
 # Asegúrate de estar en el directorio del proyecto
 cd /ruta/a/tu/proyecto
 
@@ -59,7 +59,7 @@ git commit -m "Fix: Corregir cierre de sesión en producción - Actualizar confi
 
 # Push a GitHub
 git push origin main
-```
+\`\`\`
 
 ### Paso 2: Verificar Variables de Entorno en Vercel
 
@@ -67,14 +67,14 @@ git push origin main
 2. Navega a **Settings → Environment Variables**
 3. Verifica que existan estas variables (para Production):
 
-```
+\`\`\`
 NEXT_PUBLIC_SUPABASE_URL=https://smvnarugddcdvhkfrffg.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[tu_clave_anon]
 SUPABASE_SERVICE_ROLE_KEY=[tu_clave_service_role]
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=[tu_clave_stripe_public]
 STRIPE_SECRET_KEY=[tu_clave_stripe_secret]
 SHIPENGINE_PRODUCTION_API_KEY=[tu_clave_shipengine_produccion]
-```
+\`\`\`
 
 ### Paso 3: Re-Deploy en Vercel
 
@@ -107,12 +107,12 @@ Una vez que el deployment esté completo:
 
 ## Archivos Modificados
 
-```
+\`\`\`
 lib/supabase/middleware.ts          - Configuración de cookies corregida
 lib/supabase/server.ts              - Cliente del servidor actualizado
 app/seller/settings/page.tsx        - Manejo de usuario mejorado
 app/seller/products/[id]/edit/page.tsx - Manejo de usuario mejorado
-```
+\`\`\`
 
 ## Referencias
 

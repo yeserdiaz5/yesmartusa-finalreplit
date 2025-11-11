@@ -11,18 +11,18 @@ export function CartIcon() {
 
   useEffect(() => {
     let isAuthenticated = false
-    
+
     const fetchCount = async () => {
       try {
         // Try to get authenticated user cart count first
         const result = await getCartCount()
-        
+
         if (result && result.success && result.count !== undefined) {
-          // User is authenticated - use server count
+          // User is authenticated, use server-side count
           isAuthenticated = true
           setCount(result.count)
         } else {
-          // User is not authenticated - use guest cart count
+          // User is not authenticated, use guest cart count
           isAuthenticated = false
           const guestCart = getGuestCart()
           const guestCount = guestCart.reduce((sum, item) => sum + item.quantity, 0)
@@ -51,25 +51,25 @@ export function CartIcon() {
         setCount(guestCount)
       }
     }, 2000)
-    
+
     // Listen for custom cart update event for immediate updates
     const handleCartUpdate = () => {
       fetchCount()
     }
-    window.addEventListener('cartUpdated', handleCartUpdate)
-    
+    window.addEventListener("cartUpdated", handleCartUpdate)
+
     // Listen for storage events (when cart changes in another tab)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'guest_cart') {
+      if (e.key === "guest_cart") {
         fetchCount()
       }
     }
-    window.addEventListener('storage', handleStorageChange)
-    
+    window.addEventListener("storage", handleStorageChange)
+
     return () => {
       clearInterval(interval)
-      window.removeEventListener('cartUpdated', handleCartUpdate)
-      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener("cartUpdated", handleCartUpdate)
+      window.removeEventListener("storage", handleStorageChange)
     }
   }, [])
 

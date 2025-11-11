@@ -6,7 +6,7 @@ El cierre de sesión NO es causado por una mala configuración de cookies, sino 
 
 ### Evidencia de los Logs
 
-```
+\`\`\`
 [AuthApiError: Request rate limit reached] {
   __isAuthError: true,
   name: 'AuthApiError',
@@ -17,7 +17,7 @@ El cierre de sesión NO es causado por una mala configuración de cookies, sino 
 [Middleware] Path: /
 [Middleware] User: Not found  ← Después del rate limit, no encuentra al usuario
 [Middleware] Cookies: sb-smvnarugddcdvhkfrffg-auth-token.0, sb-smvnarugddcdvhkfrffg-auth-token.1
-```
+\`\`\`
 
 ## Causa Raíz
 
@@ -47,7 +47,7 @@ Busca en el código del frontend cualquier:
 - Polling automático
 - Revalidaciones frecuentes
 
-```typescript
+\`\`\`typescript
 // MALO - Hace demasiadas peticiones
 useQuery({
   queryKey: ['/api/orders'],
@@ -60,7 +60,7 @@ useQuery({
   refetchInterval: 30000,  // Cada 30 segundos
   refetchOnWindowFocus: false
 })
-```
+\`\`\`
 
 ### Solución Permanente 2: Upgrade a Plan de Pago
 
@@ -72,7 +72,7 @@ El plan Pro de Supabase tiene límites mucho más altos:
 
 Implementar un caché simple para evitar llamadas repetidas a `getUser()`:
 
-```typescript
+\`\`\`typescript
 // lib/supabase/middleware.ts
 const userCache = new Map<string, { user: any; expiry: number }>();
 
@@ -99,7 +99,7 @@ export async function updateSession(request: NextRequest) {
   
   // ... resto del código ...
 }
-```
+\`\`\`
 
 **NOTA**: Esta solución de caché puede tener efectos secundarios y debe probarse cuidadosamente.
 
@@ -119,11 +119,11 @@ export async function updateSession(request: NextRequest) {
 
 Busca en estos archivos por `useQuery`, `refetchInterval`, y polling:
 
-```bash
+\`\`\`bash
 grep -r "refetchInterval" client/
 grep -r "useQuery" client/
 grep -r "setInterval" client/
-```
+\`\`\`
 
 ---
 

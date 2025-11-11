@@ -10,15 +10,15 @@ Se ha implementado un sistema de búsqueda por imágenes usando embeddings vecto
 Debes ejecutar estos scripts **en orden** en el SQL Editor de Supabase:
 
 #### Paso 1.1: Habilitar pgvector y agregar columna embedding
-```sql
+\`\`\`sql
 -- scripts/019_enable_pgvector_for_image_search.sql
-```
+\`\`\`
 Ve al archivo `scripts/019_enable_pgvector_for_image_search.sql`, copia todo el contenido y pégalo en el SQL Editor de Supabase. Ejecuta el script.
 
 #### Paso 1.2: Crear función de búsqueda vectorial
-```sql
+\`\`\`sql
 -- scripts/020_create_vector_search_function.sql
-```
+\`\`\`
 Ve al archivo `scripts/020_create_vector_search_function.sql`, copia todo el contenido y pégalo en el SQL Editor de Supabase. Ejecuta el script.
 
 ### 2. Generar Embeddings para Productos Existentes
@@ -29,21 +29,21 @@ Tienes **dos opciones** para generar embeddings de tus productos existentes:
 1. Ve a tu navegador
 2. Abre las herramientas de desarrollo (F12)
 3. Ve a la consola y ejecuta:
-```javascript
+\`\`\`javascript
 fetch('/api/generate-embeddings', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ limit: 10 })
 }).then(r => r.json()).then(console.log)
-```
+\`\`\`
 4. Repite este comando varias veces cambiando el `limit` hasta que todos los productos tengan embeddings
 
 #### Opción B: Usar el script de Node.js
 1. Abre una terminal en Replit
 2. Ejecuta:
-```bash
+\`\`\`bash
 npx tsx scripts/generate-product-embeddings.ts
-```
+\`\`\`
 
 ### 3. ✅ Verificación
 
