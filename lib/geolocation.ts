@@ -178,32 +178,39 @@ async function getIPBasedLocation(): Promise<GeoLocation | null> {
     }
   }
 
+  const fallbackLocation: GeoLocation = {
+    latitude: 39.8283,
+    longitude: -98.5795,
+  }
+
   try {
     // Using ipapi.co free tier (no API key required for basic usage)
-    const response = await fetch("https://ipapi.co/json/")
+    const response = await fetch("https://ipapi.co/json/", {
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    })
 
     if (!response.ok) {
       if (response.status === 429) {
         console.warn("IP geolocation rate limited. Using default US location.")
-        // Return approximate center of US as fallback
-        return {
-          latitude: 39.8283,
-          longitude: -98.5795,
-        }
+      } else {
+        console.warn("IP geolocation request failed:", response.statusText)
       }
-      console.error("IP geolocation request failed:", response.statusText)
-      return null
+      // Cache the fallback location to avoid repeated failed requests
+      if (typeof window !== "undefined") {
+        localStorage.setItem(IP_CACHE_KEY, JSON.stringify({ location: fallbackLocation, timestamp: Date.now() }))
+      }
+      return fallbackLocation
     }
 
     const data = await response.json()
 
     if (data.error) {
       console.warn("IP geolocation API error:", data.reason || data.message)
-      // Return approximate center of US as fallback
-      return {
-        latitude: 39.8283,
-        longitude: -98.5795,
+      // Cache the fallback location
+      if (typeof window !== "undefined") {
+        localStorage.setItem(IP_CACHE_KEY, JSON.stringify({ location: fallbackLocation, timestamp: Date.now() }))
       }
+      return fallbackLocation
     }
 
     if (data.latitude && data.longitude) {
@@ -219,12 +226,12 @@ async function getIPBasedLocation(): Promise<GeoLocation | null> {
       return location
     }
 
-    return null
+    return fallbackLocation
   } catch (error) {
-    console.error("Error getting IP-based location:", error)
-    return {
-      latitude: 39.8283,
-      longitude: -98.5795,
+    console.warn("Error getting IP-based location:", error)
+    if (typeof window !== "undefined") {
+      localStorage.setItem(IP_CACHE_KEY, JSON.stringify({ location: fallbackLocation, timestamp: Date.now() }))
     }
+    return fallbackLocation
   }
 }
