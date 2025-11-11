@@ -26,36 +26,14 @@ export default function UpdatePasswordPage() {
     const checkSession = async () => {
       const supabase = createClient()
       
-      // First, check if we have a hash fragment with recovery tokens
-      const hashParams = new URLSearchParams(window.location.hash.substring(1))
-      const accessToken = hashParams.get('access_token')
-      const refreshToken = hashParams.get('refresh_token')
-      const type = hashParams.get('type')
-      
-      // If we have recovery tokens in the URL, set the session
-      if (accessToken && type === 'recovery') {
-        try {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || '',
-          })
-          
-          if (sessionError) {
-            setError("Invalid or expired password reset link. Please request a new one.")
-            return
-          }
-          
-          // Clear the hash from the URL for security
-          window.history.replaceState(null, '', window.location.pathname)
-          setIsSessionReady(true)
-          return
-        } catch (err) {
-          setError("Invalid or expired password reset link. Please request a new one.")
-          return
-        }
+      // Check for error parameter from failed confirmation
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('error') === 'invalid_link') {
+        setError("Invalid or expired password reset link. Please request a new one.")
+        return
       }
       
-      // If no hash tokens, check if there's an active session
+      // Check if there's an active session (set by /auth/confirm)
       const { data: { session }, error } = await supabase.auth.getSession()
       
       if (error || !session) {
