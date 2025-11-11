@@ -54,9 +54,10 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 ### Technical Implementations
 - **Base URL Management**: Helper function (`getBaseUrl()`) automatically detects correct base URL across environments (production/development), preventing localhost redirect issues in authentication flows. Prioritizes APP_URL (production) > NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL (dev) > REPLIT_DOMAINS > window.location.origin fallback.
 - **Authentication System**: Supabase-powered auth with email/password and Google OAuth; password reset emails correctly redirect to production URL using environment-aware base URL detection.
+- **Welcome Email System**: Automated welcome emails sent to new users upon registration (both password and OAuth flows) via Resend API. Fire-and-forget implementation ensures registration flow is never blocked by email delivery. Template highlights safe buying and easy selling via Amazon/eBay import. Endpoint returns 200 even on errors for non-blocking behavior.
 - **Stripe Connect**: API endpoints for creating accounts, onboarding links, login links, and webhook handling for account status updates.
 - **Stripe Webhooks**: Two endpoints for checkout completion and Connect account verification/de-verification.
-- **Email Notifications**: Resend integration for automated two-stage seller emails (review and welcome).
+- **Email Notifications**: Resend integration for automated emails including welcome emails for new users and two-stage seller emails (review and welcome).
 - **Shipment Label Storage**: Dual storage using Shippo/ShipEngine links and PostgreSQL binary storage.
 - **Automated Shipping Payment System**: Dual-flow system using Stripe Connect Transfers and Shippo for buyer pays, seller pays, and shared shipping models, including deficit handling and pre-flight verification.
 
