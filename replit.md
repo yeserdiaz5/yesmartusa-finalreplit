@@ -52,6 +52,8 @@ YesmartUSA is an e-commerce marketplace built with Next.js 14, designed for buyi
 - **Internationalization (i18n)**: Custom i18n system with English (default) and Spanish support across the platform.
 
 ### Technical Implementations
+- **Base URL Management**: Helper function (`getBaseUrl()`) automatically detects correct base URL across environments (production/development), preventing localhost redirect issues in authentication flows. Prioritizes APP_URL (production) > NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL (dev) > REPLIT_DOMAINS > window.location.origin fallback.
+- **Authentication System**: Supabase-powered auth with email/password and Google OAuth; password reset emails correctly redirect to production URL using environment-aware base URL detection.
 - **Stripe Connect**: API endpoints for creating accounts, onboarding links, login links, and webhook handling for account status updates.
 - **Stripe Webhooks**: Two endpoints for checkout completion and Connect account verification/de-verification.
 - **Email Notifications**: Resend integration for automated two-stage seller emails (review and welcome).

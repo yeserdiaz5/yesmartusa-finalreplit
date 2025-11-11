@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { loginWithPassword } from "@/app/actions/auth"
 import { useLanguage } from "@/lib/i18n/LanguageContext"
+import { getBaseUrl } from "@/lib/utils/get-base-url"
 
 export default function LoginPage() {
   const { t } = useLanguage()
@@ -57,10 +58,11 @@ export default function LoginPage() {
     setError(null)
 
     try {
+      const baseUrl = getBaseUrl()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${baseUrl}/auth/callback`,
         },
       })
       if (error) throw error

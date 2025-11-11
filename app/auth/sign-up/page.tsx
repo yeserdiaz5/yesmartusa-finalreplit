@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { getBaseUrl } from "@/lib/utils/get-base-url"
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
@@ -26,11 +27,12 @@ export default function SignUpPage() {
     setError(null)
 
     try {
+      const baseUrl = getBaseUrl()
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}`,
+          emailRedirectTo: baseUrl,
           data: {
             full_name: fullName,
             role: "buyer",
@@ -51,10 +53,11 @@ export default function SignUpPage() {
     setError(null)
 
     try {
+      const baseUrl = getBaseUrl()
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${baseUrl}/auth/callback`,
         },
       })
       if (error) throw error
