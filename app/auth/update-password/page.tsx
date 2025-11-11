@@ -8,19 +8,48 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const router = useRouter()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      console.log("[v0] Checking authentication status")
+      const supabase = createClient()
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
+
+      console.log("[v0] Session check:", {
+        hasSession: !!session,
+        error: error?.message,
+      })
+
+      if (!session) {
+        console.log("[v0] No session found, redirecting to reset-password")
+        router.push("/auth/reset-password")
+      } else {
+        console.log("[v0] Session valid, user can update password")
+      }
+      setIsCheckingAuth(false)
+    }
+
+    checkAuth()
+  }, [router])
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+
+    console.log("[v0] Starting password update")
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden")
@@ -43,14 +72,30 @@ export default function UpdatePasswordPage() {
 
       if (error) throw error
 
+      console.log("[v0] Password updated successfully")
       alert("¡Contraseña actualizada exitosamente!")
       router.push("/auth/login")
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred"
+      console.log("[v0] Password update error:", errorMessage)
       setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-center text-muted-foreground">Verificando autenticación...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (
