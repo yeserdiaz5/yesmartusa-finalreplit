@@ -26,8 +26,13 @@ export default function ResetPasswordPage() {
 
     try {
       const baseUrl = getBaseUrl()
+      const redirectUrl = `${baseUrl}/auth/confirm?next=/auth/update-password`
+      
+      console.log('[RESET PASSWORD] Base URL:', baseUrl)
+      console.log('[RESET PASSWORD] Full redirect URL:', redirectUrl)
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${baseUrl}/auth/confirm?next=/auth/update-password`,
+        redirectTo: redirectUrl,
       })
 
       if (error) throw error
