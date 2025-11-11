@@ -50,7 +50,7 @@
     "@radix-ui/react-toggle": "latest",
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
-    "@react-email/render": "latest",
+    "@react-email/render": "^1.0.1",
     "@replit/vite-plugin-cartographer": "latest",
     "@replit/vite-plugin-dev-banner": "latest",
     "@replit/vite-plugin-runtime-error-modal": "latest",
