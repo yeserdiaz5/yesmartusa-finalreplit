@@ -131,20 +131,20 @@ export async function POST(req: NextRequest) {
           let notificationMessage = ""
 
           if (mappedStatus === "in_transit") {
-            subject = "Your Order is On the Way!"
+            subject = "Tu pedido va en camino"
             template = inTransitTemplate(emailData)
-            notificationTitle = "Your Order is On the Way 📦"
-            notificationMessage = `Your order is in transit. Tracking number: ${trackingNumber}`
+            notificationTitle = "Tu pedido va en camino 📦"
+            notificationMessage = `Tu pedido está en tránsito. Número de seguimiento: ${trackingNumber}`
           } else if (mappedStatus === "delivered") {
-            subject = "Your Order Has Been Delivered!"
+            subject = "¡Tu pedido fue entregado!"
             template = deliveredTemplate(emailData)
-            notificationTitle = "Your Order Has Been Delivered! 🎉"
-            notificationMessage = `Your order has been delivered successfully.`
+            notificationTitle = "¡Tu pedido fue entregado! 🎉"
+            notificationMessage = `Tu pedido ha sido entregado exitosamente.`
           } else if (mappedStatus === "failed" || mappedStatus === "return_to_sender") {
-            subject = "Shipping Issue - Action May Be Required"
+            subject = "Problema con el envío"
             template = shippingFailedTemplate(emailData)
-            notificationTitle = "Shipping Issue ⚠️"
-            notificationMessage = `There was a problem with your shipment. Please contact support.`
+            notificationTitle = "Problema con el envío ⚠️"
+            notificationMessage = `Hubo un problema con tu envío. Por favor contacta soporte.`
           }
 
           if (subject && template) {
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
               title: notificationTitle,
               message: notificationMessage,
               order_id: order.id,
-              link: "/seller/my-orders",
+              link: "/my-orders",
             })
 
             if (notifError) {
@@ -249,7 +249,7 @@ export async function POST(req: NextRequest) {
               console.log("[v0] Sending label created email to buyer:", order.users.email)
               const emailResult = await sendOrderEmail(
                 order.users.email,
-                "Your Order Has Been Shipped!",
+                "Tu etiqueta de envío está lista",
                 labelCreatedTemplate(emailData),
               )
               console.log("[v0] Email result:", emailResult)
@@ -258,10 +258,10 @@ export async function POST(req: NextRequest) {
               const { error: notifError } = await supabase.from("notifications").insert({
                 user_id: order.users.id,
                 type: "label_created",
-                title: "Your Order Has Been Shipped 📦",
-                message: `Your shipping label has been created for your order. Tracking number: ${trackingNumber}`,
+                title: "Tu etiqueta de envío está lista 📦",
+                message: `Se ha creado la etiqueta de envío para tu pedido. Número de seguimiento: ${trackingNumber}`,
                 order_id: orderId,
-                link: "/seller/my-orders",
+                link: "/my-orders",
               })
 
               if (notifError) {
@@ -300,7 +300,7 @@ export async function POST(req: NextRequest) {
             console.log("[v0] Sending failed transaction email to buyer:", order.users.email)
             const emailResult = await sendOrderEmail(
               order.users.email,
-              "Shipping Issue - Action May Be Required",
+              "Problema con el envío",
               shippingFailedTemplate(emailData),
             )
             console.log("[v0] Email result:", emailResult)
@@ -309,10 +309,10 @@ export async function POST(req: NextRequest) {
             const { error: notifError } = await supabase.from("notifications").insert({
               user_id: order.users.id,
               type: "shipping_failed",
-              title: "Shipping Issue ⚠️",
-              message: "There was a problem creating the shipping label. Please contact support.",
+              title: "Problema con el envío ⚠️",
+              message: "Hubo un problema al crear la etiqueta de envío. Por favor contacta soporte.",
               order_id: orderId,
-              link: "/seller/my-orders",
+              link: "/my-orders",
             })
 
             if (notifError) {

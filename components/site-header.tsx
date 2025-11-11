@@ -4,7 +4,6 @@ import Image from "next/image"
 import { UserMenu } from "@/components/user-menu"
 import { CartIcon } from "@/components/cart-icon"
 import { NotificationsBell } from "@/components/notifications-bell"
-import { LanguageSelector } from "@/components/language-selector"
 import type { User } from "@/lib/types/database"
 
 interface SiteHeaderProps {
@@ -28,7 +27,6 @@ export function SiteHeader({ user }: SiteHeaderProps) {
           </Link>
 
           <div className="flex items-center gap-4">
-            <LanguageSelector />
             <CartIcon />
             {user && <NotificationsBell />}
             <UserMenu user={user} />

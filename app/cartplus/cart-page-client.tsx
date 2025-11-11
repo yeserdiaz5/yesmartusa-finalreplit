@@ -2,21 +2,18 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Trash2, Plus, Minus, Package } from "lucide-react"
+import { ArrowLeft, Trash2, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { getCart, updateCartItemQuantity, removeFromCart, type CartItem } from "@/app/actions/cart"
 import { useToast } from "@/hooks/use-toast"
 import type { User } from "@/lib/types/database"
 import { getGuestCart, updateGuestCartQuantity, removeFromGuestCart, type GuestCartItem } from "@/lib/guest-cart"
-import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface CartPageClientProps {
   user: User | null
 }
 
 export function CartPageClient({ user }: CartPageClientProps) {
-  const { t } = useLanguage()
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [guestCartItems, setGuestCartItems] = useState<GuestCartItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,8 +56,6 @@ export function CartPageClient({ user }: CartPageClientProps) {
       const result = await updateCartItemQuantity(itemId, newQuantity)
       if (result.success) {
         await loadCart()
-        // Dispatch event to update cart count
-        window.dispatchEvent(new Event("cartUpdated"))
       } else {
         toast({
           title: "Error",
@@ -85,8 +80,6 @@ export function CartPageClient({ user }: CartPageClientProps) {
           description: "El producto se eliminó del carrito",
         })
         await loadCart()
-        // Dispatch event to update cart count
-        window.dispatchEvent(new Event("cartUpdated"))
       } else {
         toast({
           title: "Error",
@@ -105,47 +98,15 @@ export function CartPageClient({ user }: CartPageClientProps) {
     }
   }
 
-  // Calculate totals based on user type and shipping policies
+  // Calculate totals based on user type
   const items = user ? cartItems : guestCartItems
   const subtotal = items.reduce((sum, item) => {
     const price = user ? (item as CartItem).product.price : (item as GuestCartItem).product.price
     return sum + price * item.quantity
   }, 0)
-  
-  // Calculate shipping based on each product's shipping policy
-  const shipping = items.reduce((sum, item) => {
-    const product = user ? (item as CartItem).product : (item as GuestCartItem).product
-    const quantity = item.quantity
-    const shippingPolicy = product.shipping_policy || 'buyer_pays' // Default to buyer pays
-    const shippingCost = product.shipping_cost || 10 // Default $10 if not set
-    
-    if (shippingPolicy === 'seller_pays') {
-      return sum + 0 // Seller pays, buyer pays nothing
-    } else if (shippingPolicy === 'buyer_pays') {
-      return sum + (shippingCost * quantity) // Buyer pays full cost per unit
-    } else if (shippingPolicy === 'shared') {
-      return sum + ((shippingCost / 2) * quantity) // Split 50/50 per unit
-    }
-    return sum + (shippingCost * quantity) // Default to buyer pays per unit
-  }, 0)
-  
+  const shipping = subtotal > 0 ? 10 : 0
   const tax = subtotal * 0.1
   const total = subtotal + shipping + tax
-  
-  // Helper function to get shipping info for display (per unit)
-  const getShippingInfo = (product: CartItem['product'] | GuestCartItem['product']) => {
-    const policy = product.shipping_policy || 'buyer_pays'
-    const cost = product.shipping_cost || 10
-    
-    if (policy === 'seller_pays') {
-      return { label: t("freeShipping"), badge: "seller_pays" }
-    } else if (policy === 'buyer_pays') {
-      return { label: `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`, badge: "buyer_pays" }
-    } else if (policy === 'shared') {
-      return { label: `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}/unit`, badge: "shared" }
-    }
-    return { label: `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`, badge: "buyer_pays" }
-  }
 
   if (loading) {
     return (
@@ -180,26 +141,14 @@ export function CartPageClient({ user }: CartPageClientProps) {
                 return (
                   <div key={itemId} className="bg-white rounded-lg shadow p-4">
                     <div className="flex gap-4">
-                      <Link href={`/productdes/${product.id}`} className="shrink-0">
-                        <img
-                          src={product.image_url || "/placeholder.svg"}
-                          alt={product.title}
-                          className="w-24 h-24 object-cover rounded hover:opacity-80 transition-opacity"
-                        />
-                      </Link>
+                      <img
+                        src={product.image_url || "/placeholder.svg"}
+                        alt={product.title}
+                        className="w-24 h-24 object-cover rounded"
+                      />
                       <div className="flex-1">
-                        <Link href={`/productdes/${product.id}`}>
-                          <h3 className="font-semibold mb-2 hover:text-blue-600 transition-colors cursor-pointer">
-                            {product.title}
-                          </h3>
-                        </Link>
-                        <p className="text-lg font-bold text-gray-900">${product.price}</p>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Package className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            {getShippingInfo(product).label}
-                          </span>
-                        </div>
+                        <h3 className="font-semibold mb-2">{product.title}</h3>
+                        <p className="text-lg font-bold text-gray-900 mb-2">${product.price}</p>
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"

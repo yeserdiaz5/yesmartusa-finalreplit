@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Minus, Plus, Trash2, CreditCard, ShoppingBag, Mail, Package } from "lucide-react"
+import { ArrowLeft, Minus, Plus, Trash2, CreditCard, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,24 +10,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { getCart, updateCartItemQuantity, removeFromCart } from "@/app/actions/cart"
+import { createTestOrder, createGuestOrder } from "@/app/actions/orders"
 import { SiteHeader } from "@/components/site-header"
 import { getGuestCart, updateGuestCartQuantity, removeFromGuestCart, clearGuestCart } from "@/lib/guest-cart"
 import { createStripeCheckoutSession } from "@/app/actions/stripe"
-import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface CheckoutClientProps {
   initialUser: any
 }
 
 export function CheckoutClient({ initialUser }: CheckoutClientProps) {
-  const { t } = useLanguage()
   const router = useRouter()
   const { toast } = useToast()
   const [cartItems, setCartItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
   const [isGuest, setIsGuest] = useState(false)
-  const [guestEmail, setGuestEmail] = useState("")
+
+  // Form state
+  const [customerName, setCustomerName] = useState(initialUser?.full_name || "")
+  const [customerEmail, setCustomerEmail] = useState(initialUser?.email || "")
+  const [phone, setPhone] = useState("")
+  const [street, setStreet] = useState("")
+  const [city, setCity] = useState("")
+  const [state, setState] = useState("")
+  const [zip, setZip] = useState("")
+  const [country, setCountry] = useState("US")
 
   useEffect(() => {
     loadCart()
@@ -101,107 +109,142 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
     }
   }
 
-  const calculateSubtotal = () => {
+  const calculateTotal = () => {
     return cartItems.reduce((sum, item) => {
-      const price = item.product.price
+      const price = isGuest ? item.product.price : item.product.price
       const quantity = item.quantity
       return sum + price * quantity
     }, 0)
   }
 
-  const calculateShipping = () => {
-    return cartItems.reduce((sum, item) => {
-      const product = item.product
-      const quantity = item.quantity
-      const shippingPolicy = product.shipping_policy || 'buyer_pays' // Default to buyer pays
-      const shippingCost = product.shipping_cost || 10
-      
-      if (shippingPolicy === 'seller_pays') {
-        return sum + 0
-      } else if (shippingPolicy === 'buyer_pays') {
-        return sum + (shippingCost * quantity) // Multiply by quantity
-      } else if (shippingPolicy === 'shared') {
-        return sum + ((shippingCost / 2) * quantity) // Multiply by quantity
-      }
-      return sum + (shippingCost * quantity) // Default: multiply by quantity
-    }, 0)
-  }
+  const handleTestOrder = async () => {
+    console.log("[v0] handleTestOrder - Starting")
 
-  const calculateTotal = () => {
-    const subtotal = calculateSubtotal()
-    const shipping = calculateShipping()
-    const tax = subtotal * 0.1
-    return subtotal + shipping + tax
-  }
-
-  const getShippingInfo = (product: any) => {
-    const policy = product.shipping_policy || 'buyer_pays'
-    const cost = product.shipping_cost || 10
-    
-    if (policy === 'seller_pays') {
-      return t("freeShipping")
-    } else if (policy === 'buyer_pays') {
-      return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`
-    } else if (policy === 'shared') {
-      return `+$${(cost / 2).toFixed(2)} ${t("sharedCost").toLowerCase()}/unit`
-    }
-    return `+$${cost.toFixed(2)} ${t("shipping").toLowerCase()}/unit`
-  }
-
-  const handleStripeCheckout = async () => {
-    console.log("[v0] handleStripeCheckout - Starting")
-    
-    // Validate email for guest users
-    if (isGuest && !guestEmail) {
+    // Validate form
+    if (!customerName || !customerEmail || !phone || !street || !city || !state || !zip) {
+      console.log("[v0] handleTestOrder - Validation failed")
       toast({
-        title: "Email requerido",
-        description: "Por favor ingresa tu email para continuar con el pago",
+        title: "Datos de envío incompletos",
+        description: "Por favor llena tus datos de envío para continuar",
         variant: "destructive",
       })
       return
     }
-    
-    // Validate email format
-    if (isGuest && guestEmail) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(guestEmail)) {
+
+    console.log("[v0] handleTestOrder - Form validated, creating order")
+    setProcessing(true)
+
+    try {
+      let result
+
+      if (isGuest) {
+        const orderItems = cartItems.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.product.price,
+          seller_id: item.product.seller_id,
+        }))
+
+        result = await createGuestOrder(orderItems, {
+          customerName,
+          customerEmail,
+          phone,
+          street,
+          city,
+          state,
+          zip,
+          country,
+        })
+
+        if (result.success) {
+          clearGuestCart()
+        }
+      } else {
+        // Create authenticated user order
+        result = await createTestOrder({
+          customerName,
+          customerEmail,
+          phone,
+          street,
+          city,
+          state,
+          zip,
+          country,
+        })
+      }
+
+      console.log("[v0] handleTestOrder - Result:", result)
+
+      if (result.success) {
+        console.log("[v0] handleTestOrder - Success, order ID:", result.orderId)
+        setCartItems([])
         toast({
-          title: "Email inválido",
-          description: "Por favor ingresa un email válido",
+          title: "¡Pedido creado!",
+          description: "Tu pedido ha sido procesado exitosamente",
+        })
+        router.push(`/checkoutplus/success?order_id=${result.orderId}`)
+      } else {
+        console.log("[v0] handleTestOrder - Error:", result.error)
+        toast({
+          title: "Error al crear pedido",
+          description: result.error || "No se pudo crear el pedido. Por favor intenta de nuevo.",
           variant: "destructive",
         })
-        return
       }
+    } catch (error) {
+      console.error("[v0] handleTestOrder - Exception:", error)
+      toast({
+        title: "Error inesperado",
+        description: "Ocurrió un error al procesar tu pedido. Por favor intenta de nuevo.",
+        variant: "destructive",
+      })
+    } finally {
+      setProcessing(false)
     }
-    
+  }
+
+  const handleStripeCheckout = async () => {
+    console.log("[v0] handleStripeCheckout - Starting")
+
+    // Validate form
+    if (!customerName || !customerEmail || !phone || !street || !city || !state || !zip) {
+      console.log("[v0] handleStripeCheckout - Validation failed")
+      toast({
+        title: "Datos de envío incompletos",
+        description: "Por favor llena tus datos de envío para continuar",
+        variant: "destructive",
+      })
+      return
+    }
+
+    console.log("[v0] handleStripeCheckout - Form validated, creating Stripe session")
     setProcessing(true)
 
     try {
       const result = await createStripeCheckoutSession(
+        {
+          customerName,
+          customerEmail,
+          phone,
+          street,
+          city,
+          state,
+          zip,
+          country,
+        },
         isGuest,
-        isGuest ? cartItems : undefined,
-        initialUser?.email || guestEmail
       )
 
       console.log("[v0] handleStripeCheckout - Stripe session created:", result)
 
       if (result.url) {
-        console.log("[v0] handleStripeCheckout - Redirecting to:", result.url)
-        
         if (isGuest) {
           clearGuestCart()
         }
         setCartItems([])
 
-        // Try multiple methods to ensure redirect works
-        try {
-          window.location.replace(result.url)
-        } catch (e) {
-          console.error("[v0] handleStripeCheckout - Replace failed, trying href:", e)
-          window.location.href = result.url
-        }
+        window.location.href = result.url
       } else {
-        console.error("[v0] handleStripeCheckout - No URL in result:", result)
         toast({
           title: "Error",
           description: "No se pudo crear la sesión de pago",
@@ -265,37 +308,21 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
           Volver al Carrito
         </Button>
 
-        <div className="mb-6 p-5 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-300 rounded-lg shadow-md">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-0.5">
-              <CreditCard className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-bold text-green-900 mb-2 text-lg">✓ Pago Rápido y Seguro</h3>
-              <p className="text-sm text-green-800 mb-2">
-                <strong>¡Haz clic en "Pagar con Stripe" para continuar!</strong> Stripe te pedirá de forma segura:
-              </p>
-              <ul className="text-sm text-green-800 mb-2 ml-4 space-y-1 list-disc">
-                <li>Información de tu tarjeta de crédito/débito</li>
-                <li>Dirección de facturación completa</li>
-                <li>Dirección de envío completa</li>
-              </ul>
-              {isGuest && (
-                <p className="text-xs text-green-700">
-                  <em>Opcional:</em> Si quieres guardar tu historial de pedidos,{" "}
-                  <a href="/auth/login" className="underline font-semibold hover:text-green-900">
-                    inicia sesión
-                  </a>{" "}
-                  o{" "}
-                  <a href="/auth/sign-up" className="underline font-semibold hover:text-green-900">
-                    crea una cuenta
-                  </a>
-                  .
-                </p>
-              )}
-            </div>
+        {isGuest && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              Estás comprando como invitado. Puedes{" "}
+              <a href="/auth/login" className="underline font-medium">
+                iniciar sesión
+              </a>{" "}
+              o{" "}
+              <a href="/auth/sign-up" className="underline font-medium">
+                crear una cuenta
+              </a>{" "}
+              para guardar tu historial de pedidos.
+            </p>
           </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Cart Items & Shipping Form */}
@@ -316,12 +343,6 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
                     <div className="flex-1">
                       <h3 className="font-medium">{item.product.title}</h3>
                       <p className="text-lg font-semibold text-blue-600">${item.product.price.toFixed(2)}</p>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Package className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {getShippingInfo(item.product)}
-                        </span>
-                      </div>
                       <div className="flex items-center gap-2 mt-2">
                         <Button
                           variant="outline"
@@ -355,6 +376,94 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
                 ))}
               </CardContent>
             </Card>
+
+            {/* Shipping Information Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Información de Envío</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="customerName">Nombre Completo *</Label>
+                    <Input
+                      id="customerName"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Juan Pérez"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="customerEmail">Email *</Label>
+                    <Input
+                      id="customerEmail"
+                      type="email"
+                      value={customerEmail}
+                      onChange={(e) => setCustomerEmail(e.target.value)}
+                      placeholder="juan@ejemplo.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono *</Label>
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 (555) 123-4567"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="street">Dirección *</Label>
+                  <Input
+                    id="street"
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    placeholder="123 Main Street, Apt 4B"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Ciudad *</Label>
+                    <Input
+                      id="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="Miami"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">Estado *</Label>
+                    <Input
+                      id="state"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="FL"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zip">Código Postal *</Label>
+                    <Input id="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="33101" required />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">País *</Label>
+                  <Input id="country" value="United States" disabled className="bg-gray-50" />
+                  <input type="hidden" name="country" value="US" />
+                  <p className="text-xs text-gray-500">Actualmente solo enviamos a Estados Unidos</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Order Summary & Payment */}
@@ -377,67 +486,37 @@ export function CheckoutClient({ initialUser }: CheckoutClientProps) {
 
                 <Separator />
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>{t("subtotal")}</span>
-                    <span>${calculateSubtotal().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{t("shipping")}</span>
-                    <span>${calculateShipping().toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>{t("tax")}</span>
-                    <span>${(calculateSubtotal() * 0.1).toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <Separator />
-
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>{t("total")}</span>
+                  <span>Total</span>
                   <span className="text-blue-600">${calculateTotal().toFixed(2)}</span>
                 </div>
 
                 <Separator />
 
-                {isGuest && (
-                  <div className="space-y-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <Label htmlFor="guest-email" className="text-sm font-semibold text-blue-900 flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email para Confirmación de Pago *
-                    </Label>
-                    <Input
-                      id="guest-email"
-                      type="email"
-                      placeholder="tu@email.com"
-                      value={guestEmail}
-                      onChange={(e) => setGuestEmail(e.target.value)}
-                      className="w-full"
-                      data-testid="input-guest-email"
-                      required
-                    />
-                    <p className="text-xs text-blue-700">
-                      Te enviaremos la confirmación de tu pedido a este email
-                    </p>
-                  </div>
-                )}
-
                 <div className="space-y-3">
+                  <Button
+                    onClick={handleTestOrder}
+                    disabled={processing}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    <ShoppingBag className="mr-2 h-4 w-4" />
+                    {processing ? "Procesando..." : "Realizar Pedido de Prueba"}
+                  </Button>
+
                   <Button
                     onClick={handleStripeCheckout}
                     disabled={processing}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-6 text-lg shadow-lg"
-                    data-testid="button-pay-stripe"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    {processing ? "Procesando pago..." : "Pagar con Stripe"}
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    {processing ? "Procesando..." : "Pagar con Stripe"}
                   </Button>
-
-                  <p className="text-xs text-gray-500 text-center">
-                    Pago seguro procesado por Stripe. Tus datos están protegidos.
-                  </p>
                 </div>
+
+                <p className="text-xs text-gray-500 text-center">
+                  * El pedido de prueba crea una orden con estado "pending". El pago con Stripe procesa pagos reales y
+                  actualiza el estado a "paid".
+                </p>
               </CardContent>
             </Card>
           </div>

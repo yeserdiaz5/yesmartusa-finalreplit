@@ -11,7 +11,6 @@ import { shipOrder, cancelOrder, syncOrderStatus } from "../actions/orders"
 import { getOrderShipments, type Shipment } from "../actions/shipments"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
@@ -328,19 +327,13 @@ export default function OrdersPageClient({ user, orders = [] }: OrdersPageClient
             <p className="text-sm font-medium">Productos:</p>
             {order.items.map((item: any) => (
               <div key={item.id} className="flex items-center gap-3 bg-white p-2 rounded">
-                <Link href={`/productdes/${item.product?.id || item.product_id}`} className="shrink-0">
-                  <img
-                    src={item.product.image_url || "/placeholder.svg"}
-                    alt={item.product.title}
-                    className="w-12 h-12 object-cover rounded hover:opacity-80 transition-opacity"
-                  />
-                </Link>
+                <img
+                  src={item.product.image_url || "/placeholder.svg"}
+                  alt={item.product.title}
+                  className="w-12 h-12 object-cover rounded"
+                />
                 <div className="flex-1">
-                  <Link href={`/productdes/${item.product?.id || item.product_id}`}>
-                    <p className="text-sm font-medium hover:text-blue-600 transition-colors cursor-pointer">
-                      {item.product.title}
-                    </p>
-                  </Link>
+                  <p className="text-sm font-medium">{item.product.title}</p>
                   <p className="text-xs text-gray-600">
                     Cantidad: {item.quantity} × ${item.price_at_purchase}
                   </p>

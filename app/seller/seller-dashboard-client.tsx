@@ -3,300 +3,459 @@
 import { useState } from "react"
 import {
   Plus,
+  TrendingUp,
   Package,
+  Star,
   Eye,
   Edit,
   Trash2,
+  BarChart3,
   DollarSign,
-  ShoppingBag,
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
+  Settings,
+  FileText,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from "@/components/ui/progress"
 import { SiteHeader } from "@/components/site-header"
 import type { User } from "@/lib/types/database"
 import Link from "next/link"
-import { useLanguage } from "@/lib/i18n/LanguageContext"
+import { useRouter } from "next/navigation"
 
 interface SellerDashboardClientProps {
   user: User
   products: any[]
-  orders: any[]
+  orders: any[] // Added orders prop
 }
 
-export default function SellerDashboardClient({ user, products }: SellerDashboardClientProps) {
-  const { t } = useLanguage()
-  const [connectingStripe, setConnectingStripe] = useState(false)
-
-  // Check if seller is verified
-  const isVerified = user.stripe_account_verified
-
-  const handleConnectStripe = async () => {
-    setConnectingStripe(true)
-    try {
-      // Call API route to create/get account and onboarding link
-      const response = await fetch("/api/stripe-onboarding", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-
-      const result = await response.json()
-
-      if (!response.ok || !result.success) {
-        alert(t("stripeSetupError") + ": " + (result.error || t("unknownError")))
-        setConnectingStripe(false)
-        return
+function TrustScoreDisplay({ score }: { score: number }) {
+  const getScoreData = (score: number) => {
+    if (score >= 90)
+      return {
+        color: "text-emerald-600",
+        bgColor: "bg-emerald-50",
+        icon: "🛡️",
       }
+    if (score >= 80)
+      return {
+        color: "text-blue-600",
+        bgColor: "bg-blue-50",
+        icon: "✅",
+      }
+    if (score >= 70)
+      return {
+        color: "text-amber-600",
+        bgColor: "bg-amber-50",
+        icon: "⚠️",
+      }
+    return {
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      icon: "❌",
+    }
+  }
 
-      // Redirect to Stripe to complete onboarding
-      window.location.href = result.url
-    } catch (error: any) {
-      alert(t("error") + ": " + error.message)
-      setConnectingStripe(false)
+  const scoreData = getScoreData(score)
+
+  return (
+    <div className={`text-center p-4 rounded-xl ${scoreData.bgColor}`}>
+      <div className="text-2xl mb-2">{scoreData.icon}</div>
+      <div className={`text-4xl font-bold ${scoreData.color} mb-1`}>{score}</div>
+      <div className="text-sm text-gray-600 mb-3">Trust Score</div>
+      <Progress value={score} className="h-2" />
+    </div>
+  )
+}
+
+export default function SellerDashboardClient({ user, products, orders }: SellerDashboardClientProps) {
+  const [activeTab, setActiveTab] = useState("overview")
+  const [isTestingLabel, setIsTestingLabel] = useState(false)
+  const router = useRouter()
+
+  const activeListings = products.filter((p) => p.is_active).length
+  const totalListings = products.length
+  const trustScore = 85 // Mock for now
+
+  const monthlyRevenue = orders.reduce((sum, order) => {
+    const orderTotal = order.items.reduce((itemSum: number, item: any) => {
+      return itemSum + item.price_at_purchase * item.quantity
+    }, 0)
+    return sum + orderTotal
+  }, 0)
+
+  const totalSales = orders.length
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800"
+      case "paid":
+        return "bg-green-100 text-green-800"
+      case "shipped":
+        return "bg-blue-100 text-blue-800"
+      case "cancelled":
+        return "bg-red-100 text-red-800"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "Pendiente"
+      case "paid":
+        return "Pagado"
+      case "shipped":
+        return "Enviado"
+      case "cancelled":
+        return "Cancelado"
+      default:
+        return status
+    }
+  }
+
+  const handleTestLabel = async () => {
+    setIsTestingLabel(true)
+    try {
+      const { createTestLabel } = await import("@/app/actions/shipengine")
+      const result = await createTestLabel()
+
+      console.log("[v0] Test label result:", JSON.stringify(result, null, 2))
+
+      if (result.success && result.label?.label_download?.pdf) {
+        window.open(result.label.label_download.pdf, "_blank")
+        alert("Etiqueta de prueba creada exitosamente! Se abrirá en una nueva pestaña.")
+      } else {
+        if (result.errorDetails?.errors) {
+          console.error("[v0] ShipEngine errors array:", result.errorDetails.errors)
+          result.errorDetails.errors.forEach((err: any, index: number) => {
+            console.error(`[v0] Error ${index + 1}:`, JSON.stringify(err, null, 2))
+          })
+        }
+        alert(`Error: ${result.error || "No se pudo crear la etiqueta de prueba"}`)
+        console.error("[v0] Test label error:", result)
+      }
+    } catch (error) {
+      console.error("[v0] Error creating test label:", error)
+      alert("Error al crear la etiqueta de prueba. Revisa los logs del servidor.")
+    } finally {
+      setIsTestingLabel(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <SiteHeader user={user} />
+      <SiteHeader user={user} showSearch={false} />
 
-      {/* Secondary header for dashboard title - ONLY FOR VERIFIED SELLERS */}
-      {isVerified && (
-        <div className="bg-white border-b">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">{t("myProductListings")}</h1>
-                <p className="text-gray-600">{t("manageYourProducts")}</p>
-              </div>
+      {/* Secondary header for dashboard title */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Seller Dashboard</h1>
+              <p className="text-gray-600">Welcome back, {user.full_name || user.email}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleTestLabel} disabled={isTestingLabel}>
+                <FileText className="w-4 h-4 mr-2" />
+                {isTestingLabel ? "Creando..." : "Etiqueta de Prueba"}
+              </Button>
+              <Link href="/seller/settings">
+                <Button variant="outline">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configuración
+                </Button>
+              </Link>
+              <Link href="/seller/products/new">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add New Product
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="listings">My Listings</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* Trust Score Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Trust Score</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TrustScoreDisplay score={trustScore} />
+                </CardContent>
+              </Card>
+
+              {/* Revenue Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${monthlyRevenue.toLocaleString()}</div>
+                  <div className="flex items-center text-sm text-green-600">
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    +12% from last month
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Total Sales Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{totalSales.toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">All time</div>
+                </CardContent>
+              </Card>
+
+              {/* Active Listings Card */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Active Listings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{activeListings}</div>
+                  <div className="text-sm text-gray-600">of {totalListings} total</div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {orders.map((order) => (
+                      <div key={order.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <DollarSign className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">Pedido #{order.id.slice(0, 8)}</div>
+                          <div className="text-xs text-gray-600">
+                            {new Date(order.created_at).toLocaleDateString("es-ES", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </div>
+                        </div>
+                        <div className="font-bold text-green-600">
+                          $
+                          {order.items
+                            .reduce((sum, item) => sum + item.price_at_purchase * item.quantity, 0)
+                            .toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Trust Score Breakdown */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trust Score Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Product Quality</span>
+                        <span>95%</span>
+                      </div>
+                      <Progress value={95} />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Shipping Speed</span>
+                        <span>88%</span>
+                      </div>
+                      <Progress value={88} />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Customer Service</span>
+                        <span>92%</span>
+                      </div>
+                      <Progress value={92} />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Description Accuracy</span>
+                        <span>90%</span>
+                      </div>
+                      <Progress value={90} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="listings" className="mt-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold">My Product Listings</h2>
               <div className="flex gap-2">
-                <Link href="/seller/my-orders">
-                  <Button variant="outline" className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100" data-testid="button-my-orders">
-                    <ShoppingBag className="w-4 h-4 mr-2" />
-                    {t("myOrdersButton")}
-                  </Button>
-                </Link>
+                <select className="border rounded-md px-3 py-2 text-sm">
+                  <option>All Status</option>
+                  <option>Active</option>
+                  <option>Inactive</option>
+                </select>
                 <Link href="/seller/products/new">
-                  <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-add-product">
+                  <Button>
                     <Plus className="w-4 h-4 mr-2" />
-                    {t("addProduct")}
-                  </Button>
-                </Link>
-                <Link href="/seller/pagos">
-                  <Button variant="outline" className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100" data-testid="button-earnings">
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    {t("myEarnings")}
+                    Add Product
                   </Button>
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      <div className="container mx-auto px-4 py-6">
-        {/* Welcome Message for Unverified Sellers - BLOCKS ENTIRE DASHBOARD */}
-        {!isVerified ? (
-          <div className="max-w-3xl mx-auto">
-            <Card className="border-blue-200 shadow-lg">
-              <CardHeader className="text-center pb-4">
-                <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Package className="w-10 h-10 text-white" />
-                </div>
-                <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
-                  {t("welcomeToSelling")}
-                </CardTitle>
-                <CardDescription className="text-lg text-gray-600">
-                  {t("welcomeSellerSubtitle")}
-                </CardDescription>
+            {products.length > 0 ? (
+              <div className="grid gap-4">
+                {products.map((product) => {
+                  const trustScore = 75 + Math.floor(Math.random() * 20)
+                  const views = Math.floor(Math.random() * 2000)
+                  const sales = Math.floor(Math.random() * 200)
+
+                  return (
+                    <Card key={product.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={product.image_url || "/placeholder.svg"}
+                            alt={product.title}
+                            className="w-16 h-16 object-cover rounded-md"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-medium">{product.title}</h3>
+                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                              <span>${product.price}</span>
+                              <span>Stock: {product.stock_quantity}</span>
+                              <Badge
+                                className={
+                                  product.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                                }
+                              >
+                                {product.is_active ? "active" : "inactive"}
+                              </Badge>
+                              {product.product_categories && product.product_categories.length > 0 && (
+                                <span className="text-xs text-blue-600">
+                                  {product.product_categories[0].category.name}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-600">Trust Score</div>
+                            <div className="font-bold">{trustScore}%</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-600">Views</div>
+                            <div className="font-bold">{views}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-600">Sales</div>
+                            <div className="font-bold">{sales}</div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Link href={`/seller/products/${product.id}/edit`}>
+                              <Button variant="outline" size="sm">
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No products yet</h3>
+                  <p className="text-gray-600 mb-4">Start selling by adding your first product</p>
+                  <Link href="/seller/products/new">
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Product
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-16 h-16 text-gray-400" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Trust Score Trend</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-16 h-16 text-gray-400" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Customer Reviews</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Instructions */}
-                <Alert className="border-blue-200 bg-blue-50">
-                  <AlertCircle className="h-5 w-5 text-blue-600" />
-                  <AlertDescription className="text-blue-900 font-medium">
-                    {t("verificationRequired")}
-                  </AlertDescription>
-                </Alert>
-
-                {/* Steps to get started */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg text-gray-900">{t("stepsToStart")}</h3>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3 p-4 bg-white border rounded-lg">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-orange-600 font-bold">1</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">{t("sellerStep1Title")}</h4>
-                        <p className="text-sm text-gray-600">{t("sellerStep1Description")}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-4 bg-white border rounded-lg">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-orange-600 font-bold">2</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">{t("sellerStep2Title")}</h4>
-                        <p className="text-sm text-gray-600">{t("sellerStep2Description")}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-4 bg-white border rounded-lg">
-                      <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="text-orange-600 font-bold">3</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">{t("sellerStep3Title")}</h4>
-                        <p className="text-sm text-gray-600">{t("sellerStep3Description")}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CTA Button */}
-                <div className="pt-4">
-                  <Button 
-                    onClick={handleConnectStripe}
-                    disabled={connectingStripe}
-                    className="w-full h-12 text-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700" 
-                    data-testid="button-setup-payments"
-                  >
-                    {connectingStripe ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        {t("connecting")}
-                      </>
-                    ) : (
-                      <>
-                        <DollarSign className="w-5 h-5 mr-2" />
-                        {t("setupPaymentMethod")}
-                      </>
-                    )}
-                  </Button>
-                </div>
-
-                {/* Additional Info */}
-                <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-                    <div className="text-sm text-gray-700">
-                      <strong>{t("verificationTimeTitle")}:</strong> {t("verificationTimeDescription")}
-                    </div>
-                  </div>
+              <CardContent>
+                <div className="text-center py-12">
+                  <Star className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Review management coming soon</p>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        ) : (
-          /* Product Listings - Only show when verified */
-          <>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex gap-2">
-            <select className="border rounded-md px-3 py-2 text-sm">
-              <option>{t("allStatus")}</option>
-              <option>{t("active")}</option>
-              <option>{t("inactive")}</option>
-            </select>
-          </div>
-        </div>
-
-        {products.length > 0 ? (
-          <div className="grid gap-4">
-            {products.map((product) => {
-              const trustScore = 75 + Math.floor(Math.random() * 20)
-              const views = Math.floor(Math.random() * 2000)
-              const sales = Math.floor(Math.random() * 200)
-
-              return (
-                <Card key={product.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Link href={`/productdes/${product.id}`} className="shrink-0">
-                        <img
-                          src={product.image_url || "/placeholder.svg"}
-                          alt={product.title}
-                          className="w-16 h-16 object-cover rounded-md hover:opacity-80 transition-opacity"
-                        />
-                      </Link>
-                      <div className="flex-1">
-                        <Link href={`/productdes/${product.id}`}>
-                          <h3 className="font-medium hover:text-blue-600 transition-colors cursor-pointer">{product.title}</h3>
-                        </Link>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>${product.price}</span>
-                          <span>{t("stock")}: {product.stock_quantity}</span>
-                          <Badge
-                            className={
-                              product.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                            }
-                          >
-                            {product.is_active ? t("active") : t("inactive")}
-                          </Badge>
-                          {product.product_categories && product.product_categories.length > 0 && (
-                            <span className="text-xs text-blue-600">
-                              {product.product_categories[0].category.name}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-600">{t("trustScore")}</div>
-                        <div className="font-bold">{trustScore}%</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-600">{t("views")}</div>
-                        <div className="font-bold">{views}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-gray-600">{t("sales")}</div>
-                        <div className="font-bold">{sales}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Link href={`/seller/products/${product.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </Link>
-                        <Button variant="outline" size="sm">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">{t("noProductsYet")}</h3>
-              <p className="text-gray-600 mb-4">{t("startSellingMessage")}</p>
-              <Link href="/seller/products/new">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t("addFirstProduct")}
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        )}
-        </>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

@@ -1,10 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
-import type { Product, ShippingPolicy, ProductCondition } from "@/lib/types/database"
-import { updateProductEmbedding } from "@/lib/embeddings"
+import type { Product } from "@/lib/types/database"
 
 export interface CreateProductInput {
   title: string
@@ -13,37 +11,8 @@ export interface CreateProductInput {
   stock_quantity: number
   image_url?: string
   images?: string[]
-  brand?: string | null
-  condition?: ProductCondition | null
   category_ids?: string[]
   tag_ids?: string[]
-  shipping_policy?: ShippingPolicy | null
-  shipping_cost?: number | null
-  package_length?: number | null
-  package_width?: number | null
-  package_height?: number | null
-  package_weight?: number | null
-  asin?: string | null
-  attributes?: Record<string, string>
-  parent_id?: string | null
-}
-
-export interface VariantInput {
-  asin?: string | null  // Optional for manual variants
-  title: string
-  price: number
-  stock_quantity: number  // Stock for each variant
-  image_url: string  // Main image (for backward compatibility)
-  images: string[]  // Multiple images for variant
-  attributes: Record<string, string>
-  description?: string  // Variant-specific description
-  // Inherited logistics fields from parent product
-  shipping_policy?: string
-  shipping_cost?: number
-  package_length?: number
-  package_width?: number
-  package_height?: number
-  package_weight?: number
 }
 
 export interface UpdateProductInput extends Partial<CreateProductInput> {
@@ -81,15 +50,7 @@ export async function createProduct(input: CreateProductInput) {
       stock_quantity: input.stock_quantity,
       image_url: input.image_url,
       images: input.images || [],
-      brand: input.brand || null,
-      condition: input.condition || null,
       is_active: true,
-      shipping_policy: input.shipping_policy || null,
-      shipping_cost: input.shipping_cost || null,
-      package_length: input.package_length || null,
-      package_width: input.package_width || null,
-      package_height: input.package_height || null,
-      package_weight: input.package_weight || null,
     })
     .select()
     .single()
@@ -118,173 +79,8 @@ export async function createProduct(input: CreateProductInput) {
     await supabase.from("product_tags").insert(tagInserts)
   }
 
-  // Generate embedding asynchronously (don't wait for completion)
-  const imageUrl = input.image_url || input.images?.[0]
-  if (imageUrl && process.env.OPENAI_API_KEY) {
-    const adminClient = createAdminClient()
-    updateProductEmbedding(adminClient, product.id, imageUrl).catch((error) => {
-      console.error(`[Create Product] Failed to generate embedding for product ${product.id}:`, error)
-    })
-  }
-
   revalidatePath("/seller")
   return { data: product }
-}
-
-// Helper function to rollback all created products and their relations
-async function rollbackProducts(supabase: any, productIds: string[]) {
-  if (productIds.length === 0) return
-
-  // Delete relations first (categories and tags)
-  await supabase.from("product_categories").delete().in("product_id", productIds)
-  await supabase.from("product_tags").delete().in("product_id", productIds)
-
-  // Then delete products
-  await supabase.from("products").delete().in("id", productIds)
-}
-
-export async function createProductWithVariants(
-  parentInput: CreateProductInput,
-  selectedVariants: VariantInput[]
-) {
-  const supabase = await createClient()
-
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: "Unauthorized" }
-  }
-
-  // Verify user is a seller or admin
-  const { data: userProfile } = await supabase.from("users").select("role").eq("id", user.id).single()
-
-  if (!userProfile || !["seller", "admin"].includes(userProfile.role)) {
-    return { error: "Only sellers can create products" }
-  }
-
-  // Validate variants up-front
-  for (const variant of selectedVariants) {
-    if (!variant.title || !variant.title.trim()) {
-      return { error: "All variants must have a valid title" }
-    }
-    if (variant.price <= 0) {
-      return { error: "All variants must have a valid price" }
-    }
-    if (variant.stock_quantity < 0) {
-      return { error: "All variants must have valid stock quantity" }
-    }
-    if (!variant.images || variant.images.length === 0) {
-      return { error: "All variants must have at least one image" }
-    }
-  }
-
-  try {
-    // Generate a unique variant_group_id for all variants in this group
-    const variantGroupId = crypto.randomUUID()
-    const createdProductIds: string[] = []
-
-    // Create all variants as independent products with shared variant_group_id
-    const variantInserts = selectedVariants.map((variant) => {
-      const variantData: any = {
-        seller_id: user.id,
-        variant_group_id: variantGroupId,
-        title: variant.title,
-        description: variant.description ?? parentInput.description,
-        price: variant.price,
-        stock_quantity: variant.stock_quantity,
-        image_url: variant.image_url,
-        images: variant.images.length > 0 ? variant.images : [variant.image_url],
-        brand: parentInput.brand ?? null,
-        condition: parentInput.condition ?? null,
-        is_active: true,
-        // Use variant-specific logistics fields if provided, otherwise inherit from parent form (using ?? to preserve valid zero values)
-        shipping_policy: variant.shipping_policy ?? parentInput.shipping_policy ?? null,
-        shipping_cost: variant.shipping_cost !== undefined ? variant.shipping_cost : (parentInput.shipping_cost ?? null),
-        package_length: variant.package_length !== undefined ? variant.package_length : (parentInput.package_length ?? null),
-        package_width: variant.package_width !== undefined ? variant.package_width : (parentInput.package_width ?? null),
-        package_height: variant.package_height !== undefined ? variant.package_height : (parentInput.package_height ?? null),
-        package_weight: variant.package_weight !== undefined ? variant.package_weight : (parentInput.package_weight ?? null),
-        attributes: variant.attributes,
-      }
-      
-      // Only include asin if it exists
-      if (variant.asin) {
-        variantData.asin = variant.asin
-      }
-      
-      return variantData
-    })
-
-    const { data: variantProducts, error: variantError } = await supabase
-      .from("products")
-      .insert(variantInserts)
-      .select()
-
-    if (variantError) {
-      throw new Error(`Failed to create variants: ${variantError.message}`)
-    }
-
-    if (!variantProducts || variantProducts.length === 0) {
-      throw new Error("No variants were created")
-    }
-
-    createdProductIds.push(...variantProducts.map((p) => p.id))
-
-    // Add categories and tags to each variant product
-    for (const variantProduct of variantProducts) {
-      if (parentInput.category_ids && parentInput.category_ids.length > 0) {
-        const categoryInserts = parentInput.category_ids.map((category_id) => ({
-          product_id: variantProduct.id,
-          category_id,
-        }))
-        const { error: catError } = await supabase.from("product_categories").insert(categoryInserts)
-        if (catError) {
-          // Rollback: Delete all created products and their relations
-          await rollbackProducts(supabase, createdProductIds)
-          throw new Error(`Failed to add categories to variant: ${catError.message}`)
-        }
-      }
-
-      if (parentInput.tag_ids && parentInput.tag_ids.length > 0) {
-        const tagInserts = parentInput.tag_ids.map((tag_id) => ({
-          product_id: variantProduct.id,
-          tag_id,
-        }))
-        const { error: tagError } = await supabase.from("product_tags").insert(tagInserts)
-        if (tagError) {
-          // Rollback: Delete all created products and their relations
-          await rollbackProducts(supabase, createdProductIds)
-          throw new Error(`Failed to add tags to variant: ${tagError.message}`)
-        }
-      }
-    }
-
-    // Generate embeddings asynchronously for all created variant products
-    const adminClient = createAdminClient()
-    for (const variantProduct of variantProducts) {
-      const imageUrl = variantProduct.image_url || variantProduct.images?.[0]
-      if (imageUrl) {
-        updateProductEmbedding(adminClient, variantProduct.id, imageUrl).catch((error) => {
-          console.error(`[Create Product With Variants] Failed to generate embedding for product ${variantProduct.id}:`, error)
-        })
-      }
-    }
-
-    revalidatePath("/seller")
-    return {
-      data: {
-        variantGroupId: variantGroupId,
-        variantCount: selectedVariants.length,
-        createdProducts: variantProducts,
-      },
-    }
-  } catch (error: any) {
-    console.error("[Create Product With Variants] Error:", error)
-    return { error: error.message || "Failed to create product with variants" }
-  }
 }
 
 export async function updateProduct(input: UpdateProductInput) {
@@ -314,15 +110,7 @@ export async function updateProduct(input: UpdateProductInput) {
   if (input.stock_quantity !== undefined) updateData.stock_quantity = input.stock_quantity
   if (input.image_url !== undefined) updateData.image_url = input.image_url
   if (input.images !== undefined) updateData.images = input.images
-  if (input.brand !== undefined) updateData.brand = input.brand
-  if (input.condition !== undefined) updateData.condition = input.condition
   if (input.is_active !== undefined) updateData.is_active = input.is_active
-  if (input.shipping_policy !== undefined) updateData.shipping_policy = input.shipping_policy
-  if (input.shipping_cost !== undefined) updateData.shipping_cost = input.shipping_cost
-  if (input.package_length !== undefined) updateData.package_length = input.package_length
-  if (input.package_width !== undefined) updateData.package_width = input.package_width
-  if (input.package_height !== undefined) updateData.package_height = input.package_height
-  if (input.package_weight !== undefined) updateData.package_weight = input.package_weight
 
   const { data: updatedProduct, error: updateError } = await supabase
     .from("products")
@@ -363,15 +151,6 @@ export async function updateProduct(input: UpdateProductInput) {
       }))
       await supabase.from("product_tags").insert(tagInserts)
     }
-  }
-
-  // Regenerate embedding if image was updated
-  const imageUrl = input.image_url || input.images?.[0]
-  if ((input.image_url !== undefined || input.images !== undefined) && imageUrl && process.env.OPENAI_API_KEY) {
-    const adminClient = createAdminClient()
-    updateProductEmbedding(adminClient, input.id, imageUrl).catch((error) => {
-      console.error(`[Update Product] Failed to generate embedding for product ${input.id}:`, error)
-    })
   }
 
   revalidatePath("/seller")
@@ -588,47 +367,4 @@ export async function getAllProducts(categorySlug?: string, searchQuery?: string
   }
 
   return { data: products }
-}
-
-/**
- * Get public products by seller ID (for storefront view)
- * Anyone can view a seller's active products
- */
-export async function getProductsBySellerId(sellerId: string) {
-  const supabase = await createClient()
-
-  // Get seller info
-  const { data: seller, error: sellerError } = await supabase
-    .from("users")
-    .select("id, full_name, store_name, avatar_url, email, seller_address")
-    .eq("id", sellerId)
-    .single()
-
-  if (sellerError || !seller) {
-    return { error: "Seller not found" }
-  }
-
-  // Get seller's active products
-  const { data: products, error: productsError } = await supabase
-    .from("products")
-    .select(
-      `
-      *,
-      product_categories (
-        category:categories (*)
-      ),
-      product_tags (
-        tag:tags (*)
-      )
-    `,
-    )
-    .eq("seller_id", sellerId)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-
-  if (productsError) {
-    return { error: productsError.message }
-  }
-
-  return { data: { seller, products } }
 }
