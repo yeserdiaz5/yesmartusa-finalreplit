@@ -20,11 +20,11 @@ You need to add two new columns to your `users` table in Supabase:
 
 **SQL to run in Supabase SQL Editor:**
 
-```sql
+\`\`\`sql
 ALTER TABLE users 
 ADD COLUMN IF NOT EXISTS stripe_account_verified BOOLEAN DEFAULT FALSE,
 ADD COLUMN IF NOT EXISTS stripe_account_verified_at TIMESTAMP WITH TIME ZONE;
-```
+\`\`\`
 
 ### 2. Configure Stripe Webhook Secret
 
@@ -37,18 +37,18 @@ You need to create a webhook in your Stripe Dashboard:
    - `account.updated`
 5. **Copy the Signing Secret** and add it as an environment variable:
 
-```bash
+\`\`\`bash
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
-```
+\`\`\`
 
 ### 3. Test the Webhook (Optional)
 
 You can test the webhook using Stripe CLI:
 
-```bash
+\`\`\`bash
 stripe listen --forward-to localhost:5000/api/stripe-webhook
 stripe trigger account.updated
-```
+\`\`\`
 
 ## 📧 Email Configuration
 
@@ -58,9 +58,9 @@ The system uses Resend to send welcome emails. Make sure you have:
 - Update the "from" email in `lib/email/welcome-seller.ts` if needed
 
 Current configuration:
-```typescript
+\`\`\`typescript
 from: "YesmartUSA <no-reply@yesmartusa.com>"
-```
+\`\`\`
 
 ## 🔄 How It Works
 

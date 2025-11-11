@@ -8,7 +8,7 @@ Tu marketplace YesmartUSA mostraba transportistas y precios correctamente en pro
 ### 1. **Función getApiKey() en lib/shipengine.ts**
 Se creó una función que prioriza automáticamente la API Key de producción:
 
-```typescript
+\`\`\`typescript
 export function getApiKey(): string {
   // Primero intenta usar la key de producción
   if (process.env.SHIPENGINE_PRODUCTION_API_KEY) {
@@ -24,7 +24,7 @@ export function getApiKey(): string {
   
   return ""
 }
-```
+\`\`\`
 
 ### 2. **Archivos Actualizados**
 Se reemplazaron todas las referencias a `process.env.SHIPENGINE_API_KEY` con llamadas a `getApiKey()` en:

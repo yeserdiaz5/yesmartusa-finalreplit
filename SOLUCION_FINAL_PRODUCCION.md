@@ -11,7 +11,7 @@ La aplicación funcionaba correctamente en desarrollo (Replit local) pero NO fun
 ### Cambio en `lib/supabase/middleware.ts`
 
 **ANTES (NO funcionaba en producción):**
-```typescript
+\`\`\`typescript
 set(name: string, value: string, options: CookieOptions) {
   request.cookies.set({
     name,
@@ -29,10 +29,10 @@ set(name: string, value: string, options: CookieOptions) {
     ...options,
   })
 }
-```
+\`\`\`
 
 **DESPUÉS (funciona en producción):**
-```typescript
+\`\`\`typescript
 set(name: string, value: string, options: CookieOptions) {
   // CRITICAL: Only write to supabaseResponse.cookies for production edge runtime
   // Writing to request.cookies causes issues in production deployments
@@ -42,7 +42,7 @@ set(name: string, value: string, options: CookieOptions) {
     ...options,
   })
 }
-```
+\`\`\`
 
 ### Cambios Adicionales
 
@@ -53,7 +53,7 @@ set(name: string, value: string, options: CookieOptions) {
 
 ### Opción 1: Deploy desde Computadora Local (RECOMENDADO)
 
-```bash
+\`\`\`bash
 # 1. En tu computadora local (NO en Replit):
 cd /ruta/a/tu/proyecto
 git add .
@@ -65,16 +65,16 @@ git push origin main
 
 # 3. Si usas Replit Deployment:
 # El deployment se actualizará automáticamente
-```
+\`\`\`
 
 ### Opción 2: Desde Replit (si tienes acceso)
 
-```bash
+\`\`\`bash
 # Desde la consola de Replit:
 git add .
 git commit -m "Fix: Corregir persistencia de cookies en producción - Edge Runtime"
 git push origin main
-```
+\`\`\`
 
 ## ✅ Verificación Post-Deploy
 

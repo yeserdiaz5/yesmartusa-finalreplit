@@ -46,10 +46,10 @@ El código ha sido actualizado para:
 
 ### Variables de Entorno
 
-```
+\`\`\`
 SHIPENGINE_PRODUCTION_API_KEY  ← USAR EN PRODUCCIÓN (permite comprar etiquetas reales)
 SHIPENGINE_API_KEY            ← USAR EN DESARROLLO (puede ser TEST key)
-```
+\`\`\`
 
 ---
 
@@ -85,11 +85,11 @@ Verifica en los logs de Vercel:
 
 ## 🎯 Resumen Rápido
 
-```bash
+\`\`\`bash
 # En Vercel Environment Variables:
 SHIPENGINE_PRODUCTION_API_KEY = "tu-api-key-de-produccion-aqui"
 
 # Luego redespliega tu app
-```
+\`\`\`
 
 ¡Eso es todo! Ahora tu marketplace podrá comprar etiquetas en producción. 🎉

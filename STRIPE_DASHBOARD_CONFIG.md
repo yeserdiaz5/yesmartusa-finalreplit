@@ -60,20 +60,20 @@
 En tu Replit, configura estos **Secrets**:
 
 ### Producción (Live Mode)
-```
+\`\`\`
 APP_URL=https://yesmartusa.com
 STRIPE_SECRET_KEY=sk_live_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-```
+\`\`\`
 
 ### Modo Test (para desarrollo)
-```
+\`\`\`
 APP_URL=https://yesmartusa.com
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-```
+\`\`\`
 
 ---
 
@@ -93,11 +93,11 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ## 🧪 Probar la Configuración
 
 ### 1. Verificar que APP_URL esté configurado
-```bash
+\`\`\`bash
 # En Replit Shell
 echo $APP_URL
 # Debería mostrar: https://yesmartusa.com
-```
+\`\`\`
 
 ### 2. Probar el flujo de onboarding
 1. Ve a: https://yesmartusa.com/seller
