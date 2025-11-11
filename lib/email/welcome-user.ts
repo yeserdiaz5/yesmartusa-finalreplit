@@ -27,14 +27,14 @@ export async function sendUserWelcomeEmail({
     const { data, error } = await resend.emails.send({
       from: "YesmartUSA <no-reply@yesmartusa.com>",
       to: [to],
-      subject: "¡Bienvenido a YesmartUSA - Compra Seguro y Vende Fácil!",
+      subject: "Welcome to YesmartUSA - Shop Safely & Sell Easily!",
       html: `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bienvenido a YesmartUSA</title>
+  <title>Welcome to YesmartUSA</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f5f5f5;">
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 40px 20px;">
@@ -46,10 +46,10 @@ export async function sendUserWelcomeEmail({
           <tr>
             <td style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 40px 30px; text-align: center;">
               <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: bold;">
-                ¡Bienvenido a YesmartUSA!
+                Welcome to YesmartUSA!
               </h1>
               <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.95;">
-                Tu mercado de confianza para comprar y vender
+                Your trusted marketplace for buying and selling
               </p>
             </td>
           </tr>
@@ -58,43 +58,43 @@ export async function sendUserWelcomeEmail({
           <tr>
             <td style="padding: 40px 30px;">
               <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 24px; font-weight: bold;">
-                ¡Hola ${safeName}!
+                Hi ${safeName}!
               </h2>
               
               <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                ¡Gracias por unirte a YesmartUSA! Estamos emocionados de tenerte como parte de nuestra comunidad.
+                Thank you for joining YesmartUSA! We're excited to have you as part of our community.
               </p>
 
               <!-- Key Benefits Section -->
               <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 8px; padding: 25px; margin: 30px 0;">
                 <h3 style="margin: 0 0 20px 0; color: #1e40af; font-size: 20px; font-weight: bold; text-align: center;">
-                  Qué Puedes Hacer en YesmartUSA
+                  What You Can Do on YesmartUSA
                 </h3>
                 
                 <!-- Buy Safely -->
                 <div style="margin: 20px 0; padding: 15px; background: #ffffff; border-radius: 6px; border-left: 4px solid #10b981;">
                   <h4 style="margin: 0 0 10px 0; color: #047857; font-size: 18px; font-weight: bold;">
-                    🛒 Compra con Confianza y Seguridad
+                    🛒 Buy with Confidence & Security
                   </h4>
                   <p style="margin: 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                    Compra a vendedores de confianza con procesamiento de pagos seguro a través de Stripe. Tus compras están protegidas y puedes rastrear tus pedidos en cada paso del camino.
+                    Shop from trusted sellers with secure payment processing powered by Stripe. Your purchases are protected, and you can track your orders every step of the way.
                   </p>
                 </div>
 
                 <!-- Sell Easily -->
                 <div style="margin: 20px 0; padding: 15px; background: #ffffff; border-radius: 6px; border-left: 4px solid #f59e0b;">
                   <h4 style="margin: 0 0 10px 0; color: #92400e; font-size: 18px; font-weight: bold;">
-                    💼 Vende de Forma Simple y Segura
+                    💼 Sell Simply & Securely
                   </h4>
                   <p style="margin: 0 0 10px 0; color: #4b5563; font-size: 15px; line-height: 1.6;">
-                    ¿Quieres convertirte en vendedor? ¡Es fácil! Importa tus listados de productos existentes desde:
+                    Want to become a seller? It's easy! Import your existing product listings from:
                   </p>
                   <ul style="margin: 10px 0 0 20px; color: #4b5563; font-size: 15px; line-height: 1.8; padding-left: 0;">
-                    <li><strong>Amazon:</strong> Importa tus productos de Amazon con un solo clic</li>
-                    <li><strong>eBay Farmacia:</strong> Trae tus listados de farmacia directamente a YesmartUSA</li>
+                    <li><strong>Amazon:</strong> Import your Amazon products with just one click</li>
+                    <li><strong>eBay Pharmacy:</strong> Bring your pharmacy listings directly to YesmartUSA</li>
                   </ul>
                   <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px; font-style: italic;">
-                    ¡No necesitas recrear tus listados manualmente - lo hacemos rápido y simple!
+                    No need to manually recreate your listings - we make it fast and simple!
                   </p>
                 </div>
               </div>
@@ -102,13 +102,13 @@ export async function sendUserWelcomeEmail({
               <!-- Next Steps -->
               <div style="background-color: #f9fafb; border-radius: 8px; padding: 25px; margin: 30px 0;">
                 <h3 style="margin: 0 0 15px 0; color: #1f2937; font-size: 18px; font-weight: bold;">
-                  ¿Listo para Comenzar?
+                  Ready to Get Started?
                 </h3>
                 
                 <ol style="color: #4b5563; font-size: 15px; line-height: 1.8; margin: 0; padding-left: 20px;">
-                  <li><strong>Explorar Productos:</strong> Descubre grandes ofertas de vendedores de confianza</li>
-                  <li><strong>Empezar a Vender:</strong> Configura tu cuenta de vendedor e importa tus listados</li>
-                  <li><strong>Rastrear Todo:</strong> Monitorea tus pedidos y ventas en tiempo real</li>
+                  <li><strong>Browse Products:</strong> Discover great deals from trusted sellers</li>
+                  <li><strong>Start Selling:</strong> Set up your seller account and import your listings</li>
+                  <li><strong>Track Everything:</strong> Monitor your orders and sales in real-time</li>
                 </ol>
               </div>
 
@@ -121,13 +121,13 @@ export async function sendUserWelcomeEmail({
                         <td style="padding: 0 10px;">
                           <a href="https://yesmartusa.com/products" 
                              style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 15px;">
-                            Empezar a Comprar
+                            Start Shopping
                           </a>
                         </td>
                         <td style="padding: 0 10px;">
                           <a href="https://yesmartusa.com/seller" 
                              style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 15px;">
-                            Hacerse Vendedor
+                            Become a Seller
                           </a>
                         </td>
                       </tr>
@@ -139,17 +139,17 @@ export async function sendUserWelcomeEmail({
               <!-- Security Note -->
               <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 30px 0; border-radius: 4px;">
                 <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;">
-                  <strong>🔒 Tu Seguridad Importa:</strong> Todas las transacciones se procesan a través de Stripe, asegurando que tu información de pago esté siempre segura y protegida.
+                  <strong>🔒 Your Security Matters:</strong> All transactions are processed through Stripe, ensuring your payment information is always secure and protected.
                 </p>
               </div>
 
               <p style="margin: 30px 0 0 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
-                Si tienes alguna pregunta o necesitas ayuda, nuestro equipo de soporte está aquí para ayudarte. ¡Solo responde a este correo!
+                If you have any questions or need assistance, our support team is here to help. Just reply to this email!
               </p>
 
               <p style="margin: 20px 0 0 0; color: #6b7280; font-size: 14px;">
-                Saludos cordiales,<br>
-                <strong>El Equipo de YesmartUSA</strong>
+                Best regards,<br>
+                <strong>The YesmartUSA Team</strong>
               </p>
             </td>
           </tr>
@@ -158,10 +158,10 @@ export async function sendUserWelcomeEmail({
           <tr>
             <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 14px;">
-                YesmartUSA - Tu Mercado de Confianza
+                YesmartUSA - Your Trusted Marketplace
               </p>
               <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-                © ${new Date().getFullYear()} YesmartUSA. Todos los derechos reservados.
+                © ${new Date().getFullYear()} YesmartUSA. All rights reserved.
               </p>
             </td>
           </tr>
