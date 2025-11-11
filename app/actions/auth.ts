@@ -108,3 +108,28 @@ export async function createTestUser() {
     },
   }
 }
+
+export async function resetPassword(email: string) {
+  const supabase = await createClient()
+
+  console.log("[v0] resetPassword - Sending reset email to:", email)
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/callback`,
+  })
+
+  if (error) {
+    console.error("[v0] resetPassword - Error:", error)
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
+
+  console.log("[v0] resetPassword - Email sent successfully")
+
+  return {
+    success: true,
+    message: "Revisa tu correo para el enlace de restablecimiento",
+  }
+}
