@@ -292,7 +292,7 @@ function ProductCard({
         </div>
 
         <div className="text-xs text-gray-600 mb-2">
-          by {""}
+          by{" "}
           <span className="text-blue-600 hover:underline">
             {product.seller?.store_name || product.seller?.full_name || product.seller?.email || "Unknown Seller"}
           </span>
