@@ -40,6 +40,24 @@ export default function SignUpPage() {
         },
       })
       if (error) throw error
+
+      // Send welcome email (fire-and-forget, don't block signup flow)
+      try {
+        await fetch("/api/send-welcome-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            fullName: fullName,
+          }),
+        })
+      } catch (emailError) {
+        // Log but don't block signup
+        console.warn("[v0] Failed to send welcome email:", emailError)
+      }
+
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
