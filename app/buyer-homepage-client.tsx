@@ -1,4 +1,4 @@
-use client
+"use client"
 
 import type React from "react"
 import { useState, useMemo, useEffect } from "react"
@@ -58,7 +58,7 @@ function TrustBadge({ score }: { score: number }) {
   const scoreData = getScoreData(score)
 
   return (
-    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${scoreData.color}`}>  
+    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${scoreData.color}`}>
       <span className="text-sm">{scoreData.icon}</span>
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
@@ -69,8 +69,7 @@ function TrustBadge({ score }: { score: number }) {
           <div className="w-12 h-1 bg-gray-200 rounded-full overflow-hidden">
             <div
               className={`h-full ${scoreData.barColor} transition-all duration-300`}
-              style={{ width: 
-`${score}%` }}
+              style={{ width: `${score}%` }}
             />
           </div>
           <span className="text-xs opacity-75">{scoreData.label}</span>
@@ -89,9 +88,10 @@ function SellerLocationInfo({ seller, buyerLocation }: SellerLocationProps) {
   const [deliveryTime, setDeliveryTime] = useState<string | null>(null)
 
   // Always show seller location immediately if available
-  const locationStr = seller?.seller_address?.city && seller?.seller_address?.state
-    ? `${seller.seller_address.city}, ${seller.seller_address.state}`
-    : null
+  const locationStr =
+    seller?.seller_address?.city && seller?.seller_address?.state
+      ? `${seller.seller_address.city}, ${seller.seller_address.state}`
+      : null
 
   useEffect(() => {
     // Only calculate delivery time if we have both buyer location and seller address
@@ -102,17 +102,14 @@ function SellerLocationInfo({ seller, buyerLocation }: SellerLocationProps) {
 
     async function calculateDeliveryTime() {
       try {
-        const sellerCoords = await geocodeAddress(
-          seller.seller_address.city,
-          seller.seller_address.state
-        )
+        const sellerCoords = await geocodeAddress(seller.seller_address.city, seller.seller_address.state)
 
         if (sellerCoords) {
           const distance = calculateDistance(
             buyerLocation.latitude,
             buyerLocation.longitude,
             sellerCoords.lat,
-            sellerCoords.lng
+            sellerCoords.lng,
           )
           const deliveryTimeMsg = getDeliveryTimeMessage(distance)
           setDeliveryTime(deliveryTimeMsg)
@@ -147,7 +144,11 @@ function SellerLocationInfo({ seller, buyerLocation }: SellerLocationProps) {
   )
 }
 
-function ProductCard({ product, userId, buyerLocation }: { product: any; userId: string | null; buyerLocation: { latitude: number; longitude: number } | null }) {
+function ProductCard({
+  product,
+  userId,
+  buyerLocation,
+}: { product: any; userId: string | null; buyerLocation: { latitude: number; longitude: number } | null }) {
   const router = useRouter()
   const { toast } = useToast()
   const [isAdding, setIsAdding] = useState(false)
@@ -257,7 +258,7 @@ function ProductCard({ product, userId, buyerLocation }: { product: any; userId:
   return (
     <Card className="hover:shadow-lg transition-shadow cursor-pointer">
       <CardContent className="p-4">
-        <Link href={`/productdes/${product.id}`}>  
+        <Link href={`/productdes/${product.id}`}>
           <div className="relative mb-3 cursor-pointer">
             <img
               src={product.image_url || "/placeholder.svg"}
@@ -270,7 +271,7 @@ function ProductCard({ product, userId, buyerLocation }: { product: any; userId:
           </div>
         </Link>
 
-        <Link href={`/productdes/${product.id}`}>  
+        <Link href={`/productdes/${product.id}`}>
           <h3 className="font-medium text-sm mb-2 line-clamp-2 hover:text-blue-600 cursor-pointer">{product.title}</h3>
         </Link>
 
@@ -506,7 +507,12 @@ export default function BuyerHomepageClient({ user, products, categories }: Buye
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} userId={user?.id || null} buyerLocation={buyerLocation} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    userId={user?.id || null}
+                    buyerLocation={buyerLocation}
+                  />
                 ))}
               </div>
             ) : (
