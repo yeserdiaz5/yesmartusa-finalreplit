@@ -1,6 +1,6 @@
 export type UserRole = "buyer" | "seller" | "admin"
 
-export type OrderStatus = "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled"
+export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled"
 
 export interface User {
   id: string
@@ -19,16 +19,9 @@ export interface User {
     postal_code: string
     country: string
   } | null
-  stripe_connect_account_id: string | null
-  stripe_account_verified: boolean
-  stripe_account_verified_at: string | null
   created_at: string
   updated_at: string
 }
-
-export type ShippingPolicy = "seller_pays" | "buyer_pays" | "shared"
-
-export type ProductCondition = "new" | "like_new" | "used" | "refurbished" | "open_box" | "for_parts"
 
 export interface Product {
   id: string
@@ -41,17 +34,6 @@ export interface Product {
   image_url: string | null
   images: string[] | null
   is_active: boolean
-  brand: string | null
-  condition: ProductCondition | null
-  shipping_policy: ShippingPolicy | null
-  shipping_cost: number | null
-  package_length: number | null
-  package_width: number | null
-  package_height: number | null
-  package_weight: number | null
-  parent_id: string | null
-  asin: string | null
-  attributes: Record<string, string> | null
   created_at: string
   updated_at: string
 }
@@ -83,8 +65,7 @@ export interface ProductWithRelations extends Product {
 
 export interface Order {
   id: string
-  buyer_id: string | null
-  buyer_email: string | null
+  buyer_id: string
   status: OrderStatus
   total_amount: number
   shipping_address: {
@@ -93,10 +74,8 @@ export interface Order {
     state: string
     zip: string
     country: string
-  } | null
+  }
   payment_intent_id: string | null
-  cancellation_reason: string | null
-  refund_id: string | null
   created_at: string
   updated_at: string
 }
@@ -109,19 +88,6 @@ export interface OrderItem {
   quantity: number
   price_at_purchase: number
   created_at: string
-}
-
-/**
- * Compra represents a purchase from the buyer's perspective.
- * It's an alias for Order but emphasizes the buyer_id (compradorId) field.
- * This type is used to distinguish purchases (compras) from sales (ventas).
- */
-export type Compra = Order
-
-export interface CompraWithItems extends Compra {
-  order_items: (OrderItem & {
-    product?: Product
-  })[]
 }
 
 export interface Review {

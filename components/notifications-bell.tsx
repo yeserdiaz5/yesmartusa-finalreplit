@@ -75,7 +75,7 @@ export function NotificationsBell() {
     }
     setIsOpen(false)
     if (notification.order_id) {
-      router.push("/seller/my-orders")
+      router.push("/my-orders")
     }
   }
 

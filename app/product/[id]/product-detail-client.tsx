@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { ArrowLeft, Star, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,7 +9,6 @@ import Link from "next/link"
 import type { User } from "@supabase/supabase-js"
 import { testShippingRates } from "@/app/actions/shipengine"
 import { useToast } from "@/hooks/use-toast"
-import { useLanguage } from "@/lib/i18n/LanguageContext"
 
 interface ProductDetailClientProps {
   product: any
@@ -17,30 +16,32 @@ interface ProductDetailClientProps {
 }
 
 function TrustBadge({ score }: { score: number }) {
-  const { t } = useLanguage()
-  
   const getScoreData = (score: number) => {
     if (score >= 90)
       return {
         color: "bg-emerald-50 border-emerald-200 text-emerald-800",
-        label: t("excellent"),
+        icon: "🛡️",
+        label: "Excellent",
         barColor: "bg-emerald-500",
       }
     if (score >= 80)
       return {
         color: "bg-blue-50 border-blue-200 text-blue-800",
-        label: t("veryGood"),
+        icon: "✅",
+        label: "Very Good",
         barColor: "bg-blue-500",
       }
     if (score >= 70)
       return {
         color: "bg-amber-50 border-amber-200 text-amber-800",
-        label: t("good"),
+        icon: "⚠️",
+        label: "Good",
         barColor: "bg-amber-500",
       }
     return {
       color: "bg-red-50 border-red-200 text-red-800",
-      label: t("poor"),
+      icon: "❌",
+      label: "Poor",
       barColor: "bg-red-500",
     }
   }
@@ -49,9 +50,10 @@ function TrustBadge({ score }: { score: number }) {
 
   return (
     <div className={`inline-flex items-center gap-3 px-4 py-2 rounded-xl border ${scoreData.color}`}>
+      <span className="text-lg">{scoreData.icon}</span>
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">{t("trustScore")}</span>
+          <span className="text-sm font-medium">Trust Score</span>
           <span className="text-lg font-bold">{score}%</span>
         </div>
         <div className="flex items-center gap-2">
@@ -69,29 +71,15 @@ function TrustBadge({ score }: { score: number }) {
 }
 
 export default function ProductDetailClient({ product, user }: ProductDetailClientProps) {
-  const { t } = useLanguage()
   const [selectedImage, setSelectedImage] = useState(0)
   const [testingRates, setTestingRates] = useState(false)
   const [testRates, setTestRates] = useState<any[]>([])
   const { toast } = useToast()
 
   const images = product.images || [product.image_url]
-  
-  // Generate consistent values based on product id
-  const trustScore = useMemo(() => {
-    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
-    return 75 + Math.floor((hash % 20))
-  }, [product.id])
-  
-  const rating = useMemo(() => {
-    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
-    return 4 + (hash % 100) / 100
-  }, [product.id])
-  
-  const reviews = useMemo(() => {
-    const hash = product.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
-    return Math.floor((hash % 2000)) + 100
-  }, [product.id])
+  const trustScore = 75 + Math.floor(Math.random() * 20)
+  const rating = 4 + Math.random()
+  const reviews = Math.floor(Math.random() * 2000) + 100
 
   const handleTestShippingRates = async () => {
     setTestingRates(true)
@@ -107,8 +95,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
       if (result.success) {
         setTestRates(result.rates || [])
         toast({
-          title: t("success"),
-          description: result.message || t("ratesFoundMessage").replace("{count}", String(result.rates?.length || 0)),
+          title: "Éxito!",
+          description: result.message || `Se encontraron ${result.rates?.length || 0} tarifas de envío`,
         })
 
         console.log("[v0] ✅ Test rates retrieved successfully!")
@@ -126,8 +114,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         }
       } else {
         toast({
-          title: t("error"),
-          description: result.error || t("couldNotGetRates"),
+          title: "Error",
+          description: result.error || "No se pudieron obtener las tarifas",
           variant: "destructive",
         })
 
@@ -151,8 +139,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
     } catch (error: any) {
       console.error("[v0] ❌ Exception testing rates:", error)
       toast({
-        title: t("error"),
-        description: error.message || t("errorTestingRates"),
+        title: "Error",
+        description: error.message || "Error al probar las tarifas",
         variant: "destructive",
       })
     } finally {
@@ -167,9 +155,9 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
             <Link href="/">
-              <Button variant="ghost" size="sm" data-testid="button-back-home">
+              <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                {t("backToHome")}
+                Volver a Inicio
               </Button>
             </Link>
           </div>
@@ -183,19 +171,18 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">{t("shippingRatesTest")}</h3>
+                  <h3 className="font-semibold text-blue-900 mb-1">Prueba de Tarifas de Envío</h3>
                   <p className="text-sm text-blue-700">
-                    {t("useSameDataAsTestLabel")}
+                    Usa los mismos datos exactos que funcionaron en la etiqueta de prueba
                   </p>
                 </div>
                 <Button
                   onClick={handleTestShippingRates}
                   disabled={testingRates}
                   className="bg-blue-600 hover:bg-blue-700"
-                  data-testid="button-test-rates"
                 >
                   <Package className="w-4 h-4 mr-2" />
-                  {testingRates ? t("testing") : t("testRates")}
+                  {testingRates ? "Probando..." : "Probar Tarifas"}
                 </Button>
               </div>
             </CardContent>
@@ -207,15 +194,15 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
           <div className="mb-6">
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-3" data-testid="text-rates-count">{t("shippingRatesFound")} ({testRates.length})</h3>
+                <h3 className="font-semibold mb-3">Tarifas de Envío Encontradas ({testRates.length})</h3>
                 <div className="space-y-2">
                   {testRates.map((rate: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-testid={`rate-${index}`}>
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <div className="font-medium">{rate.carrier_friendly_name}</div>
                         <div className="text-sm text-gray-600">{rate.service_type}</div>
                         {rate.delivery_days && (
-                          <div className="text-xs text-gray-500">{rate.delivery_days} {t("deliveryDays")}</div>
+                          <div className="text-xs text-gray-500">{rate.delivery_days} días de entrega</div>
                         )}
                       </div>
                       <div className="text-right">
@@ -249,7 +236,6 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                     className={`aspect-square bg-white rounded-md p-2 border-2 ${
                       selectedImage === index ? "border-blue-500" : "border-gray-200"
                     }`}
-                    data-testid={`button-thumbnail-${index}`}
                   >
                     <img src={image || "/placeholder.svg"} alt="" className="w-full h-full object-cover rounded" />
                   </button>
@@ -271,7 +257,7 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
                     />
                   ))}
                   <span className="ml-2 text-sm text-gray-600">
-                    {rating.toFixed(1)} ({reviews} {t("reviews")})
+                    {rating.toFixed(1)} ({reviews} reviews)
                   </span>
                 </div>
               </div>
@@ -284,11 +270,11 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
 
             {/* Price */}
             <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-red-600" data-testid="text-price">${product.price}</span>
+              <span className="text-3xl font-bold text-red-600">${product.price}</span>
               {product.stock_quantity > 0 ? (
-                <Badge className="bg-green-500 text-white" data-testid="badge-in-stock">{t("inStock")}</Badge>
+                <Badge className="bg-green-500 text-white">En Stock</Badge>
               ) : (
-                <Badge className="bg-red-500 text-white" data-testid="badge-out-stock">{t("outOfStock")}</Badge>
+                <Badge className="bg-red-500 text-white">Agotado</Badge>
               )}
             </div>
 
@@ -297,8 +283,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium" data-testid="text-seller">
-                      {t("soldBy")} {product.seller?.full_name || product.seller?.email || t("seller")}
+                    <div className="font-medium">
+                      Vendido por {product.seller?.full_name || product.seller?.email || "Vendedor"}
                     </div>
                   </div>
                 </div>
@@ -308,8 +294,8 @@ export default function ProductDetailClient({ product, user }: ProductDetailClie
             {/* Description */}
             {product.description && (
               <div>
-                <h3 className="font-semibold mb-3">{t("description")}</h3>
-                <p className="text-gray-700 leading-relaxed" data-testid="text-description">{product.description}</p>
+                <h3 className="font-semibold mb-3">Descripción</h3>
+                <p className="text-gray-700 leading-relaxed">{product.description}</p>
               </div>
             )}
           </div>

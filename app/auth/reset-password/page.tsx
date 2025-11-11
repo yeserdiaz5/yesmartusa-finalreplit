@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useState } from "react"
-import { getBaseUrl } from "@/lib/utils/get-base-url"
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState("")
@@ -25,14 +24,8 @@ export default function ResetPasswordPage() {
     setSuccess(false)
 
     try {
-      const baseUrl = getBaseUrl()
-      const redirectUrl = `${baseUrl}/auth/confirm?next=/auth/update-password`
-      
-      console.log('[RESET PASSWORD] Base URL:', baseUrl)
-      console.log('[RESET PASSWORD] Full redirect URL:', redirectUrl)
-      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
+        redirectTo: `${window.location.origin}/auth/update-password`,
       })
 
       if (error) throw error

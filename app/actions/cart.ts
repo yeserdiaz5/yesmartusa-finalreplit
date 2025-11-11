@@ -18,8 +18,6 @@ export interface CartItem {
     images: string[]
     stock_quantity: number
     seller_id: string
-    shipping_policy: string | null
-    shipping_cost: number | null
   }
 }
 
@@ -45,9 +43,7 @@ export async function getCart() {
         image_url,
         images,
         stock_quantity,
-        seller_id,
-        shipping_policy,
-        shipping_cost
+        seller_id
       )
     `)
     .eq("user_id", user.id)
