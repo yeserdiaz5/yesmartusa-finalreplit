@@ -7,9 +7,30 @@ export async function updateSession(request: NextRequest) {
   })
 
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    // If Supabase is not configured, allow public access but block protected routes
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn("[v0] Supabase not configured - authentication features disabled")
+      
+      // Define routes that require authentication
+      const protectedRoutes = ["/seller", "/admin", "/orders"]
+      const isProtectedRoute = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+
+      // Redirect to login for protected routes when Supabase is not configured
+      if (isProtectedRoute) {
+        const url = request.nextUrl.clone()
+        url.pathname = "/auth/login"
+        return NextResponse.redirect(url)
+      }
+
+      return supabaseResponse
+    }
+
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseUrl,
+      supabaseAnonKey,
       {
         cookies: {
           getAll() {
